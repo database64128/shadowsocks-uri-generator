@@ -69,7 +69,7 @@ namespace shadowsocks_uri_generator
                     if (nodes.AddNodeToGroup(group, nodename, host, portString) == 0)
                         Console.WriteLine($"Added {nodename} to group {group}.");
                     else
-                        Console.WriteLine($"Group {group} not found.");
+                        Console.WriteLine($"Group not found. Or node already exists.");
                     await NodesJson.SaveNodesAsync(nodes);
                 });
 
@@ -178,14 +178,14 @@ namespace shadowsocks_uri_generator
                         if (users.AddCredentialToUser(username, group, method, password, nodes) == 0)
                             Console.WriteLine($"Successfully added {group}'s credential to {username}");
                         else
-                            Console.WriteLine("Credential already existed. Or group not found.");
+                            Console.WriteLine("Group not found. Or credential already exists.");
                     }
                     else if (!string.IsNullOrEmpty(userinfoBase64url))
                     {
                         if (users.AddCredentialToUser(username, group, userinfoBase64url, nodes) == 0)
                             Console.WriteLine($"Successfully added {group}'s credential to {username}");
                         else
-                            Console.WriteLine("Credential already existed. Or group not found.");
+                            Console.WriteLine("Group not found. Or credential already exists.");
                     }
                     else
                     {
