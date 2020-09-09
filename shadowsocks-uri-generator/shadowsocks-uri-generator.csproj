@@ -17,10 +17,11 @@
     <RepositoryType>Public</RepositoryType>
     <ApplicationIcon>ss-uri-gen.ico</ApplicationIcon>
     <PackageIcon>ss-uri-gen.png</PackageIcon>
+    <Version>2.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20303.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20427.1" />
   </ItemGroup>
 
   <ItemGroup>
