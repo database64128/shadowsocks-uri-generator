@@ -12,38 +12,48 @@ namespace shadowsocks_uri_generator
         {
             Users users;
             Nodes nodes;
+            Settings settings;
             Task<Users> loadUsersTask = Users.LoadUsersAsync();
             Task<Nodes> loadNodesTask = Nodes.LoadNodesAsync();
+            Task<Settings> loadSettingsTask = Settings.LoadSettingsAsync();
 
             var addUsersCommand = new Command("add-users", "Add users.");
             var addNodeCommand = new Command("add-node", "Add a node to a node group.");
             var addNodeGroupsCommand = new Command("add-node-groups", "Add node groups.");
+            var addCredentialCommand = new Command("add-credential", "Add a credential to a node group for a user.");
             var rmUsersCommand = new Command("rm-users", "Remove users.");
             var rmNodesCommand = new Command("rm-nodes", "Remove nodes from a node group.");
             var rmNodeGroupsCommand = new Command("rm-node-groups", "Remove node groups and its nodes.");
+            var rmCredentialsCommand = new Command("rm-credential", "Remove a node group's credential from a user.");
             var lsUsersCommand = new Command("ls-users", "List all users.");
-            var lsCredentialsCommand = new Command("ls-credentials", "List all user credentials.");
             var lsNodesCommand = new Command("ls-nodes", "List nodes from the specified group.");
             var lsNodeGroupsCommand = new Command("ls-node-groups", "List all node groups.");
-            var addCredentialCommand = new Command("add-credential", "Add a credential to a node group for a user.");
-            var rmCredentialsCommand = new Command("rm-credential", "Remove a node group's credential from a user.");
+            var lsCredentialsCommand = new Command("ls-credentials", "List all user credentials.");
             var getUserSSUrisCommand = new Command("get-user-ss-uris", "Get the user's associated Shadowsocks URIs.");
+            var getUserOnlineConfigUriCommand = new Command("get-user-online-config-uri", "Get the user's SIP008-compliant online configuration delivery URL.");
+            var getSettingsCommand = new Command("get-settings", "Get and print all settings.");
+            var changeSettingsCommand = new Command("change-settings", "Change any settings");
+            var generateOnlineConfigCommand = new Command("gen-online-config", "Generate SIP008-compliant online configuration delivery JSON files.");
 
             var rootCommand = new RootCommand()
             {
                 addUsersCommand,
                 addNodeCommand,
                 addNodeGroupsCommand,
+                addCredentialCommand,
                 rmUsersCommand,
                 rmNodesCommand,
                 rmNodeGroupsCommand,
+                rmCredentialsCommand,
                 lsUsersCommand,
-                lsCredentialsCommand,
                 lsNodesCommand,
                 lsNodeGroupsCommand,
-                addCredentialCommand,
-                rmCredentialsCommand,
-                getUserSSUrisCommand
+                lsCredentialsCommand,
+                getUserSSUrisCommand,
+                getUserOnlineConfigUriCommand,
+                getSettingsCommand,
+                changeSettingsCommand,
+                generateOnlineConfigCommand
             };
 
             addUsersCommand.AddArgument(new Argument<string[]>("usernames"));
@@ -117,10 +127,10 @@ namespace shadowsocks_uri_generator
             lsUsersCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"User", -16}|{"Number of Credentials", 21}|");
+                    Console.WriteLine($"|{"User", -16}|{"UUID", 36}|{"Number of Credentials", 21}|");
                     users = await loadUsersTask;
                     foreach (var user in users.UserDict)
-                        Console.WriteLine($"|{user.Key, -16}|{user.Value.Credentials.Count, 21}|");
+                        Console.WriteLine($"|{user.Key, -16}|{user.Value.Uuid, 36}|{user.Value.Credentials.Count, 21}|");
                 });
 
             lsCredentialsCommand.Handler = CommandHandler.Create(
@@ -144,9 +154,9 @@ namespace shadowsocks_uri_generator
                     nodes = await loadNodesTask;
                     if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
                     {
-                        Console.WriteLine($"|{"Node", -32}|{"Host", -40}|{"Port", 5}|");
+                        Console.WriteLine($"|{"Node", -32}|{"UUID", 36}|{"Host", -40}|{"Port", 5}|");
                         foreach (var node in targetGroup.NodeDict)
-                            Console.WriteLine($"|{node.Key, -32}|{node.Value.Host, -40}|{node.Value.Port, 5}|");
+                            Console.WriteLine($"|{node.Key, -32}|{node.Value.Uuid, 36}|{node.Value.Host, -40}|{node.Value.Port, 5}|");
                     }
                     else
                         Console.WriteLine($"Group not found: {group}.");
@@ -214,6 +224,54 @@ namespace shadowsocks_uri_generator
                     List<Uri> uris = users.GetUserSSUris(username, nodes);
                     foreach (var uri in uris)
                         Console.WriteLine($"{uri.AbsoluteUri}");
+                });
+
+            getUserOnlineConfigUriCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => ""));
+            getUserOnlineConfigUriCommand.Handler = CommandHandler.Create(
+                async (string username) =>
+                {
+                    Console.WriteLine($"|{"User", -16}|{"Online Configuration Delivery URL", 110}|");
+                    users = await loadUsersTask;
+                    settings = await loadSettingsTask;
+                    if (string.IsNullOrEmpty(username))
+                        foreach (var user in users.UserDict)
+                            Console.WriteLine($"|{user.Key, -16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
+                    else
+                        if (users.UserDict.TryGetValue(username, out User? user))
+                            Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                });
+
+            getSettingsCommand.Handler = CommandHandler.Create(
+                async () =>
+                {
+                    Console.WriteLine($"|{"Key", -32}|{"Value", 40}|");
+                    settings = await loadSettingsTask;
+                    Console.WriteLine($"|{"Version", -32}|{settings.Version, 40}|");
+                    Console.WriteLine($"|{"OnlineConfigOutputDirectory", -32}|{settings.OnlineConfigOutputDirectory, 40}|");
+                    Console.WriteLine($"|{"OnlineConfigDeliveryRootUri", -32}|{settings.OnlineConfigDeliveryRootUri, 40}|");
+                });
+
+            changeSettingsCommand.AddOption(new Option<string>("--online-config-output-directory"));
+            changeSettingsCommand.AddOption(new Option<string>("--online-config-delivery-root-uri"));
+            changeSettingsCommand.Handler = CommandHandler.Create(
+                async (string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri) =>
+                {
+                    settings = await loadSettingsTask;
+                    if (!string.IsNullOrEmpty(onlineConfigOutputDirectory))
+                        settings.OnlineConfigOutputDirectory = onlineConfigOutputDirectory;
+                    if (!string.IsNullOrEmpty(onlineConfigDeliveryRootUri))
+                        settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
+                    await Settings.SaveSettingsAsync(settings);
+                });
+
+            generateOnlineConfigCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => ""));
+            generateOnlineConfigCommand.Handler = CommandHandler.Create(
+                async (string username) =>
+                {
+                    users = await loadUsersTask;
+                    nodes = await loadNodesTask;
+                    settings = await loadSettingsTask;
+                    await OnlineConfig.GenerateAndSave(users, nodes, settings, username);
                 });
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
