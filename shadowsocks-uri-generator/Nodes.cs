@@ -105,6 +105,38 @@ namespace shadowsocks_uri_generator
             else
                 return -1;
         }
+
+        /// <summary>
+        /// Load nodes from Nodes.json.
+        /// </summary>
+        /// <returns>A Nodes object.</returns>
+        public static async Task<Nodes> LoadNodesAsync()
+        {
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            };
+            Nodes nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", jsonSerializerOptions);
+            return nodes;
+        }
+
+        /// <summary>
+        /// Save nodes to Nodes.json.
+        /// </summary>
+        /// <param name="nodes">The Nodes object to save.</param>
+        /// <returns>A task that represents the asynchronous write operation.</returns>
+        public static async Task SaveNodesAsync(Nodes nodes)
+        {
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            };
+            await Utilities.SaveJsonAsync("Nodes.json", nodes, jsonSerializerOptions);
+        }
     }
 
     /// <summary>
@@ -184,35 +216,6 @@ namespace shadowsocks_uri_generator
         {
             Host = _host;
             Port = _port;
-        }
-    }
-
-    public static class NodesJson
-    {
-        public static async Task<Nodes> LoadNodesAsync()
-        {
-            Nodes nodes;
-
-            if (!File.Exists("Nodes.json"))
-            {
-                nodes = new Nodes();
-                await SaveNodesAsync(nodes);
-                return nodes;
-            }
-
-            using FileStream nodesJsonFile = new FileStream("Nodes.json", FileMode.Open);
-            nodes = await JsonSerializer.DeserializeAsync<Nodes>(nodesJsonFile);
-            return nodes;
-        }
-
-        public static async Task SaveNodesAsync(Nodes nodes)
-        {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-            using FileStream nodesJsonFile = new FileStream("Nodes.json", FileMode.Create);
-            await JsonSerializer.SerializeAsync(nodesJsonFile, nodes, jsonSerializerOptions);
         }
     }
 }

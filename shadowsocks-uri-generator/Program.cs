@@ -10,10 +10,10 @@ namespace shadowsocks_uri_generator
     {
         static async Task Main(string[] args)
         {
-            Users users = new Users();
-            Nodes nodes = new Nodes();
-            Task<Users> loadUsersTask = UsersJson.LoadUsersAsync();
-            Task<Nodes> loadNodesTask = NodesJson.LoadNodesAsync();
+            Users users;
+            Nodes nodes;
+            Task<Users> loadUsersTask = Users.LoadUsersAsync();
+            Task<Nodes> loadNodesTask = Nodes.LoadNodesAsync();
 
             var addUsersCommand = new Command("add-users", "Add users.");
             var addNodeCommand = new Command("add-node", "Add a node to a node group.");
@@ -52,7 +52,7 @@ namespace shadowsocks_uri_generator
                 {
                     users = await loadUsersTask;
                     List<string> addedUsers = users.AddUsers(usernames);
-                    await UsersJson.SaveUsersAsync(users);
+                    await Users.SaveUsersAsync(users);
                     Console.WriteLine("Successfully added:");
                     foreach (var username in addedUsers)
                         Console.WriteLine($"{username}");
@@ -70,7 +70,7 @@ namespace shadowsocks_uri_generator
                         Console.WriteLine($"Added {nodename} to group {group}.");
                     else
                         Console.WriteLine($"Group not found. Or node already exists.");
-                    await NodesJson.SaveNodesAsync(nodes);
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             addNodeGroupsCommand.AddArgument(new Argument<string[]>("groups"));
@@ -79,7 +79,7 @@ namespace shadowsocks_uri_generator
                 {
                     nodes = await loadNodesTask;
                     List<string> addedNodes = nodes.AddGroups(groups);
-                    await NodesJson.SaveNodesAsync(nodes);
+                    await Nodes.SaveNodesAsync(nodes);
                     Console.WriteLine("Successfully added:");
                     foreach (var nodename in addedNodes)
                         Console.WriteLine($"{nodename}");
@@ -91,7 +91,7 @@ namespace shadowsocks_uri_generator
                 {
                     users = await loadUsersTask;
                     users.RemoveUsers(usernames);
-                    await UsersJson.SaveUsersAsync(users);
+                    await Users.SaveUsersAsync(users);
                 });
 
             rmNodesCommand.AddArgument(new Argument<string>("group"));
@@ -102,7 +102,7 @@ namespace shadowsocks_uri_generator
                     nodes = await loadNodesTask;
                     if (nodes.RemoveNodesFromGroup(group, nodenames) == -1)
                         Console.WriteLine($"Removal failed.");
-                    await NodesJson.SaveNodesAsync(nodes);
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             rmNodeGroupsCommand.AddArgument(new Argument<string[]>("groups"));
@@ -111,7 +111,7 @@ namespace shadowsocks_uri_generator
                 {
                     nodes = await loadNodesTask;
                     nodes.RemoveGroups(groups);
-                    await NodesJson.SaveNodesAsync(nodes);
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             lsUsersCommand.Handler = CommandHandler.Create(
@@ -191,7 +191,7 @@ namespace shadowsocks_uri_generator
                     {
                         Console.WriteLine("Not enough options. Either provide a method and a password, or provide a userinfo base64url.");
                     }
-                    await UsersJson.SaveUsersAsync(users);
+                    await Users.SaveUsersAsync(users);
                 });
 
             rmCredentialsCommand.AddArgument(new Argument<string>("username"));
@@ -202,7 +202,7 @@ namespace shadowsocks_uri_generator
                     users = await loadUsersTask;
                     if (users.RemoveCredentialsFromUser(username, groups) == -1)
                         Console.WriteLine("User not found.");
-                    await UsersJson.SaveUsersAsync(users);
+                    await Users.SaveUsersAsync(users);
                 });
 
             getUserSSUrisCommand.AddArgument(new Argument<string>("username"));

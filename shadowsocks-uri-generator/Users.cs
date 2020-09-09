@@ -101,6 +101,38 @@ namespace shadowsocks_uri_generator
             }
             return new List<Uri>();
         }
+
+        /// <summary>
+        /// Load users from Users.json.
+        /// </summary>
+        /// <returns>A Users object.</returns>
+        public static async Task<Users> LoadUsersAsync()
+        {
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            };
+            Users users = await Utilities.LoadJsonAsync<Users>("Users.json", jsonSerializerOptions);
+            return users;
+        }
+
+        /// <summary>
+        /// Save users to Users.json.
+        /// </summary>
+        /// <param name="users">The Users object to save.</param>
+        /// <returns>A task that represents the asynchronous write operation.</returns>
+        public static async Task SaveUsersAsync(Users users)
+        {
+            var jsonSerializerOptions = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReadCommentHandling = JsonCommentHandling.Skip,
+                AllowTrailingCommas = true
+            };
+            await Utilities.SaveJsonAsync("Users.json", users, jsonSerializerOptions);
+        }
     }
 
     /// <summary>
@@ -261,35 +293,6 @@ namespace shadowsocks_uri_generator
             base64userinfo = base64userinfo.PadRight(base64userinfo.Length + (4 - base64userinfo.Length % 4) % 4, '=');
             byte[] userinfoBytes = Convert.FromBase64String(base64userinfo);
             return Encoding.UTF8.GetString(userinfoBytes);
-        }
-    }
-
-    public static class UsersJson
-    {
-        public static async Task<Users> LoadUsersAsync()
-        {
-            Users users;
-
-            if (!File.Exists("Users.json"))
-            {
-                users = new Users();
-                await SaveUsersAsync(users);
-                return users;
-            }
-
-            using FileStream usersJsonFile = new FileStream("Users.json", FileMode.Open);
-            users = await JsonSerializer.DeserializeAsync<Users>(usersJsonFile);
-            return users;
-        }
-
-        public static async Task SaveUsersAsync(Users users)
-        {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true
-            };
-            using FileStream usersJsonFile = new FileStream("Users.json", FileMode.Create);
-            await JsonSerializer.SerializeAsync(usersJsonFile, users, jsonSerializerOptions);
         }
     }
 }
