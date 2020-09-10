@@ -127,22 +127,22 @@ namespace shadowsocks_uri_generator
             lsUsersCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"User", -16}|{"UUID", 36}|{"Number of Credentials", 21}|");
+                    Console.WriteLine($"|{"User",-16}|{"UUID",36}|{"Number of Credentials",21}|");
                     users = await loadUsersTask;
                     foreach (var user in users.UserDict)
-                        Console.WriteLine($"|{user.Key, -16}|{user.Value.Uuid, 36}|{user.Value.Credentials.Count, 21}|");
+                        Console.WriteLine($"|{user.Key,-16}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,21}|");
                 });
 
             lsCredentialsCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"User", -16}|{"Group", -16}|{"Method", -24}|{"Password", -32}|");
+                    Console.WriteLine($"|{"User",-16}|{"Group",-16}|{"Method",-24}|{"Password",-32}|");
                     users = await loadUsersTask;
                     foreach (var user in users.UserDict)
                     {
                         foreach (var credEntry in user.Value.Credentials)
                         {
-                            Console.WriteLine($"|{user.Key, -16}|{credEntry.Key, -16}|{credEntry.Value.Method, -24}|{credEntry.Value.Password, -32}|");
+                            Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{credEntry.Value.Method,-24}|{credEntry.Value.Password,-32}|");
                         }
                     }
                 });
@@ -154,9 +154,9 @@ namespace shadowsocks_uri_generator
                     nodes = await loadNodesTask;
                     if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
                     {
-                        Console.WriteLine($"|{"Node", -32}|{"UUID", 36}|{"Host", -40}|{"Port", 5}|");
+                        Console.WriteLine($"|{"Node",-32}|{"UUID",36}|{"Host",-40}|{"Port",5}|");
                         foreach (var node in targetGroup.NodeDict)
-                            Console.WriteLine($"|{node.Key, -32}|{node.Value.Uuid, 36}|{node.Value.Host, -40}|{node.Value.Port, 5}|");
+                            Console.WriteLine($"|{node.Key,-32}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|");
                     }
                     else
                         Console.WriteLine($"Group not found: {group}.");
@@ -165,11 +165,11 @@ namespace shadowsocks_uri_generator
             lsNodeGroupsCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"Group", -16}|{"Number of Nodes", 16}|");
+                    Console.WriteLine($"|{"Group",-16}|{"Number of Nodes",16}|");
                     nodes = await loadNodesTask;
                     foreach (var group in nodes.Groups)
                     {
-                        Console.WriteLine($"|{group.Key, -16}|{group.Value.NodeDict.Count, 16}|");
+                        Console.WriteLine($"|{group.Key,-16}|{group.Value.NodeDict.Count,16}|");
                     }
                 });
 
@@ -230,25 +230,25 @@ namespace shadowsocks_uri_generator
             getUserOnlineConfigUriCommand.Handler = CommandHandler.Create(
                 async (string username) =>
                 {
-                    Console.WriteLine($"|{"User", -16}|{"Online Configuration Delivery URL", 110}|");
+                    Console.WriteLine($"|{"User",-16}|{"Online Configuration Delivery URL",110}|");
                     users = await loadUsersTask;
                     settings = await loadSettingsTask;
                     if (string.IsNullOrEmpty(username))
                         foreach (var user in users.UserDict)
-                            Console.WriteLine($"|{user.Key, -16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
+                            Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
                     else
                         if (users.UserDict.TryGetValue(username, out User? user))
-                            Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                        Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
                 });
 
             getSettingsCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"Key", -32}|{"Value", 40}|");
+                    Console.WriteLine($"|{"Key",-32}|{"Value",40}|");
                     settings = await loadSettingsTask;
-                    Console.WriteLine($"|{"Version", -32}|{settings.Version, 40}|");
-                    Console.WriteLine($"|{"OnlineConfigOutputDirectory", -32}|{settings.OnlineConfigOutputDirectory, 40}|");
-                    Console.WriteLine($"|{"OnlineConfigDeliveryRootUri", -32}|{settings.OnlineConfigDeliveryRootUri, 40}|");
+                    Console.WriteLine($"|{"Version",-32}|{settings.Version,40}|");
+                    Console.WriteLine($"|{"OnlineConfigOutputDirectory",-32}|{settings.OnlineConfigOutputDirectory,40}|");
+                    Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-32}|{settings.OnlineConfigDeliveryRootUri,40}|");
                 });
 
             changeSettingsCommand.AddOption(new Option<string>("--online-config-output-directory"));

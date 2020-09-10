@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -30,7 +28,7 @@ namespace shadowsocks_uri_generator
         public Settings()
         {
             Version = 1;
-            OnlineConfigOutputDirectory = $"{Guid.NewGuid().ToString()}";
+            OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
             OnlineConfigDeliveryRootUri = "";
         }
 

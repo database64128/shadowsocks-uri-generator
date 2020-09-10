@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -22,7 +21,7 @@ namespace shadowsocks_uri_generator
         /// Throw error if config is newer than supported.
         /// </summary>
         public int Version { get; set; }
-        
+
         /// <summary>
         /// The user dictionary.
         /// key is username.
@@ -178,7 +177,7 @@ namespace shadowsocks_uri_generator
         /// Used for online configuration delivery (SIP008).
         /// </summary>
         public string Uuid { get; set; }
-        
+
         /// <summary>
         /// The credential dictionary of the user.
         /// key is the associated group name.
