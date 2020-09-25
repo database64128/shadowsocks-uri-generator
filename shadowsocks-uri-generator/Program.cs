@@ -26,13 +26,13 @@ namespace shadowsocks_uri_generator
             var rmNodeGroupsCommand = new Command("rm-node-groups", "Remove node groups and its nodes.");
             var rmCredentialsCommand = new Command("rm-credential", "Remove a node group's credential from a user.");
             var lsUsersCommand = new Command("ls-users", "List all users.");
-            var lsNodesCommand = new Command("ls-nodes", "List nodes from the specified group.");
+            var lsNodesCommand = new Command("ls-nodes", "List nodes from the specified group or all groups.");
             var lsNodeGroupsCommand = new Command("ls-node-groups", "List all node groups.");
             var lsCredentialsCommand = new Command("ls-credentials", "List all user credentials.");
             var getUserSSUrisCommand = new Command("get-user-ss-uris", "Get the user's associated Shadowsocks URIs.");
             var getUserOnlineConfigUriCommand = new Command("get-user-online-config-uri", "Get the user's SIP008-compliant online configuration delivery URL.");
             var getSettingsCommand = new Command("get-settings", "Get and print all settings.");
-            var changeSettingsCommand = new Command("change-settings", "Change any settings");
+            var changeSettingsCommand = new Command("change-settings", "Change settings.");
             var generateOnlineConfigCommand = new Command("gen-online-config", "Generate SIP008-compliant online configuration delivery JSON files.");
 
             var rootCommand = new RootCommand()
@@ -56,7 +56,7 @@ namespace shadowsocks_uri_generator
                 generateOnlineConfigCommand
             };
 
-            addUsersCommand.AddArgument(new Argument<string[]>("usernames"));
+            addUsersCommand.AddArgument(new Argument<string[]>("usernames", "A list of usernames to add."));
             addUsersCommand.Handler = CommandHandler.Create(
                 async (string[] usernames) =>
                 {
@@ -68,22 +68,24 @@ namespace shadowsocks_uri_generator
                         Console.WriteLine($"{username}");
                 });
 
-            addNodeCommand.AddArgument(new Argument<string>("group"));
-            addNodeCommand.AddArgument(new Argument<string>("nodename"));
-            addNodeCommand.AddArgument(new Argument<string>("host"));
-            addNodeCommand.AddArgument(new Argument<string>("portString"));
+            addNodeCommand.AddArgument(new Argument<string>("group", "The node group that the new node belongs to."));
+            addNodeCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
+            addNodeCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
+            addNodeCommand.AddArgument(new Argument<string>("portString", "Port number of the new node."));
+            addNodeCommand.AddOption(new Option<string>("--plugin", getDefaultValue: () => "", "Plugin binary name of the new node."));
+            addNodeCommand.AddOption(new Option<string>("--plugin-opts", getDefaultValue: () => "", "Plugin options of the new node."));
             addNodeCommand.Handler = CommandHandler.Create(
-                async (string group, string nodename, string host, string portString) =>
+                async (string group, string nodename, string host, string portString, string plugin, string pluginOpts) =>
                 {
                     nodes = await loadNodesTask;
-                    if (nodes.AddNodeToGroup(group, nodename, host, portString) == 0)
+                    if (nodes.AddNodeToGroup(group, nodename, host, portString, plugin, pluginOpts) == 0)
                         Console.WriteLine($"Added {nodename} to group {group}.");
                     else
                         Console.WriteLine($"Group not found. Or node already exists.");
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
-            addNodeGroupsCommand.AddArgument(new Argument<string[]>("groups"));
+            addNodeGroupsCommand.AddArgument(new Argument<string[]>("groups", "A list of group names to add."));
             addNodeGroupsCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
                 {
@@ -95,7 +97,7 @@ namespace shadowsocks_uri_generator
                         Console.WriteLine($"{nodename}");
                 });
 
-            rmUsersCommand.AddArgument(new Argument<string[]>("usernames"));
+            rmUsersCommand.AddArgument(new Argument<string[]>("usernames", "A list of users to remove."));
             rmUsersCommand.Handler = CommandHandler.Create(
                 async (string[] usernames) =>
                 {
@@ -104,8 +106,8 @@ namespace shadowsocks_uri_generator
                     await Users.SaveUsersAsync(users);
                 });
 
-            rmNodesCommand.AddArgument(new Argument<string>("group"));
-            rmNodesCommand.AddArgument(new Argument<string[]>("nodenames"));
+            rmNodesCommand.AddArgument(new Argument<string>("group", "The node group that the target node belongs to."));
+            rmNodesCommand.AddArgument(new Argument<string[]>("nodenames", "A list of node names to remove."));
             rmNodesCommand.Handler = CommandHandler.Create(
                 async (string group, string[] nodenames) =>
                 {
@@ -115,7 +117,7 @@ namespace shadowsocks_uri_generator
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
-            rmNodeGroupsCommand.AddArgument(new Argument<string[]>("groups"));
+            rmNodeGroupsCommand.AddArgument(new Argument<string[]>("groups", "A list of groups to remove."));
             rmNodeGroupsCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
                 {
@@ -147,22 +149,22 @@ namespace shadowsocks_uri_generator
                     }
                 });
 
-            lsNodesCommand.AddArgument(new Argument<string>("group", getDefaultValue: () => ""));
+            lsNodesCommand.AddArgument(new Argument<string>("group", getDefaultValue: () => "", "Target group. Leave empty for all groups."));
             lsNodesCommand.Handler = CommandHandler.Create(
                 async (string group) =>
                 {
-                    Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",-40}|{"Port",5}|");
+                    Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",-40}|{"Port",5}|{"Plugin",12}|{"Plugin Options",24}|");
                     nodes = await loadNodesTask;
                     if (string.IsNullOrEmpty(group))
                     {
                         foreach (var groupEntry in nodes.Groups)
                             foreach (var node in groupEntry.Value.NodeDict)
-                                Console.WriteLine($"|{node.Key,-32}|{groupEntry.Key,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|");
+                                Console.WriteLine($"|{node.Key,-32}|{groupEntry.Key,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,24}|");
                     }
                     else if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
                     {
                         foreach (var node in targetGroup.NodeDict)
-                            Console.WriteLine($"|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|");
+                            Console.WriteLine($"|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,24}|");
                     }
                     else
                         Console.WriteLine($"Group not found: {group}.");
@@ -179,11 +181,11 @@ namespace shadowsocks_uri_generator
                     }
                 });
 
-            addCredentialCommand.AddArgument(new Argument<string>("username"));
-            addCredentialCommand.AddArgument(new Argument<string>("group"));
-            addCredentialCommand.AddOption(new Option<string>("--method"));
-            addCredentialCommand.AddOption(new Option<string>("--password"));
-            addCredentialCommand.AddOption(new Option<string>("--userinfo-base64url"));
+            addCredentialCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
+            addCredentialCommand.AddArgument(new Argument<string>("group", "The group that the credential is for."));
+            addCredentialCommand.AddOption(new Option<string>("--method", "The encryption method. MUST be combined with --password."));
+            addCredentialCommand.AddOption(new Option<string>("--password", "The password. MUST be combined with --method."));
+            addCredentialCommand.AddOption(new Option<string>("--userinfo-base64url", "The userinfo encoded in URL-safe base64. Can't be used with any other option."));
             addCredentialCommand.Handler = CommandHandler.Create(
                 async (string username, string group, string method, string password, string userinfoBase64url) =>
                 {
@@ -210,8 +212,8 @@ namespace shadowsocks_uri_generator
                     await Users.SaveUsersAsync(users);
                 });
 
-            rmCredentialsCommand.AddArgument(new Argument<string>("username"));
-            rmCredentialsCommand.AddArgument(new Argument<string[]>("groups"));
+            rmCredentialsCommand.AddArgument(new Argument<string>("username", "Target user."));
+            rmCredentialsCommand.AddArgument(new Argument<string[]>("groups", "A list of groups the credentials are for."));
             rmCredentialsCommand.Handler = CommandHandler.Create(
                 async (string username, string[] groups) =>
                 {
@@ -221,7 +223,7 @@ namespace shadowsocks_uri_generator
                     await Users.SaveUsersAsync(users);
                 });
 
-            getUserSSUrisCommand.AddArgument(new Argument<string>("username"));
+            getUserSSUrisCommand.AddArgument(new Argument<string>("username", "Target user."));
             getUserSSUrisCommand.Handler = CommandHandler.Create(
                 async (string username) =>
                 {
@@ -232,7 +234,7 @@ namespace shadowsocks_uri_generator
                         Console.WriteLine($"{uri.AbsoluteUri}");
                 });
 
-            getUserOnlineConfigUriCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => ""));
+            getUserOnlineConfigUriCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => "", "Specifies the target user. Leave empty for all users."));
             getUserOnlineConfigUriCommand.Handler = CommandHandler.Create(
                 async (string username) =>
                 {
@@ -258,8 +260,8 @@ namespace shadowsocks_uri_generator
                     Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-32}|{settings.OnlineConfigDeliveryRootUri,40}|");
                 });
 
-            changeSettingsCommand.AddOption(new Option<string>("--online-config-output-directory"));
-            changeSettingsCommand.AddOption(new Option<string>("--online-config-delivery-root-uri"));
+            changeSettingsCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
+            changeSettingsCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             changeSettingsCommand.Handler = CommandHandler.Create(
                 async (string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri) =>
                 {
@@ -271,7 +273,7 @@ namespace shadowsocks_uri_generator
                     await Settings.SaveSettingsAsync(settings);
                 });
 
-            generateOnlineConfigCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => ""));
+            generateOnlineConfigCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => "", "Specify a user to generate for. Leave empty for all users."));
             generateOnlineConfigCommand.Handler = CommandHandler.Create(
                 async (string username) =>
                 {

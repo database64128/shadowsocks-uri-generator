@@ -70,11 +70,13 @@ namespace shadowsocks_uri_generator
         /// <param name="node">Node name</param>
         /// <param name="host">Node's host</param>
         /// <param name="portString">Node's port string to be parsed.</param>
+        /// <param name="plugin">Optional. Plugin binary name.</param>
+        /// <param name="pluginOpts">Optional. Plugin options.</param>
         /// <returns>0 for success. -1 for non-existing group, duplicated node, invalid port string.</returns>
-        public int AddNodeToGroup(string group, string node, string host, string portString)
+        public int AddNodeToGroup(string group, string node, string host, string portString, string plugin = "", string pluginOpts = "")
         {
             if (int.TryParse(portString, out int port))
-                return AddNodeToGroup(group, node, host, port);
+                return AddNodeToGroup(group, node, host, port, plugin, pluginOpts);
             else
                 return -1;
         }
@@ -87,12 +89,14 @@ namespace shadowsocks_uri_generator
         /// <param name="node">Node name</param>
         /// <param name="host">Node's host</param>
         /// <param name="port">Node's port number.</param>
+        /// <param name="plugin">Optional. Plugin binary name.</param>
+        /// <param name="pluginOpts">Optional. Plugin options.</param>
         /// <returns>0 for success. -1 for non-existing group, duplicated node, bad port range.</returns>
-        public int AddNodeToGroup(string group, string node, string host, int port)
+        public int AddNodeToGroup(string group, string node, string host, int port, string plugin = "", string pluginOpts = "")
         {
             if (Groups.TryGetValue(group, out Group? targetGroup))
             {
-                return targetGroup.AddNode(node, host, port);
+                return targetGroup.AddNode(node, host, port, plugin, pluginOpts);
             }
             else
                 return -1;
@@ -201,12 +205,14 @@ namespace shadowsocks_uri_generator
         /// <param name="name">Node name.</param>
         /// <param name="host">Node's host</param>
         /// <param name="port">Node's port number</param>
+        /// <param name="plugin">Optional. Plugin binary name.</param>
+        /// <param name="pluginOpts">Optional. Plugin options.</param>
         /// <returns>0 for success. -1 for duplicated name.</returns>
-        public int AddNode(string name, string host, int port)
+        public int AddNode(string name, string host, int port, string plugin = "", string pluginOpts = "")
         {
             if (!NodeDict.ContainsKey(name))
             {
-                var node = new Node(host, port);
+                var node = new Node(host, port, plugin, pluginOpts);
                 NodeDict.Add(name, node);
                 return 0;
             }
@@ -239,6 +245,8 @@ namespace shadowsocks_uri_generator
         public string Uuid { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
+        public string Plugin { get; set; }
+        public string PluginOpts { get; set; }
 
         /// <summary>
         /// Parameterless constructor for System.Text.Json
@@ -247,13 +255,17 @@ namespace shadowsocks_uri_generator
         {
             Uuid = Guid.NewGuid().ToString();
             Host = "";
+            Plugin = "";
+            PluginOpts = "";
         }
 
-        public Node(string _host, int _port)
+        public Node(string _host, int _port, string _plugin = "", string _pluginOpts = "")
         {
             Uuid = Guid.NewGuid().ToString();
             Host = _host;
             Port = _port;
+            Plugin = _plugin;
+            PluginOpts = _pluginOpts;
         }
     }
 }

@@ -39,9 +39,9 @@ namespace shadowsocks_uri_generator
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <param name="settings">The object storing all settings.</param>
-        /// <param name="username">Defaults to null for all users. Specify a user name to only generate for the user.</param>
+        /// <param name="username">Defaults to empty for all users. Specify a user name to only generate for the user.</param>
         /// <returns>0 for success. 404 for user not found.</returns>
-        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, string? username = null)
+        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, string username = "")
         {
             if (string.IsNullOrEmpty(username)) // generate for all users
             {
@@ -87,7 +87,9 @@ namespace shadowsocks_uri_generator
                             node.Value.Host,
                             node.Value.Port,
                             credEntry.Value.Password,
-                            credEntry.Value.Method);
+                            credEntry.Value.Method,
+                            node.Value.Plugin,
+                            node.Value.PluginOpts);
                         onlineConfig.Servers.Add(server);
                     }
                 }

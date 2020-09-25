@@ -257,7 +257,9 @@ namespace shadowsocks_uri_generator
                         var fragment = node.Key;
                         var host = node.Value.Host;
                         var port = node.Value.Port;
-                        uris.Add(SSUriBuilder(userinfo_base64url, host, port, fragment));
+                        var plugin = node.Value.Plugin;
+                        var pluginOpts = node.Value.PluginOpts;
+                        uris.Add(SSUriBuilder(userinfo_base64url, host, port, fragment, plugin, pluginOpts));
                     }
                 }
                 else
@@ -266,13 +268,18 @@ namespace shadowsocks_uri_generator
             return uris;
         }
 
-        public static Uri SSUriBuilder(string userinfo_base64url, string host, int port, string fragment)
+        public static Uri SSUriBuilder(string userinfo_base64url, string host, int port, string fragment, string plugin = "", string pluginOpts = "")
         {
             UriBuilder ssUriBuilder = new UriBuilder("ss", host, port)
             {
                 UserName = userinfo_base64url,
                 Fragment = fragment
             };
+            if (!string.IsNullOrEmpty(plugin))
+                if (!string.IsNullOrEmpty(pluginOpts))
+                    ssUriBuilder.Query = $"plugin={Uri.EscapeDataString($"{plugin};{pluginOpts}")}"; // manually escape as a workaround
+                else
+                    ssUriBuilder.Query = $"plugin={plugin}";
             return ssUriBuilder.Uri;
         }
     }
