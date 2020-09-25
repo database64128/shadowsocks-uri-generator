@@ -111,7 +111,7 @@ namespace shadowsocks_uri_generator
                 {
                     nodes = await loadNodesTask;
                     if (nodes.RemoveNodesFromGroup(group, nodenames) == -1)
-                        Console.WriteLine($"Removal failed.");
+                        Console.WriteLine($"Group not found: {group}.");
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
@@ -147,16 +147,22 @@ namespace shadowsocks_uri_generator
                     }
                 });
 
-            lsNodesCommand.AddArgument(new Argument<string>("group"));
+            lsNodesCommand.AddArgument(new Argument<string>("group", getDefaultValue: () => ""));
             lsNodesCommand.Handler = CommandHandler.Create(
                 async (string group) =>
                 {
+                    Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",-40}|{"Port",5}|");
                     nodes = await loadNodesTask;
-                    if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
+                    if (string.IsNullOrEmpty(group))
                     {
-                        Console.WriteLine($"|{"Node",-32}|{"UUID",36}|{"Host",-40}|{"Port",5}|");
+                        foreach (var groupEntry in nodes.Groups)
+                            foreach (var node in groupEntry.Value.NodeDict)
+                                Console.WriteLine($"|{node.Key,-32}|{groupEntry.Key,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|");
+                    }
+                    else if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
+                    {
                         foreach (var node in targetGroup.NodeDict)
-                            Console.WriteLine($"|{node.Key,-32}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|");
+                            Console.WriteLine($"|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|");
                     }
                     else
                         Console.WriteLine($"Group not found: {group}.");
@@ -211,7 +217,7 @@ namespace shadowsocks_uri_generator
                 {
                     users = await loadUsersTask;
                     if (users.RemoveCredentialsFromUser(username, groups) == -1)
-                        Console.WriteLine("User not found.");
+                        Console.WriteLine($"User not found: {username}");
                     await Users.SaveUsersAsync(users);
                 });
 
@@ -236,9 +242,10 @@ namespace shadowsocks_uri_generator
                     if (string.IsNullOrEmpty(username))
                         foreach (var user in users.UserDict)
                             Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
-                    else
-                        if (users.UserDict.TryGetValue(username, out User? user))
+                    else if (users.UserDict.TryGetValue(username, out User? user))
                         Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                    else
+                        Console.WriteLine($"User not found: {username}.");
                 });
 
             getSettingsCommand.Handler = CommandHandler.Create(
