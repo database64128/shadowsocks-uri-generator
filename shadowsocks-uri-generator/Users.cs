@@ -65,6 +65,14 @@ namespace shadowsocks_uri_generator
                 UserDict.Remove(user);
         }
 
+        /// <summary>
+        /// Adds a group credential to the specified user.
+        /// </summary>
+        /// <returns>
+        /// 0 for success.
+        /// 1 for duplicated credential.
+        /// -1 for non-existing target user or group.
+        /// </returns>
         public int AddCredentialToUser(string user, string group, string method, string password, Nodes nodes)
         {
             if (UserDict.TryGetValue(user, out User? targetUser) && nodes.Groups.ContainsKey(group))
@@ -75,6 +83,7 @@ namespace shadowsocks_uri_generator
                 return -1;
         }
 
+        /// <inheritdoc cref="AddCredentialToUser(string, string, string, string, Nodes)"/>
         public int AddCredentialToUser(string user, string group, string userinfo_base64url, Nodes nodes)
         {
             if (UserDict.TryGetValue(user, out User? targetUser) && nodes.Groups.ContainsKey(group))
@@ -108,7 +117,8 @@ namespace shadowsocks_uri_generator
         /// <param name="username">Target username.</param>
         /// <returns>
         /// A list of the user's associated Shadowsocks URIs.
-        /// Empty list if target user not found or no associated nodes.</returns>
+        /// Empty list if target user not found or no associated nodes.
+        /// </returns>
         public List<Uri> GetUserSSUris(string username, Nodes nodes)
         {
             if (UserDict.TryGetValue(username, out User? user))
@@ -203,7 +213,7 @@ namespace shadowsocks_uri_generator
         /// <param name="_group">The new credential's group name.</param>
         /// <param name="_method">Encryption method.</param>
         /// <param name="_password">Password.</param>
-        /// <returns>0 for success. -1 for duplicated credential.</returns>
+        /// <returns>0 for success. 1 for duplicated credential.</returns>
         public int AddCredential(string _group, string _method, string _password)
         {
             if (!Credentials.ContainsKey(_group))
@@ -212,7 +222,7 @@ namespace shadowsocks_uri_generator
                 Credentials.Add(_group, _credential);
                 return 0;
             }
-            return -1;
+            return 1;
         }
 
         /// <summary>

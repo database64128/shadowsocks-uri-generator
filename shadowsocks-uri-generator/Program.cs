@@ -194,24 +194,22 @@ namespace shadowsocks_uri_generator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
+                    int result;
                     if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
-                    {
-                        if (users.AddCredentialToUser(username, group, method, password, nodes) == 0)
-                            Console.WriteLine($"Successfully added {group}'s credential to {username}");
-                        else
-                            Console.WriteLine("Group not found. Or credential already exists.");
-                    }
+                        result = users.AddCredentialToUser(username, group, method, password, nodes);
                     else if (!string.IsNullOrEmpty(userinfoBase64url))
-                    {
-                        if (users.AddCredentialToUser(username, group, userinfoBase64url, nodes) == 0)
-                            Console.WriteLine($"Successfully added {group}'s credential to {username}");
-                        else
-                            Console.WriteLine("Group not found. Or credential already exists.");
-                    }
+                        result = users.AddCredentialToUser(username, group, userinfoBase64url, nodes);
                     else
                     {
                         Console.WriteLine("Not enough options. Either provide a method and a password, or provide a userinfo base64url.");
+                        return;
                     }
+                    if (result == 0)
+                        Console.WriteLine($"Successfully added {group}'s credential to {username}");
+                    else if (result == 1)
+                        Console.WriteLine("The user already has a credential for the group.");
+                    else
+                        Console.WriteLine("User or group not found.");
                     await Users.SaveUsersAsync(users);
                 });
 
