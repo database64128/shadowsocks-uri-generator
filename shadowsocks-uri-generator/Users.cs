@@ -96,6 +96,12 @@ namespace shadowsocks_uri_generator
                 return -1;
         }
 
+        public void RemoveCredentialsFromAllUsers(string[] groups)
+        {
+            foreach (var userEntry in UserDict)
+                userEntry.Value.RemoveCredentials(groups);
+        }
+
         /// <summary>
         /// Get Shadowsocks URIs associated with a username.
         /// </summary>

@@ -121,8 +121,11 @@ namespace shadowsocks_uri_generator
             rmNodeGroupsCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
                 {
+                    users = await loadUsersTask;
                     nodes = await loadNodesTask;
+                    users.RemoveCredentialsFromAllUsers(groups);
                     nodes.RemoveGroups(groups);
+                    await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
