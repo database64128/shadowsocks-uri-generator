@@ -11,6 +11,13 @@ namespace shadowsocks_uri_generator
         public int Version { get; set; }
 
         /// <summary>
+        /// Decides if the generated servers list
+        /// in an SIP008 JSON should be sorted by server name.
+        /// Defaults to true.
+        /// </summary>
+        public bool OnlineConfigSortByName { get; set; }
+
+        /// <summary>
         /// The output directory path
         /// for online configuration delivery (SIP008).
         /// Must NOT end with '/' or '\'.
@@ -27,6 +34,7 @@ namespace shadowsocks_uri_generator
         public Settings()
         {
             Version = 1;
+            OnlineConfigSortByName = true;
             OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
             OnlineConfigDeliveryRootUri = "";
         }

@@ -257,16 +257,20 @@ namespace shadowsocks_uri_generator
                     Console.WriteLine($"|{"Key",-32}|{"Value",40}|");
                     settings = await loadSettingsTask;
                     Console.WriteLine($"|{"Version",-32}|{settings.Version,40}|");
+                    Console.WriteLine($"|{"OnlineConfigSortByName",-32}|{settings.OnlineConfigSortByName,40}|");
                     Console.WriteLine($"|{"OnlineConfigOutputDirectory",-32}|{settings.OnlineConfigOutputDirectory,40}|");
                     Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-32}|{settings.OnlineConfigDeliveryRootUri,40}|");
                 });
 
+            changeSettingsCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
             changeSettingsCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
             changeSettingsCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             changeSettingsCommand.Handler = CommandHandler.Create(
-                async (string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri) =>
+                async (bool? onlineConfigSortByName, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri) =>
                 {
                     settings = await loadSettingsTask;
+                    if (onlineConfigSortByName is bool _onlineConfigSortByName)
+                        settings.OnlineConfigSortByName = _onlineConfigSortByName;
                     if (!string.IsNullOrEmpty(onlineConfigOutputDirectory))
                         settings.OnlineConfigOutputDirectory = onlineConfigOutputDirectory;
                     if (!string.IsNullOrEmpty(onlineConfigDeliveryRootUri))

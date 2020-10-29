@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -46,7 +47,7 @@ namespace shadowsocks_uri_generator
             {
                 foreach (var userEntry in users.UserDict)
                 {
-                    var onlineConfig = Generate(userEntry, nodes);
+                    var onlineConfig = Generate(userEntry, nodes, settings);
                     await SaveOutputAsync(onlineConfig, settings);
                 }
             }
@@ -54,7 +55,7 @@ namespace shadowsocks_uri_generator
             {
                 if (users.UserDict.TryGetValue(username, out User? user))
                 {
-                    var onlineConfig = Generate(new KeyValuePair<string, User>(username, user), nodes);
+                    var onlineConfig = Generate(new KeyValuePair<string, User>(username, user), nodes, settings);
                     await SaveOutputAsync(onlineConfig, settings);
                 }
                 else
@@ -69,7 +70,7 @@ namespace shadowsocks_uri_generator
         /// <param name="userEntry">The specified user entry.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <returns>The object of the user's SIP008 configuration.</returns>
-        public static OnlineConfig Generate(KeyValuePair<string, User> userEntry, Nodes nodes)
+        public static OnlineConfig Generate(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
         {
             var user = userEntry.Value;
             var onlineConfig = new OnlineConfig(userEntry.Key, user.Uuid);
@@ -95,6 +96,9 @@ namespace shadowsocks_uri_generator
                 else
                     continue; // ignoring is intentional, as groups may get removed.
             }
+            // Sort by server name if `OnlineConfigSortByName` is true.
+            if (settings.OnlineConfigSortByName)
+                onlineConfig.Servers = onlineConfig.Servers.OrderBy(server => server.Name).ToList();
             return onlineConfig;
         }
 
