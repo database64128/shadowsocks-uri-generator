@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -125,13 +124,7 @@ namespace shadowsocks_uri_generator
         /// <returns>A Nodes object.</returns>
         public static async Task<Nodes> LoadNodesAsync()
         {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            Nodes nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", jsonSerializerOptions);
+            Nodes nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions);
             if (nodes.Version != 1)
             {
                 UpdateNodes(ref nodes);
@@ -146,15 +139,7 @@ namespace shadowsocks_uri_generator
         /// <param name="nodes">The Nodes object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveNodesAsync(Nodes nodes)
-        {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            await Utilities.SaveJsonAsync("Nodes.json", nodes, jsonSerializerOptions);
-        }
+            => await Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
         /// Update the nodes version.

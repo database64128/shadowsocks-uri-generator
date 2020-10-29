@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -7,6 +8,26 @@ namespace shadowsocks_uri_generator
 {
     public static class Utilities
     {
+        public static readonly JsonSerializerOptions commonJsonSerializerOptions = new JsonSerializerOptions()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            WriteIndented = true,
+        };
+
+        public static readonly JsonSerializerOptions snakeCaseJsonSerializerOptions = new JsonSerializerOptions()
+        {
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
+            WriteIndented = true,
+        };
+
+        public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new JsonSerializerOptions()
+        {
+            WriteIndented = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            AllowTrailingCommas = true,
+        };
+
         /// <summary>
         /// Load data from a JSON file.
         /// </summary>

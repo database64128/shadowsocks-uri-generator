@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace shadowsocks_uri_generator
@@ -38,13 +37,7 @@ namespace shadowsocks_uri_generator
         /// <returns>A Settings object.</returns>
         public static async Task<Settings> LoadSettingsAsync()
         {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            Settings settings = await Utilities.LoadJsonAsync<Settings>("Settings.json", jsonSerializerOptions);
+            Settings settings = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions);
             if (settings.Version != 1)
             {
                 UpdateSettings(ref settings);
@@ -59,15 +52,7 @@ namespace shadowsocks_uri_generator
         /// <param name="settings">The Settings object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveSettingsAsync(Settings settings)
-        {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            await Utilities.SaveJsonAsync("Settings.json", settings, jsonSerializerOptions);
-        }
+            => await Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
         /// Update the settings version.

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -107,18 +106,13 @@ namespace shadowsocks_uri_generator
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveOutputAsync(OnlineConfig onlineConfig, Settings settings)
         {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy()
-            };
             try
             {
                 Directory.CreateDirectory(settings.OnlineConfigOutputDirectory);
                 await Utilities.SaveJsonAsync(
                     $"{settings.OnlineConfigOutputDirectory}/{onlineConfig.UserUuid}.json",
                     onlineConfig,
-                    jsonSerializerOptions);
+                    Utilities.snakeCaseJsonSerializerOptions);
             }
             catch
             {

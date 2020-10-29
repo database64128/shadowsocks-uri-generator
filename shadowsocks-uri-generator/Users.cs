@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -134,13 +133,7 @@ namespace shadowsocks_uri_generator
         /// <returns>A Users object.</returns>
         public static async Task<Users> LoadUsersAsync()
         {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            Users users = await Utilities.LoadJsonAsync<Users>("Users.json", jsonSerializerOptions);
+            Users users = await Utilities.LoadJsonAsync<Users>("Users.json", Utilities.commonJsonDeserializerOptions);
             if (users.Version != 1)
             {
                 UpdateUsers(ref users);
@@ -155,15 +148,7 @@ namespace shadowsocks_uri_generator
         /// <param name="users">The Users object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveUsersAsync(Users users)
-        {
-            var jsonSerializerOptions = new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReadCommentHandling = JsonCommentHandling.Skip,
-                AllowTrailingCommas = true
-            };
-            await Utilities.SaveJsonAsync("Users.json", users, jsonSerializerOptions);
-        }
+            => await Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
         /// Update the users version.
