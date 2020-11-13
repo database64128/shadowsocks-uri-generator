@@ -35,17 +35,13 @@ namespace shadowsocks_uri_generator
         /// <param name="filename">JSON file name.</param>
         /// <param name="jsonSerializerOptions">Deserialization options.</param>
         /// <returns>A data object loaded from the JSON file.</returns>
-        public static async Task<T> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null) where T : new()
+        public static async Task<T> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null) where T : class, new()
         {
-            T jsonData;
-
             if (!File.Exists(filename))
-            {
-                jsonData = new T();
-                return jsonData;
-            }
+                return new T();
 
-            FileStream jsonFile = null!;
+            T? jsonData = null;
+            FileStream? jsonFile = null;
             try
             {
                 jsonFile = new FileStream(filename, FileMode.Open);
@@ -53,7 +49,6 @@ namespace shadowsocks_uri_generator
             }
             catch
             {
-                jsonData = new T(); // make the compiler happy, even though we don't need it.
                 Console.WriteLine($"Error: failed to load {filename}.");
                 Environment.Exit(1);
             }
@@ -62,7 +57,10 @@ namespace shadowsocks_uri_generator
                 if (jsonFile != null)
                     await jsonFile.DisposeAsync();
             }
-            return jsonData;
+            if (jsonData != null)
+                return jsonData;
+            else
+                return new T();
         }
 
         /// <summary>

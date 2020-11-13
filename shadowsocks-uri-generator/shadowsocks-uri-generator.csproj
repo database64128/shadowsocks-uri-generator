@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>shadowsocks_uri_generator</RootNamespace>
     <Nullable>enable</Nullable>
     <AssemblyName>ss-uri-gen</AssemblyName>
@@ -17,7 +17,7 @@
     <RepositoryType>Public</RepositoryType>
     <ApplicationIcon>ss-uri-gen.ico</ApplicationIcon>
     <PackageIcon>ss-uri-gen.png</PackageIcon>
-    <Version>2.5.0</Version>
+    <Version>2.6.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
