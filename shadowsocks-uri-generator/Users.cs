@@ -83,11 +83,11 @@ namespace shadowsocks_uri_generator
         }
 
         /// <inheritdoc cref="AddCredentialToUser(string, string, string, string, Nodes)"/>
-        public int AddCredentialToUser(string user, string group, string userinfo_base64url, Nodes nodes)
+        public int AddCredentialToUser(string user, string group, string userinfoBase64url, Nodes nodes)
         {
             if (UserDict.TryGetValue(user, out User? targetUser) && nodes.Groups.ContainsKey(group))
             {
-                return targetUser.AddCredential(group, userinfo_base64url);
+                return targetUser.AddCredential(group, userinfoBase64url);
             }
             else
                 return -1;
@@ -195,16 +195,16 @@ namespace shadowsocks_uri_generator
         /// <summary>
         /// Adds a new credential to the user's credential dictionary.
         /// </summary>
-        /// <param name="_group">The new credential's group name.</param>
-        /// <param name="_method">Encryption method.</param>
-        /// <param name="_password">Password.</param>
+        /// <param name="group">The new credential's group name.</param>
+        /// <param name="method">Encryption method.</param>
+        /// <param name="password">Password.</param>
         /// <returns>0 for success. 1 for duplicated credential.</returns>
-        public int AddCredential(string _group, string _method, string _password)
+        public int AddCredential(string group, string method, string password)
         {
-            if (!Credentials.ContainsKey(_group))
+            if (!Credentials.ContainsKey(group))
             {
-                var _credential = new Credential(_method, _password);
-                Credentials.Add(_group, _credential);
+                var credential = new Credential(method, password);
+                Credentials.Add(group, credential);
                 return 0;
             }
             return 1;
@@ -213,17 +213,17 @@ namespace shadowsocks_uri_generator
         /// <summary>
         /// Adds a new credential to the user's credential dictionary.
         /// </summary>
-        /// <param name="_group">The new credential's group name.</param>
-        /// <param name="_userinfo_base64url">userinfo (method:password) in base64url</param>
+        /// <param name="group">The new credential's group name.</param>
+        /// <param name="userinfoBase64url">userinfo (method:password) in base64url</param>
         /// <returns>0 for success. -1 for duplicated credential or invalid userinfo base64url.</returns>
-        public int AddCredential(string _group, string _userinfo_base64url)
+        public int AddCredential(string group, string userinfoBase64url)
         {
             try
             {
-                if (!Credentials.ContainsKey(_group))
+                if (!Credentials.ContainsKey(group))
                 {
-                    var _credential = new Credential(_userinfo_base64url);
-                    Credentials.Add(_group, _credential);
+                    var credential = new Credential(userinfoBase64url);
+                    Credentials.Add(group, credential);
                     return 0;
                 }
             }
@@ -250,7 +250,7 @@ namespace shadowsocks_uri_generator
             List<Uri> uris = new List<Uri>();
             foreach (var credEntry in Credentials)
             {
-                var userinfo_base64url = credEntry.Value.Userinfo_base64url;
+                var userinfoBase64url = credEntry.Value.UserinfoBase64url;
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
                 {
                     foreach (var node in group.NodeDict)
@@ -260,7 +260,7 @@ namespace shadowsocks_uri_generator
                         var port = node.Value.Port;
                         var plugin = node.Value.Plugin;
                         var pluginOpts = node.Value.PluginOpts;
-                        uris.Add(SSUriBuilder(userinfo_base64url, host, port, fragment, plugin, pluginOpts));
+                        uris.Add(SSUriBuilder(userinfoBase64url, host, port, fragment, plugin, pluginOpts));
                     }
                 }
                 else
@@ -269,11 +269,11 @@ namespace shadowsocks_uri_generator
             return uris;
         }
 
-        public static Uri SSUriBuilder(string userinfo_base64url, string host, int port, string fragment, string plugin = "", string pluginOpts = "")
+        public static Uri SSUriBuilder(string userinfoBase64url, string host, int port, string fragment, string plugin = "", string pluginOpts = "")
         {
             UriBuilder ssUriBuilder = new UriBuilder("ss", host, port)
             {
-                UserName = userinfo_base64url,
+                UserName = userinfoBase64url,
                 Fragment = fragment
             };
             if (!string.IsNullOrEmpty(plugin))
@@ -287,15 +287,15 @@ namespace shadowsocks_uri_generator
 
     /// <summary>
     /// Each credential corresponds to a node group.
-    /// userinfo = method + ":" + password.
-    /// userinfo_base64 = base64url(userinfo).
+    /// Userinfo = Method + ":" + Password.
+    /// UserinfoBase64url = base64url(Userinfo).
     /// </summary>
     public class Credential
     {
         public string Method { get; set; }
         public string Password { get; set; }
         public string Userinfo { get; set; }
-        public string Userinfo_base64url { get; set; }
+        public string UserinfoBase64url { get; set; }
 
         /// <summary>
         /// Parameterless constructor for System.Text.Json
@@ -305,40 +305,45 @@ namespace shadowsocks_uri_generator
             Method = "";
             Password = "";
             Userinfo = "";
-            Userinfo_base64url = "";
+            UserinfoBase64url = "";
         }
 
-        public Credential(string _method, string _password)
+        public Credential(string method, string password)
         {
-            Method = _method;
-            Password = _password;
-            Userinfo = _method + ":" + _password;
-            Userinfo_base64url = Base64UserinfoEncoder(Userinfo);
+            Method = method;
+            Password = password;
+            Userinfo = method + ":" + password;
+            UserinfoBase64url = Base64UserinfoEncoder(Userinfo);
         }
 
-        public Credential(string _userinfo_base64url)
+        public Credential(string userinfoBase64url)
         {
-            Userinfo_base64url = _userinfo_base64url;
-            Userinfo = Base64UserinfoDecoder(_userinfo_base64url);
-            string[] methodPasswordArray = Userinfo.Split(':');
-            Method = methodPasswordArray[0];
+            UserinfoBase64url = userinfoBase64url;
+            Userinfo = Base64UserinfoDecoder(userinfoBase64url);
+            string[] methodPasswordArray = Userinfo.Split(':', 2);
             if (methodPasswordArray.Length == 2)
+            {
+                Method = methodPasswordArray[0];
                 Password = methodPasswordArray[1];
+            }
             else
+            {
+                Method = "";
                 Password = "";
+            }
         }
 
-        public static string Base64UserinfoEncoder(string _userinfo)
+        public static string Base64UserinfoEncoder(string userinfo)
         {
-            byte[] userinfoBytes = Encoding.UTF8.GetBytes(_userinfo);
+            byte[] userinfoBytes = Encoding.UTF8.GetBytes(userinfo);
             return Convert.ToBase64String(userinfoBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         }
 
-        public static string Base64UserinfoDecoder(string _base64userinfo)
+        public static string Base64UserinfoDecoder(string userinfoBase64url)
         {
-            string base64userinfo = _base64userinfo.Replace('_', '/').Replace('-', '+');
-            base64userinfo = base64userinfo.PadRight(base64userinfo.Length + (4 - base64userinfo.Length % 4) % 4, '=');
-            byte[] userinfoBytes = Convert.FromBase64String(base64userinfo);
+            string parsedUserinfoBase64 = userinfoBase64url.Replace('_', '/').Replace('-', '+');
+            parsedUserinfoBase64 = parsedUserinfoBase64.PadRight(parsedUserinfoBase64.Length + (4 - parsedUserinfoBase64.Length % 4) % 4, '=');
+            byte[] userinfoBytes = Convert.FromBase64String(parsedUserinfoBase64);
             return Encoding.UTF8.GetString(userinfoBytes);
         }
     }

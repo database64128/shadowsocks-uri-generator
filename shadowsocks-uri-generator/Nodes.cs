@@ -244,13 +244,13 @@ namespace shadowsocks_uri_generator
             PluginOpts = "";
         }
 
-        public Node(string _host, int _port, string _plugin = "", string _pluginOpts = "")
+        public Node(string host, int port, string plugin = "", string pluginOpts = "")
         {
             Uuid = Guid.NewGuid().ToString();
-            Host = _host;
-            Port = _port;
-            Plugin = _plugin;
-            PluginOpts = _pluginOpts;
+            Host = host;
+            Port = port;
+            Plugin = plugin;
+            PluginOpts = pluginOpts;
         }
     }
 }
