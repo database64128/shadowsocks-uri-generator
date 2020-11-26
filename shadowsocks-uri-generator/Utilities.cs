@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace shadowsocks_uri_generator
@@ -10,12 +11,14 @@ namespace shadowsocks_uri_generator
     {
         public static readonly JsonSerializerOptions commonJsonSerializerOptions = new JsonSerializerOptions()
         {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             WriteIndented = true,
         };
 
         public static readonly JsonSerializerOptions snakeCaseJsonSerializerOptions = new JsonSerializerOptions()
         {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
             WriteIndented = true,

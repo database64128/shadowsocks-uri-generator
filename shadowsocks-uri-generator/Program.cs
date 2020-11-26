@@ -72,10 +72,10 @@ namespace shadowsocks_uri_generator
             addNodeCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             addNodeCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
             addNodeCommand.AddArgument(new Argument<string>("portString", "Port number of the new node."));
-            addNodeCommand.AddOption(new Option<string>("--plugin", getDefaultValue: () => "", "Plugin binary name of the new node."));
-            addNodeCommand.AddOption(new Option<string>("--plugin-opts", getDefaultValue: () => "", "Plugin options of the new node."));
+            addNodeCommand.AddOption(new Option<string?>("--plugin", getDefaultValue: () => null, "Plugin binary name of the new node."));
+            addNodeCommand.AddOption(new Option<string?>("--plugin-opts", getDefaultValue: () => null, "Plugin options of the new node."));
             addNodeCommand.Handler = CommandHandler.Create(
-                async (string group, string nodename, string host, string portString, string plugin, string pluginOpts) =>
+                async (string group, string nodename, string host, string portString, string? plugin, string? pluginOpts) =>
                 {
                     nodes = await loadNodesTask;
                     if (nodes.AddNodeToGroup(group, nodename, host, portString, plugin, pluginOpts) == 0)
@@ -152,9 +152,9 @@ namespace shadowsocks_uri_generator
                     }
                 });
 
-            lsNodesCommand.AddArgument(new Argument<string>("group", getDefaultValue: () => "", "Target group. Leave empty for all groups."));
+            lsNodesCommand.AddArgument(new Argument<string?>("group", getDefaultValue: () => null, "Target group. Leave empty for all groups."));
             lsNodesCommand.Handler = CommandHandler.Create(
-                async (string group) =>
+                async (string? group) =>
                 {
                     Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",-40}|{"Port",5}|{"Plugin",12}|{"Plugin Options",24}|");
                     nodes = await loadNodesTask;
@@ -235,9 +235,9 @@ namespace shadowsocks_uri_generator
                         Console.WriteLine($"{uri.AbsoluteUri}");
                 });
 
-            getUserOnlineConfigUriCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => "", "Specifies the target user. Leave empty for all users."));
+            getUserOnlineConfigUriCommand.AddArgument(new Argument<string?>("username", getDefaultValue: () => null, "Specifies the target user. Leave empty for all users."));
             getUserOnlineConfigUriCommand.Handler = CommandHandler.Create(
-                async (string username) =>
+                async (string? username) =>
                 {
                     Console.WriteLine($"|{"User",-16}|{"Online Configuration Delivery URL",110}|");
                     users = await loadUsersTask;
@@ -278,9 +278,9 @@ namespace shadowsocks_uri_generator
                     await Settings.SaveSettingsAsync(settings);
                 });
 
-            generateOnlineConfigCommand.AddArgument(new Argument<string>("username", getDefaultValue: () => "", "Specify a user to generate for. Leave empty for all users."));
+            generateOnlineConfigCommand.AddArgument(new Argument<string?>("username", getDefaultValue: () => null, "Specify a user to generate for. Leave empty for all users."));
             generateOnlineConfigCommand.Handler = CommandHandler.Create(
-                async (string username) =>
+                async (string? username) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;

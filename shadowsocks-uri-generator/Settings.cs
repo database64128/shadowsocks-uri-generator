@@ -5,6 +5,11 @@ namespace shadowsocks_uri_generator
 {
     public class Settings
     {
+        /// Gets the default configuration version
+        /// used by this version of the app.
+        /// </summary>
+        public static int DefaultVersion => 1;
+
         /// <summary>
         /// Settings version number.
         /// </summary>
@@ -33,7 +38,7 @@ namespace shadowsocks_uri_generator
 
         public Settings()
         {
-            Version = 1;
+            Version = DefaultVersion;
             OnlineConfigSortByName = true;
             OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
             OnlineConfigDeliveryRootUri = "";
@@ -46,7 +51,7 @@ namespace shadowsocks_uri_generator
         public static async Task<Settings> LoadSettingsAsync()
         {
             Settings settings = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions);
-            if (settings.Version != 1)
+            if (settings.Version != DefaultVersion)
             {
                 UpdateSettings(ref settings);
                 await SaveSettingsAsync(settings);

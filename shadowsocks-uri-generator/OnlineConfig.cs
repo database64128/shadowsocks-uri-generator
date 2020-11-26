@@ -39,9 +39,9 @@ namespace shadowsocks_uri_generator
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <param name="settings">The object storing all settings.</param>
-        /// <param name="username">Defaults to empty for all users. Specify a user name to only generate for the user.</param>
+        /// <param name="username">Defaults to null for all users. Specify a user name to only generate for the user.</param>
         /// <returns>0 for success. 404 for user not found.</returns>
-        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, string username = "")
+        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, string? username = null)
         {
             if (string.IsNullOrEmpty(username)) // generate for all users
             {
@@ -136,8 +136,8 @@ namespace shadowsocks_uri_generator
         public int Port { get; set; }
         public string Password { get; set; }
         public string Method { get; set; }
-        public string Plugin { get; set; }
-        public string PluginOpts { get; set; }
+        public string? Plugin { get; set; }
+        public string? PluginOpts { get; set; }
         [JsonPropertyName("remarks")]
         public string Name { get; set; }
         [JsonPropertyName("id")]
@@ -146,10 +146,9 @@ namespace shadowsocks_uri_generator
         public Server()
         {
             Host = "";
+            Port = 0;
             Password = "";
             Method = "";
-            Plugin = "";
-            PluginOpts = "";
             Name = "";
             Uuid = "";
         }
@@ -161,8 +160,8 @@ namespace shadowsocks_uri_generator
             int port,
             string password,
             string method,
-            string plugin = "",
-            string pluginOpts = "")
+            string? plugin = null,
+            string? pluginOpts = null)
         {
             Host = host;
             Port = port;
