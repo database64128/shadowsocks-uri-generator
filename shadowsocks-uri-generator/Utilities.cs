@@ -32,7 +32,7 @@ namespace shadowsocks_uri_generator
         };
 
         /// <summary>
-        /// Load data from a JSON file.
+        /// Loads data from a JSON file.
         /// </summary>
         /// <typeparam name="T">Data object type.</typeparam>
         /// <param name="filename">JSON file name.</param>
@@ -67,7 +67,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Save data to a JSON file.
+        /// Saves data to a JSON file.
         /// </summary>
         /// <typeparam name="T">Data object type.</typeparam>
         /// <param name="filename">JSON file name.</param>

@@ -17,7 +17,7 @@ namespace shadowsocks_uri_generator
         public static int DefaultVersion => 2;
         
         /// <summary>
-        /// Configuration version number.
+        /// Gets or sets the configuration version number.
         /// 0 for the legacy config version
         /// without a version number property.
         /// Newer config versions start from 1.
@@ -27,7 +27,7 @@ namespace shadowsocks_uri_generator
         public int Version { get; set; }
 
         /// <summary>
-        /// The group dictionary.
+        /// Gets or sets the group dictionary.
         /// key is group name.
         /// value is group info.
         /// </summary>
@@ -125,9 +125,9 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Load nodes from Nodes.json.
+        /// Loads nodes from Nodes.json.
         /// </summary>
-        /// <returns>A Nodes object.</returns>
+        /// <returns>A <see cref="Nodes"/> object.</returns>
         public static async Task<Nodes> LoadNodesAsync()
         {
             Nodes nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions);
@@ -140,17 +140,17 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Save nodes to Nodes.json.
+        /// Saves nodes to Nodes.json.
         /// </summary>
-        /// <param name="nodes">The Nodes object to save.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveNodesAsync(Nodes nodes)
             => await Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
-        /// Update the nodes version.
+        /// Updates the nodes version.
         /// </summary>
-        /// <param name="nodes">The nodes object to update.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object to update.</param>
         public static void UpdateNodes(ref Nodes nodes)
         {
             switch (nodes.Version)
@@ -184,7 +184,7 @@ namespace shadowsocks_uri_generator
     public class Group
     {
         /// <summary>
-        /// The Node Dictionary.
+        /// Gets or sets the Node Dictionary.
         /// key is node name.
         /// value is node info.
         /// 
@@ -203,7 +203,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Adds a node to NodeDict
+        /// Adds a node to <see cref="NodeDict"/>
         /// </summary>
         /// <param name="name">Node name.</param>
         /// <param name="host">Node's host</param>
@@ -226,7 +226,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Removes nodes from NodeDict.
+        /// Removes nodes from <see cref="NodeDict"/>.
         /// </summary>
         /// <param name="nodes">The list of nodes to be removed.</param>
         public void RemoveNodes(string[] nodes)
@@ -242,7 +242,7 @@ namespace shadowsocks_uri_generator
     public class Node
     {
         /// <summary>
-        /// UUID of a node.
+        /// Gets or sets the UUID of the node.
         /// Used for online configuration delivery (SIP008).
         /// </summary>
         public string Uuid { get; set; }

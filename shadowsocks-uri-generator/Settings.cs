@@ -11,26 +11,26 @@ namespace shadowsocks_uri_generator
         public static int DefaultVersion => 1;
 
         /// <summary>
-        /// Settings version number.
+        /// Gets or sets the settings version number.
         /// </summary>
         public int Version { get; set; }
 
         /// <summary>
-        /// Decides if the generated servers list
+        /// Gets or sets whether the generated servers list
         /// in an SIP008 JSON should be sorted by server name.
         /// Defaults to true.
         /// </summary>
         public bool OnlineConfigSortByName { get; set; }
 
         /// <summary>
-        /// The output directory path
+        /// Gets or sets the output directory path
         /// for online configuration delivery (SIP008).
         /// Must NOT end with '/' or '\'.
         /// </summary>
         public string OnlineConfigOutputDirectory { get; set; }
 
         /// <summary>
-        /// The URI of the folder which contains
+        /// Gets or sets the URI of the folder which contains
         /// user configuration files for online configuration delivery.
         /// Must NOT end with '/'.
         /// </summary>
@@ -45,9 +45,9 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Load settings from Settings.json.
+        /// Loads settings from Settings.json.
         /// </summary>
-        /// <returns>A Settings object.</returns>
+        /// <returns>A <see cref="Settings"/> object.</returns>
         public static async Task<Settings> LoadSettingsAsync()
         {
             Settings settings = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions);
@@ -60,17 +60,17 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Save settings to Settings.json.
+        /// Saves settings to Settings.json.
         /// </summary>
-        /// <param name="settings">The Settings object to save.</param>
+        /// <param name="settings">The <see cref="Settings"/> object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveSettingsAsync(Settings settings)
             => await Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
-        /// Update the settings version.
+        /// Updates the settings version.
         /// </summary>
-        /// <param name="settings">The settings object to update.</param>
+        /// <param name="settings">The <see cref="Settings"/> object to update.</param>
         public static void UpdateSettings(ref Settings settings)
         {
             switch (settings.Version)

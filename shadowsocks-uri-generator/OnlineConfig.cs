@@ -34,7 +34,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Generate and save SIP008 online configuration delivery files.
+        /// Generates and saves SIP008 online configuration delivery files.
         /// </summary>
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
@@ -65,7 +65,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Generate SIP008 user configuration JSON for the specified user.
+        /// Generates SIP008 user configuration JSON for the specified user.
         /// </summary>
         /// <param name="userEntry">The specified user entry.</param>
         /// <param name="nodes">The object storing all nodes.</param>
@@ -103,7 +103,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Save the generated user configuration to a JSON file.
+        /// Saves the generated user configuration to a JSON file.
         /// </summary>
         /// <param name="onlineConfig">The generated user configuration object.</param>
         /// <param name="settings">The object storing all settings.</param>

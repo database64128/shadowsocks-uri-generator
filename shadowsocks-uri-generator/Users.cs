@@ -17,7 +17,7 @@ namespace shadowsocks_uri_generator
         public static int DefaultVersion => 1;
 
         /// <summary>
-        /// Configuration version number.
+        /// Gets or sets the configuration version number.
         /// 0 for the legacy config version
         /// without a version number property.
         /// Newer config versions start from 1.
@@ -27,7 +27,7 @@ namespace shadowsocks_uri_generator
         public int Version { get; set; }
 
         /// <summary>
-        /// The user dictionary.
+        /// Gets or sets the user dictionary.
         /// key is username.
         /// value is user info.
         /// </summary>
@@ -43,8 +43,8 @@ namespace shadowsocks_uri_generator
         /// <summary>
         /// Adds users to UserDict.
         /// </summary>
-        /// <param name="users">The list of users to be added to UserDict.</param>
-        /// <returns>A List of users successfully added to UserDict.</returns>
+        /// <param name="users">The list of users to be added to <see cref="UserDict"/>.</param>
+        /// <returns>A List of users successfully added to <see cref="UserDict"/>.</returns>
         public List<string> AddUsers(string[] users)
         {
             List<string> addedUsers = new List<string>();
@@ -60,9 +60,9 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Removes users from UserDict
+        /// Removes users from <see cref="UserDict"/>.
         /// </summary>
-        /// <param name="users">The list of users to be removed from UserDict</param>
+        /// <param name="users">The list of users to be removed from <see cref="UserDict"/>.</param>
         public void RemoveUsers(string[] users)
         {
             foreach (var user in users)
@@ -116,7 +116,7 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Get Shadowsocks URIs associated with a username.
+        /// Gets Shadowsocks URIs associated with a username.
         /// </summary>
         /// <param name="username">Target username.</param>
         /// <returns>
@@ -133,9 +133,9 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Load users from Users.json.
+        /// Loads users from Users.json.
         /// </summary>
-        /// <returns>A Users object.</returns>
+        /// <returns>A <see cref="Users"/> object.</returns>
         public static async Task<Users> LoadUsersAsync()
         {
             Users users = await Utilities.LoadJsonAsync<Users>("Users.json", Utilities.commonJsonDeserializerOptions);
@@ -148,17 +148,17 @@ namespace shadowsocks_uri_generator
         }
 
         /// <summary>
-        /// Save users to Users.json.
+        /// Saves users to Users.json.
         /// </summary>
-        /// <param name="users">The Users object to save.</param>
+        /// <param name="users">The <see cref="Users"/> object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveUsersAsync(Users users)
             => await Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
-        /// Update the users version.
+        /// Updates the users version.
         /// </summary>
-        /// <param name="users">The users object to update.</param>
+        /// <param name="users">The <see cref="Users"/> object to update.</param>
         public static void UpdateUsers(ref Users users)
         {
             switch (users.Version)
@@ -179,13 +179,13 @@ namespace shadowsocks_uri_generator
     public class User
     {
         /// <summary>
-        /// UUID of a user.
+        /// Gets or sets the UUID of the user.
         /// Used for online configuration delivery (SIP008).
         /// </summary>
         public string Uuid { get; set; }
 
         /// <summary>
-        /// The credential dictionary of the user.
+        /// Gets or sets the credential dictionary of the user.
         /// key is the associated group name.
         /// value is user's credential to the group's nodes.
         /// </summary>
