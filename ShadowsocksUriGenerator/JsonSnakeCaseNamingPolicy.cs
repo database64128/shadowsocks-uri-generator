@@ -8,7 +8,7 @@ using System;
 using System.Text;
 using System.Text.Json;
 
-namespace shadowsocks_uri_generator
+namespace ShadowsocksUriGenerator
 {
     public class JsonSnakeCaseNamingPolicy : JsonNamingPolicy
     {

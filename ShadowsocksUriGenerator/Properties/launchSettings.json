@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "shadowsocks-uri-generator": {
+    "ShadowsocksUriGenerator": {
       "commandName": "Project"
     }
   }

@@ -4,13 +4,14 @@ using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace shadowsocks_uri_generator
+namespace ShadowsocksUriGenerator
 {
     /// <summary>
     /// The class for storing user information in Users.json.
     /// </summary>
     public class Users
     {
+        /// <summary>
         /// Gets the default configuration version
         /// used by this version of the app.
         /// </summary>
@@ -37,7 +38,7 @@ namespace shadowsocks_uri_generator
         public Users()
         {
             Version = DefaultVersion;
-            UserDict = new Dictionary<string, User>();
+            UserDict = new();
         }
 
         /// <summary>
@@ -47,12 +48,12 @@ namespace shadowsocks_uri_generator
         /// <returns>A List of users successfully added to <see cref="UserDict"/>.</returns>
         public List<string> AddUsers(string[] users)
         {
-            List<string> addedUsers = new List<string>();
+            List<string> addedUsers = new();
 
             foreach (var user in users)
                 if (!UserDict.ContainsKey(user))
                 {
-                    UserDict.Add(user, new User());
+                    UserDict.Add(user, new());
                     addedUsers.Add(user);
                 }
 
@@ -129,7 +130,7 @@ namespace shadowsocks_uri_generator
             {
                 return user.GetSSUris(nodes);
             }
-            return new List<Uri>();
+            return new();
         }
 
         /// <summary>
@@ -138,7 +139,7 @@ namespace shadowsocks_uri_generator
         /// <returns>A <see cref="Users"/> object.</returns>
         public static async Task<Users> LoadUsersAsync()
         {
-            Users users = await Utilities.LoadJsonAsync<Users>("Users.json", Utilities.commonJsonDeserializerOptions);
+            var users = await Utilities.LoadJsonAsync<Users>("Users.json", Utilities.commonJsonDeserializerOptions);
             if (users.Version != DefaultVersion)
             {
                 UpdateUsers(ref users);
@@ -194,7 +195,7 @@ namespace shadowsocks_uri_generator
         public User()
         {
             Uuid = Guid.NewGuid().ToString();
-            Credentials = new Dictionary<string, Credential>();
+            Credentials = new();
         }
 
         /// <summary>
@@ -252,7 +253,7 @@ namespace shadowsocks_uri_generator
 
         public List<Uri> GetSSUris(Nodes nodes)
         {
-            List<Uri> uris = new List<Uri>();
+            List<Uri> uris = new();
             foreach (var credEntry in Credentials)
             {
                 var userinfoBase64url = credEntry.Value.UserinfoBase64url;
@@ -276,7 +277,7 @@ namespace shadowsocks_uri_generator
 
         public static Uri SSUriBuilder(string userinfoBase64url, string host, int port, string fragment, string? plugin = null, string? pluginOpts = null)
         {
-            UriBuilder ssUriBuilder = new UriBuilder("ss", host, port)
+            UriBuilder ssUriBuilder = new("ss", host, port)
             {
                 UserName = userinfoBase64url,
                 Fragment = fragment
@@ -325,7 +326,7 @@ namespace shadowsocks_uri_generator
         {
             UserinfoBase64url = userinfoBase64url;
             Userinfo = Base64UserinfoDecoder(userinfoBase64url);
-            string[] methodPasswordArray = Userinfo.Split(':', 2);
+            var methodPasswordArray = Userinfo.Split(':', 2);
             if (methodPasswordArray.Length == 2)
             {
                 Method = methodPasswordArray[0];
@@ -340,15 +341,15 @@ namespace shadowsocks_uri_generator
 
         public static string Base64UserinfoEncoder(string userinfo)
         {
-            byte[] userinfoBytes = Encoding.UTF8.GetBytes(userinfo);
+            var userinfoBytes = Encoding.UTF8.GetBytes(userinfo);
             return Convert.ToBase64String(userinfoBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
         }
 
         public static string Base64UserinfoDecoder(string userinfoBase64url)
         {
-            string parsedUserinfoBase64 = userinfoBase64url.Replace('_', '/').Replace('-', '+');
+            var parsedUserinfoBase64 = userinfoBase64url.Replace('_', '/').Replace('-', '+');
             parsedUserinfoBase64 = parsedUserinfoBase64.PadRight(parsedUserinfoBase64.Length + (4 - parsedUserinfoBase64.Length % 4) % 4, '=');
-            byte[] userinfoBytes = Convert.FromBase64String(parsedUserinfoBase64);
+            var userinfoBytes = Convert.FromBase64String(parsedUserinfoBase64);
             return Encoding.UTF8.GetString(userinfoBytes);
         }
     }

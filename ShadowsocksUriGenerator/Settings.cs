@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace shadowsocks_uri_generator
+namespace ShadowsocksUriGenerator
 {
     public class Settings
     {

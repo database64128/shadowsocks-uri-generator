@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace shadowsocks_uri_generator
+namespace ShadowsocksUriGenerator
 {
     /// <summary>
     /// The class for online configuration delivery (SIP008).
@@ -22,7 +22,7 @@ namespace shadowsocks_uri_generator
             Version = 1;
             Username = "";
             UserUuid = Guid.NewGuid().ToString();
-            Servers = new List<Server>();
+            Servers = new();
         }
 
         public OnlineConfig(string username, string userUuid)
@@ -30,7 +30,7 @@ namespace shadowsocks_uri_generator
             Version = 1;
             Username = username;
             UserUuid = userUuid;
-            Servers = new List<Server>();
+            Servers = new();
         }
 
         /// <summary>
@@ -55,7 +55,7 @@ namespace shadowsocks_uri_generator
             {
                 if (users.UserDict.TryGetValue(username, out User? user))
                 {
-                    var onlineConfig = Generate(new KeyValuePair<string, User>(username, user), nodes, settings);
+                    var onlineConfig = Generate(new(username, user), nodes, settings);
                     await SaveOutputAsync(onlineConfig, settings);
                 }
                 else

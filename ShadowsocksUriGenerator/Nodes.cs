@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace shadowsocks_uri_generator
+namespace ShadowsocksUriGenerator
 {
     /// <summary>
     /// The class for storing node information in Nodes.json
@@ -36,7 +36,7 @@ namespace shadowsocks_uri_generator
         public Nodes()
         {
             Version = DefaultVersion;
-            Groups = new Dictionary<string, Group>();
+            Groups = new();
         }
 
         /// <summary>
@@ -46,7 +46,7 @@ namespace shadowsocks_uri_generator
         /// <returns>A List of groups successfully added.</returns>
         public List<string> AddGroups(string[] groups)
         {
-            List<string> addedGroups = new List<string>();
+            List<string> addedGroups = new();
 
             foreach (var group in groups)
                 if (!Groups.ContainsKey(group))
@@ -130,7 +130,7 @@ namespace shadowsocks_uri_generator
         /// <returns>A <see cref="Nodes"/> object.</returns>
         public static async Task<Nodes> LoadNodesAsync()
         {
-            Nodes nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions);
+            var nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions);
             if (nodes.Version != DefaultVersion)
             {
                 UpdateNodes(ref nodes);
@@ -199,7 +199,7 @@ namespace shadowsocks_uri_generator
 
         public Group()
         {
-            NodeDict = new Dictionary<string, Node>();
+            NodeDict = new();
         }
 
         /// <summary>

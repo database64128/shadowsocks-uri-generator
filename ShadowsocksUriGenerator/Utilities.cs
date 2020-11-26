@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
-namespace shadowsocks_uri_generator
+namespace ShadowsocksUriGenerator
 {
     public static class Utilities
     {
