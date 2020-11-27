@@ -21,6 +21,9 @@ namespace ShadowsocksUriGenerator
             var addNodeCommand = new Command("add-node", "Add a node to a node group.");
             var addNodeGroupsCommand = new Command("add-node-groups", "Add node groups.");
             var addCredentialCommand = new Command("add-credential", "Add a credential to a node group for a user.");
+            var renameUserCommand = new Command("rename-user", "Renames an existing user with a new name.");
+            var renameNodeCommand = new Command("rename-node", "Renames an existing node with a new name.");
+            var renameNodeGroupCommand = new Command("rename-node-group", "Renames an existing node group with a new name.");
             var rmUsersCommand = new Command("rm-users", "Remove users.");
             var rmNodesCommand = new Command("rm-nodes", "Remove nodes from a node group.");
             var rmNodeGroupsCommand = new Command("rm-node-groups", "Remove node groups and its nodes.");
@@ -41,6 +44,9 @@ namespace ShadowsocksUriGenerator
                 addNodeCommand,
                 addNodeGroupsCommand,
                 addCredentialCommand,
+                renameUserCommand,
+                renameNodeCommand,
+                renameNodeGroupCommand,
                 rmUsersCommand,
                 rmNodesCommand,
                 rmNodeGroupsCommand,
@@ -53,7 +59,7 @@ namespace ShadowsocksUriGenerator
                 getUserOnlineConfigUriCommand,
                 getSettingsCommand,
                 changeSettingsCommand,
-                generateOnlineConfigCommand
+                generateOnlineConfigCommand,
             };
 
             addUsersCommand.AddArgument(new Argument<string[]>("usernames", "A list of usernames to add."));
@@ -95,6 +101,55 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine("Successfully added:");
                     foreach (var nodename in addedNodes)
                         Console.WriteLine($"{nodename}");
+                });
+
+            renameUserCommand.AddArgument(new Argument<string>("oldName", "The existing username."));
+            renameUserCommand.AddArgument(new Argument<string>("newName", "The new username."));
+            renameUserCommand.Handler = CommandHandler.Create(
+                async (string oldName, string newName) =>
+                {
+                    users = await loadUsersTask;
+                    var result = users.RenameUser(oldName, newName);
+                    if (result == -1)
+                        Console.WriteLine($"User not found: {oldName}");
+                    else if (result == -2)
+                        Console.WriteLine($"A user with the same name already exists: {newName}");
+                    await Users.SaveUsersAsync(users);
+                });
+
+            renameNodeCommand.AddArgument(new Argument<string>("group", "The node group which contains the node."));
+            renameNodeCommand.AddArgument(new Argument<string>("oldName", "The existing node name."));
+            renameNodeCommand.AddArgument(new Argument<string>("newName", "The new node name."));
+            renameNodeCommand.Handler = CommandHandler.Create(
+                async (string group, string oldName, string newName) =>
+                {
+                    nodes = await loadNodesTask;
+                    var result = nodes.RenameNodeInGroup(group, oldName, newName);
+                    if (result == -1)
+                        Console.WriteLine($"Node not found: {oldName}");
+                    else if (result == -2)
+                        Console.WriteLine($"A node with the same name already exists: {newName}");
+                    else if (result == -3)
+                        Console.WriteLine($"Group not found: {group}");
+                    await Nodes.SaveNodesAsync(nodes);
+                });
+
+            renameNodeGroupCommand.AddArgument(new Argument<string>("oldName", "The existing group name."));
+            renameNodeGroupCommand.AddArgument(new Argument<string>("newName", "The new group name."));
+            renameNodeGroupCommand.Handler = CommandHandler.Create(
+                async (string oldName, string newName) =>
+                {
+                    users = await loadUsersTask;
+                    nodes = await loadNodesTask;
+                    var result = nodes.RenameGroup(oldName, newName);
+                    if (result == -1)
+                        Console.WriteLine($"Group not found: {oldName}");
+                    else if (result == -2)
+                        Console.WriteLine($"A group with the same name already exists: {newName}");
+                    else // success
+                        users.UpdateCredentialGroupsForAllUsers(oldName, newName);
+                    await Users.SaveUsersAsync(users);
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             rmUsersCommand.AddArgument(new Argument<string[]>("usernames", "A list of users to remove."));

@@ -28,6 +28,33 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(expectedRemainingGroups, remainingGroups);
         }
 
+        [Theory]
+        [InlineData(new string[] { "A", }, "A", "B", 0)]
+        [InlineData(new string[] { "B", }, "B", "C", 0)]
+        [InlineData(new string[] { "A", }, "B", "C", -1)]
+        [InlineData(new string[] { "C", }, "B", "D", -1)]
+        [InlineData(new string[] { "A", }, "A", "A", -2)]
+        [InlineData(new string[] { "A", "B", }, "B", "A", -2)]
+        [InlineData(new string[] { "A", "B", }, "A", "B", -2)]
+        public void Rename_Group_ReturnsResult(string[] groupsToAdd, string oldName, string newName, int expectedResult)
+        {
+            var nodes = new Nodes();
+            nodes.AddGroups(groupsToAdd);
+            var count = nodes.Groups.Count;
+            var oldNameExists = nodes.Groups.TryGetValue(oldName, out var group);
+
+            var result = nodes.RenameGroup(oldName, newName);
+
+            Assert.Equal(expectedResult, result);
+            Assert.Equal(count, nodes.Groups.Count);
+            // Verify Group object
+            if (oldNameExists)
+            {
+                var currentName = result == 0 ? newName : oldName;
+                Assert.Equal(group, nodes.Groups[currentName]);
+            }
+        }
+
         [Fact]
         public void Add_Remove_Node_ReturnsResult()
         {
@@ -70,6 +97,38 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(-1, nonExistingGroupRemoval);
             Assert.True(nodes.Groups.ContainsKey("A"));
             Assert.Empty(nodes.Groups["A"].NodeDict);
+        }
+
+        [Theory]
+        [InlineData("MyGroup", new string[] { "A", }, "MyGroup", "A", "B", 0)]
+        [InlineData("MyGroup", new string[] { "B", }, "MyGroup", "B", "C", 0)]
+        [InlineData("MyGroup", new string[] { "A", }, "MyGroup", "B", "C", -1)]
+        [InlineData("MyGroup", new string[] { "C", }, "MyGroup", "B", "D", -1)]
+        [InlineData("MyGroup", new string[] { "A", }, "MyGroup", "A", "A", -2)]
+        [InlineData("MyGroup", new string[] { "A", "B", }, "MyGroup", "B", "A", -2)]
+        [InlineData("MyGroup", new string[] { "A", "B", }, "MyGroup", "A", "B", -2)]
+        [InlineData("MyGroup", new string[] { "A", }, "MyGroupWithPlugin", "A", "B", -3)]
+        [InlineData("MyGroup", new string[] { "A", }, "My", "A", "B", -3)]
+        public void Rename_Node_ReturnsResult(string addToGroup, string[] nodesToAdd, string group, string oldName, string newName, int expectedResult)
+        {
+            var nodes = new Nodes();
+            nodes.AddGroups(new string[] { addToGroup, });
+            foreach (var nodeName in nodesToAdd)
+                nodes.AddNodeToGroup(addToGroup, nodeName, "github.com", 443);
+            var nodeDict = nodes.Groups[addToGroup].NodeDict;
+            var count = nodeDict.Count;
+            var oldNameExists = nodeDict.TryGetValue(oldName, out var node);
+
+            var result = nodes.RenameNodeInGroup(group, oldName, newName);
+
+            Assert.Equal(expectedResult, result);
+            Assert.Equal(count, nodeDict.Count);
+            // Verify Node object
+            if (oldNameExists)
+            {
+                var currentName = result == 0 ? newName : oldName;
+                Assert.Equal(node, nodeDict[currentName]);
+            }
         }
     }
 }

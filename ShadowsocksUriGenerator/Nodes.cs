@@ -59,6 +59,26 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Renames an existing group with a new name.
+        /// </summary>
+        /// <param name="oldName">The existing group name.</param>
+        /// <param name="newName">The new group name.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -1 when the old group is not found.
+        /// -2 when a group with the same name already exists.
+        /// </returns>
+        public int RenameGroup(string oldName, string newName)
+        {
+            if (Groups.ContainsKey(newName))
+                return -2;
+            if (!Groups.Remove(oldName, out var group))
+                return -1;
+            Groups.Add(newName, group);
+            return 0;
+        }
+
+        /// <summary>
         /// Removes groups from the group dictionary.
         /// </summary>
         /// <param name="groups">The list of groups to be removed.</param>
@@ -108,6 +128,26 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Renames an existing node with a new name.
+        /// </summary>
+        /// <param name="group">The node group which contains the node.</param>
+        /// <param name="oldName">The existing node name.</param>
+        /// <param name="newName">The new node name.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -1 when old node name is not found.
+        /// -2 when new node name already exists.
+        /// -3 when the group is not found.
+        /// </returns>
+        public int RenameNodeInGroup(string group, string oldName, string newName)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.RenameNode(oldName, newName);
+            else
+                return -3;
+        }
+
+        /// <summary>
         /// Removes nodes from the node group.
         /// </summary>
         /// <param name="group">Group name to remove nodes from.</param>
@@ -115,7 +155,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>0 for success or found target group. -1 for non-existing group.</returns>
         public int RemoveNodesFromGroup(string group, string[] nodes)
         {
-            if (Groups.TryGetValue(group, out Group? targetGroup))
+            if (Groups.TryGetValue(group, out var targetGroup))
             {
                 targetGroup.RemoveNodes(nodes);
                 return 0;
@@ -223,6 +263,26 @@ namespace ShadowsocksUriGenerator
             {
                 return -1;
             }
+        }
+
+        /// <summary>
+        /// Renames an existing node with a new name.
+        /// </summary>
+        /// <param name="oldName">The existing node name.</param>
+        /// <param name="newName">The new node name.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -1 when old node name is not found.
+        /// -2 when new node name already exists.
+        /// </returns>
+        public int RenameNode(string oldName, string newName)
+        {
+            if (NodeDict.ContainsKey(newName))
+                return -2;
+            if (!NodeDict.Remove(oldName, out var node))
+                return -1;
+            NodeDict.Add(newName, node);
+            return 0;
         }
 
         /// <summary>

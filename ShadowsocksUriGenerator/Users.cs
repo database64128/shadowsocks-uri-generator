@@ -61,6 +61,26 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Renames an existing user with a new name.
+        /// </summary>
+        /// <param name="oldName">The existing username.</param>
+        /// <param name="newName">The new username.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -1 when old username is not found.
+        /// -2 when new username already exists.
+        /// </returns>
+        public int RenameUser(string oldName, string newName)
+        {
+            if (UserDict.ContainsKey(newName))
+                return -2;
+            if (!UserDict.Remove(oldName, out var user))
+                return -1;
+            UserDict.Add(newName, user);
+            return 0;
+        }
+
+        /// <summary>
         /// Removes users from <see cref="UserDict"/>.
         /// </summary>
         /// <param name="users">The list of users to be removed from <see cref="UserDict"/>.</param>
@@ -98,6 +118,21 @@ namespace ShadowsocksUriGenerator
             }
             else
                 return -1;
+        }
+
+        /// <summary>
+        /// Updates credential entries for all users when group name changes.
+        /// </summary>
+        /// <param name="oldGroupName">The old group name.</param>
+        /// <param name="newGroupName">The new group name.</param>
+        public void UpdateCredentialGroupsForAllUsers(string oldGroupName, string newGroupName)
+        {
+            foreach (var userEntry in UserDict)
+            {
+                var credentials = userEntry.Value.Credentials;
+                if (credentials.Remove(oldGroupName, out var credential))
+                    credentials.Add(newGroupName, credential);
+            }
         }
 
         public int RemoveCredentialsFromUser(string user, string[] groups)
