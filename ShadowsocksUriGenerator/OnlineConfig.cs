@@ -39,28 +39,25 @@ namespace ShadowsocksUriGenerator
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <param name="settings">The object storing all settings.</param>
-        /// <param name="username">Defaults to null for all users. Specify a user name to only generate for the user.</param>
+        /// <param name="usernames">The specified users to generate for. Pass nothing to generate for all users.</param>
         /// <returns>0 for success. 404 for user not found.</returns>
-        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, string? username = null)
+        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, params string[] usernames)
         {
-            if (string.IsNullOrEmpty(username)) // generate for all users
-            {
+            if (usernames.Length == 0) // generate for all users
                 foreach (var userEntry in users.UserDict)
                 {
                     var onlineConfig = Generate(userEntry, nodes, settings);
                     await SaveOutputAsync(onlineConfig, settings);
                 }
-            }
             else // generate only for the specified user
-            {
-                if (users.UserDict.TryGetValue(username, out User? user))
-                {
-                    var onlineConfig = Generate(new(username, user), nodes, settings);
-                    await SaveOutputAsync(onlineConfig, settings);
-                }
-                else
-                    return 404;
-            }
+                foreach (var username in usernames)
+                    if (users.UserDict.TryGetValue(username, out User? user))
+                    {
+                        var onlineConfig = Generate(new(username, user), nodes, settings);
+                        await SaveOutputAsync(onlineConfig, settings);
+                    }
+                    else
+                        return 404;
             return 0;
         }
 
@@ -122,6 +119,39 @@ namespace ShadowsocksUriGenerator
             {
                 Console.WriteLine($"Error: failed to create {settings.OnlineConfigOutputDirectory}.");
             }
+        }
+
+        /// <summary>
+        /// Removes the generated JSON files for all users or the specified users.
+        /// </summary>
+        /// <param name="users">The object storing all users.</param>
+        /// <param name="nodes">The object storing all nodes.</param>
+        /// <param name="settings">The object storing all settings.</param>
+        /// <param name="usernames">The specified users. Pass nothing to remove for all users.</param>
+        public static void Remove(Users users, Settings settings, params string[] usernames)
+        {
+            var directory = settings.OnlineConfigOutputDirectory;
+            if (usernames.Length == 0)
+            {
+                var userUuids = users.UserDict.Select(x => x.Value.Uuid).ToArray();
+                Remove(directory, userUuids);
+            }
+            else
+                foreach (var username in usernames)
+                    if (users.UserDict.TryGetValue(username, out var user))
+                        Remove(directory, user.Uuid);
+        }
+
+        /// <summary>
+        /// Removes online config files of the users in the list.
+        /// </summary>
+        /// <param name="directory">The online config directory.</param>
+        /// <param name="userUuids">The list of users whose online config file will be removed.</param>
+        public static void Remove(string directory, params string[] userUuids)
+        {
+            if (Directory.Exists(directory))
+                foreach (var uuid in userUuids)
+                    File.Delete($"{directory}/{uuid}.json");
         }
     }
 

@@ -23,6 +23,13 @@ namespace ShadowsocksUriGenerator
         public bool OnlineConfigSortByName { get; set; }
 
         /// <summary>
+        /// Gets or sets whether the user's online config file
+        /// should be removed when the user is being removed.
+        /// Defaults to true.
+        /// </summary>
+        public bool OnlineConfigCleanOnUserRemoval { get; set; }
+
+        /// <summary>
         /// Gets or sets the output directory path
         /// for online configuration delivery (SIP008).
         /// Must NOT end with '/' or '\'.
@@ -40,6 +47,7 @@ namespace ShadowsocksUriGenerator
         {
             Version = DefaultVersion;
             OnlineConfigSortByName = true;
+            OnlineConfigCleanOnUserRemoval = true;
             OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
             OnlineConfigDeliveryRootUri = "";
         }

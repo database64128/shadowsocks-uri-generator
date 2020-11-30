@@ -17,7 +17,7 @@
     <RepositoryType>Public</RepositoryType>
     <ApplicationIcon>ss-uri-gen.ico</ApplicationIcon>
     <PackageIcon>ss-uri-gen.png</PackageIcon>
-    <Version>2.7.0</Version>
+    <Version>2.8.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

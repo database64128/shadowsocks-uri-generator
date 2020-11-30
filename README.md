@@ -43,11 +43,11 @@ $ ./ss-uri-gen change-settings --online-config-output-directory sip008
 # Generate SIP008-compliant online configuration files.
 $ ./ss-uri-gen gen-online-config
 
-# Print all users' SIP008 delivery URL.
-$ ./ss-uri-gen get-user-online-config-uri
+# Print all users' SIP008 delivery URLs.
+$ ./ss-uri-gen get-online-config-link
 
 # Print a user's ss:// links.
-$ ./ss-uri-gen get-user-ss-uris MyUserA
+$ ./ss-uri-gen get-ss-links MyUserA
 ```
 
 ## License

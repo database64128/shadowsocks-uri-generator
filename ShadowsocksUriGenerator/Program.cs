@@ -32,10 +32,11 @@ namespace ShadowsocksUriGenerator
             var lsNodesCommand = new Command("ls-nodes", "List nodes from the specified group or all groups.");
             var lsNodeGroupsCommand = new Command("ls-node-groups", "List all node groups.");
             var lsCredentialsCommand = new Command("ls-credentials", "List all user credentials.");
-            var getUserSSUrisCommand = new Command("get-user-ss-uris", "Get the user's associated Shadowsocks URIs.");
-            var getUserOnlineConfigUriCommand = new Command("get-user-online-config-uri", "Get the user's SIP008-compliant online configuration delivery URL.");
+            var getSSLinksCommand = new Command("get-ss-links", "Get the user's associated Shadowsocks URLs.");
+            var getOnlineConfigLinkCommand = new Command("get-online-config-link", "Get the user's SIP008-compliant online configuration delivery URL.");
             var getSettingsCommand = new Command("get-settings", "Get and print all settings.");
             var changeSettingsCommand = new Command("change-settings", "Change settings.");
+            var cleanOnlineConfigCommand = new Command("clean-online-config", "Clean online configuration files for specified or all users.");
             var generateOnlineConfigCommand = new Command("gen-online-config", "Generate SIP008-compliant online configuration delivery JSON files.");
 
             var rootCommand = new RootCommand()
@@ -55,10 +56,11 @@ namespace ShadowsocksUriGenerator
                 lsNodesCommand,
                 lsNodeGroupsCommand,
                 lsCredentialsCommand,
-                getUserSSUrisCommand,
-                getUserOnlineConfigUriCommand,
+                getSSLinksCommand,
+                getOnlineConfigLinkCommand,
                 getSettingsCommand,
                 changeSettingsCommand,
+                cleanOnlineConfigCommand,
                 generateOnlineConfigCommand,
             };
 
@@ -78,8 +80,8 @@ namespace ShadowsocksUriGenerator
             addNodeCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             addNodeCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
             addNodeCommand.AddArgument(new Argument<string>("portString", "Port number of the new node."));
-            addNodeCommand.AddOption(new Option<string?>("--plugin", getDefaultValue: () => null, "Plugin binary name of the new node."));
-            addNodeCommand.AddOption(new Option<string?>("--plugin-opts", getDefaultValue: () => null, "Plugin options of the new node."));
+            addNodeCommand.AddOption(new Option<string?>("--plugin", "Plugin binary name of the new node."));
+            addNodeCommand.AddOption(new Option<string?>("--plugin-opts", "Plugin options of the new node."));
             addNodeCommand.Handler = CommandHandler.Create(
                 async (string group, string nodename, string host, string portString, string? plugin, string? pluginOpts) =>
                 {
@@ -157,7 +159,10 @@ namespace ShadowsocksUriGenerator
                 async (string[] usernames) =>
                 {
                     users = await loadUsersTask;
+                    settings = await loadSettingsTask;
                     users.RemoveUsers(usernames);
+                    if (settings.OnlineConfigCleanOnUserRemoval)
+                        OnlineConfig.Remove(users, settings, usernames);
                     await Users.SaveUsersAsync(users);
                 });
 
@@ -279,8 +284,8 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
-            getUserSSUrisCommand.AddArgument(new Argument<string>("username", "Target user."));
-            getUserSSUrisCommand.Handler = CommandHandler.Create(
+            getSSLinksCommand.AddArgument(new Argument<string>("username", "Target user."));
+            getSSLinksCommand.Handler = CommandHandler.Create(
                 async (string username) =>
                 {
                     users = await loadUsersTask;
@@ -290,20 +295,22 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"{uri.AbsoluteUri}");
                 });
 
-            getUserOnlineConfigUriCommand.AddArgument(new Argument<string?>("username", getDefaultValue: () => null, "Specifies the target user. Leave empty for all users."));
-            getUserOnlineConfigUriCommand.Handler = CommandHandler.Create(
-                async (string? username) =>
+            getOnlineConfigLinkCommand.AddArgument(new Argument<string[]?>("usernames", "Target users. Leave empty for all users."));
+            getOnlineConfigLinkCommand.Handler = CommandHandler.Create(
+                async (string[]? usernames) =>
                 {
                     Console.WriteLine($"|{"User",-16}|{"Online Configuration Delivery URL",110}|");
                     users = await loadUsersTask;
                     settings = await loadSettingsTask;
-                    if (string.IsNullOrEmpty(username))
+                    if (usernames == null)
                         foreach (var user in users.UserDict)
                             Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
-                    else if (users.UserDict.TryGetValue(username, out User? user))
-                        Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
                     else
-                        Console.WriteLine($"User not found: {username}.");
+                        foreach (var username in usernames)
+                            if (users.UserDict.TryGetValue(username, out User? user))
+                                Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                            else
+                                Console.WriteLine($"User not found: {username}.");
                 });
 
             getSettingsCommand.Handler = CommandHandler.Create(
@@ -313,19 +320,23 @@ namespace ShadowsocksUriGenerator
                     settings = await loadSettingsTask;
                     Console.WriteLine($"|{"Version",-32}|{settings.Version,40}|");
                     Console.WriteLine($"|{"OnlineConfigSortByName",-32}|{settings.OnlineConfigSortByName,40}|");
+                    Console.WriteLine($"|{"OnlineConfigCleanOnUserRemoval",-32}|{settings.OnlineConfigCleanOnUserRemoval,40}|");
                     Console.WriteLine($"|{"OnlineConfigOutputDirectory",-32}|{settings.OnlineConfigOutputDirectory,40}|");
                     Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-32}|{settings.OnlineConfigDeliveryRootUri,40}|");
                 });
 
             changeSettingsCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
+            changeSettingsCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
             changeSettingsCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
             changeSettingsCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             changeSettingsCommand.Handler = CommandHandler.Create(
-                async (bool? onlineConfigSortByName, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri) =>
+                async (bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri) =>
                 {
                     settings = await loadSettingsTask;
-                    if (onlineConfigSortByName is bool _onlineConfigSortByName)
-                        settings.OnlineConfigSortByName = _onlineConfigSortByName;
+                    if (onlineConfigSortByName is bool sortByName)
+                        settings.OnlineConfigSortByName = sortByName;
+                    if (onlineConfigCleanOnUserRemoval is bool cleanOnUserRemoval)
+                        settings.OnlineConfigCleanOnUserRemoval = cleanOnUserRemoval;
                     if (!string.IsNullOrEmpty(onlineConfigOutputDirectory))
                         settings.OnlineConfigOutputDirectory = onlineConfigOutputDirectory;
                     if (!string.IsNullOrEmpty(onlineConfigDeliveryRootUri))
@@ -333,14 +344,35 @@ namespace ShadowsocksUriGenerator
                     await Settings.SaveSettingsAsync(settings);
                 });
 
-            generateOnlineConfigCommand.AddArgument(new Argument<string?>("username", getDefaultValue: () => null, "Specify a user to generate for. Leave empty for all users."));
+            cleanOnlineConfigCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));
+            cleanOnlineConfigCommand.AddOption(new Option<bool>("--all", "clean for all users."));
+            cleanOnlineConfigCommand.Handler = CommandHandler.Create(
+                async (string[]? usernames, bool all) =>
+                {
+                    users = await loadUsersTask;
+                    settings = await loadSettingsTask;
+                    if (usernames != null && !all)
+                        OnlineConfig.Remove(users, settings, usernames);
+                    else if (usernames == null && all)
+                        OnlineConfig.Remove(users, settings);
+                    else
+                        Console.WriteLine("Invalid arguments or options. Either specify usernames, or use '--all' to target all users.");
+                });
+
+            generateOnlineConfigCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to generate for. Leave empty for all users."));
             generateOnlineConfigCommand.Handler = CommandHandler.Create(
-                async (string? username) =>
+                async (string[]? usernames) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
                     settings = await loadSettingsTask;
-                    await OnlineConfig.GenerateAndSave(users, nodes, settings, username);
+                    int result;
+                    if (usernames == null)
+                        result = await OnlineConfig.GenerateAndSave(users, nodes, settings);
+                    else
+                        result = await OnlineConfig.GenerateAndSave(users, nodes, settings, usernames);
+                    if (result == 404)
+                        Console.WriteLine($"One or more specified users are not found.");
                 });
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
