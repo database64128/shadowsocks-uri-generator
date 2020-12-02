@@ -160,9 +160,11 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     settings = await loadSettingsTask;
-                    users.RemoveUsers(usernames);
+                    // Removing online config requires reading user entry.
                     if (settings.OnlineConfigCleanOnUserRemoval)
                         OnlineConfig.Remove(users, settings, usernames);
+                    // Remove user entry.
+                    users.RemoveUsers(usernames);
                     await Users.SaveUsersAsync(users);
                 });
 
