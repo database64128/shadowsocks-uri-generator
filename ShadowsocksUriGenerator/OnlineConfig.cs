@@ -15,6 +15,8 @@ namespace ShadowsocksUriGenerator
         public int Version { get; set; }
         public string Username { get; set; }
         public string UserUuid { get; set; }
+        public ulong BytesUsed { get; set; }
+        public ulong BytesRemaining { get; set; }
         public List<Server> Servers { get; set; }
 
         public OnlineConfig()
@@ -25,11 +27,13 @@ namespace ShadowsocksUriGenerator
             Servers = new();
         }
 
-        public OnlineConfig(string username, string userUuid)
+        public OnlineConfig(string username, string userUuid, ulong bytesUsed = 0, ulong bytesRemaining = 0)
         {
             Version = 1;
             Username = username;
             UserUuid = userUuid;
+            BytesUsed = bytesUsed;
+            BytesRemaining = bytesRemaining;
             Servers = new();
         }
 
@@ -70,7 +74,7 @@ namespace ShadowsocksUriGenerator
         public static OnlineConfig Generate(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
         {
             var user = userEntry.Value;
-            var onlineConfig = new OnlineConfig(userEntry.Key, user.Uuid);
+            var onlineConfig = new OnlineConfig(userEntry.Key, user.Uuid, user.BytesUsed, user.BytesRemaining);
             foreach (var credEntry in user.Credentials)
             {
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group

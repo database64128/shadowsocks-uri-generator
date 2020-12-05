@@ -1,5 +1,9 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.Outline;
+using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -165,6 +169,119 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Associates the Outline server with the node group
+        /// by setting the API key.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <param name="apiKey">Outline server API key.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -1 when target group doesn't exist.
+        /// -2 when the API key is not a valid JSON string.
+        /// </returns>
+        public int AssociateOutlineServerWithGroup(string group, string apiKey)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.AssociateOutlineServer(apiKey);
+            else
+                return -1;
+        }
+
+        /// <summary>
+        /// Gets the Outline API key
+        /// associated with the group.
+        /// </summary>
+        /// <param name="group">Name of the group.</param>
+        /// <returns>
+        /// The Outline API key object.
+        /// Null if group not found or no associated API key.
+        /// </returns>
+        public ApiKey? GetOutlineApiKeyFromGroup(string group)
+            => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.OutlineApiKey : null;
+
+        /// <summary>
+        /// Gets the Outline API key
+        /// associated with the group
+        /// as a string.
+        /// </summary>
+        /// <param name="group">Name of the group.</param>
+        /// <returns>
+        /// The Outline API key string.
+        /// Null if group not found or no associated API key.
+        /// </returns>
+        public string? GetOutlineApiKeyStringFromGroup(string group)
+            => GetOutlineApiKeyFromGroup(group) is ApiKey apiKey ? JsonSerializer.Serialize(apiKey, Outline.Utilities.apiKeyJsonSerializerOptions) : null;
+
+        /// <summary>
+        /// Gets the Outline server information object.
+        /// </summary>
+        /// <param name="group">Name of the group.</param>
+        /// <returns>
+        /// The Outline server information object.
+        /// Null if group not found or no associated information.
+        /// </returns>
+        public ServerInfo? GetOutlineServerInfoFromGroup(string group)
+            => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.OutlineServerInfo : null;
+
+        /// <summary>
+        /// Changes settings for the group's associated Outline server.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <param name="name">Server name.</param>
+        /// <param name="hostname">Server hostname.</param>
+        /// <param name="port">Port number for new access keys.</param>
+        /// <param name="metrics">Enable telemetry.</param>
+        /// <returns>
+        /// The task that represents the operation.
+        /// Null if the group can't be found
+        /// or no associated Outline server.</returns>
+        public Task<List<HttpStatusCode>?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+            {
+                if (!string.IsNullOrEmpty(defaultUser))
+                    targetGroup.OutlineDefaultUser = defaultUser;
+                return targetGroup.SetOutlineServer(name, hostname, port, metrics);
+            }
+            else
+                return Task.FromResult<List<HttpStatusCode>?>(null);
+        }
+
+        /// <summary>
+        /// Removes the association of the Outline server
+        /// and all saved data related to it from the target group.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <returns>0 for success. -1 when target group doesn't exist.</returns>
+        public int RemoveOutlineServerFromGroup(string group)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+            {
+                targetGroup.RemoveOutlineServer();
+                return 0;
+            }
+            else
+                return -1;
+        }
+
+        /// <summary>
+        /// Sets the data limit for the specified group.
+        /// </summary>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <param name="group">Target group.</param>
+        /// <param name="global">Set the global data limit of the group.</param>
+        /// <param name="perUser">Set the same data limit for each user.</param>
+        /// <param name="usernames">Only set the data limit to these users.</param>
+        /// <returns>0 on success. -1 on group not found. -2 on user not found.</returns>
+        public int SetDataLimitForGroup(ulong dataLimit, string group, bool global, bool perUser, string[]? usernames = null)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.SetDataLimit(dataLimit, global, perUser, usernames);
+            else
+                return -1;
+        }
+
+        /// <summary>
         /// Loads nodes from Nodes.json.
         /// </summary>
         /// <returns>A <see cref="Nodes"/> object.</returns>
@@ -223,6 +340,41 @@ namespace ShadowsocksUriGenerator
     /// </summary>
     public class Group
     {
+        /// <summary>
+        /// Gets or sets the Outline Access Keys Management API key object.
+        /// </summary>
+        public ApiKey? OutlineApiKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Outline Server information object.
+        /// </summary>
+        public ServerInfo? OutlineServerInfo { get; set; }
+
+        /// <summary>
+        /// Gets or sets the list of Outline Server access keys.
+        /// </summary>
+        public List<AccessKey>? OutlineAccessKeys { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default user for Outline server's default access key (id: 0).
+        /// </summary>
+        public string? OutlineDefaultUser { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data limit of the group in bytes.
+        /// </summary>
+        public ulong DataLimitInBytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data usage in bytes.
+        /// </summary>
+        public ulong BytesUsed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data remaining to be used in bytes.
+        /// </summary>
+        public ulong BytesRemaining { get; set; }
+
         /// <summary>
         /// Gets or sets the Node Dictionary.
         /// key is node name.
@@ -293,6 +445,121 @@ namespace ShadowsocksUriGenerator
         {
             foreach (var node in nodes)
                 NodeDict.Remove(node);
+        }
+
+        /// <summary>
+        /// Associates the Outline server
+        /// by adding the API key.
+        /// </summary>
+        /// <param name="apiKey">The Outline server API key.</param>
+        /// <returns>0 for success. -2 for invalid JSON string.</returns>
+        public int AssociateOutlineServer(string apiKey)
+        {
+            try
+            {
+                OutlineApiKey = JsonSerializer.Deserialize<ApiKey>(apiKey, Outline.Utilities.apiKeyJsonSerializerOptions);
+                return 0;
+            }
+            catch (JsonException)
+            {
+                return -2;
+            }
+        }
+
+        /// <summary>
+        /// Changes settings for the associated Outline server.
+        /// </summary>
+        /// <param name="name">Server name.</param>
+        /// <param name="hostname">Server hostname.</param>
+        /// <param name="port">Port number for new access keys.</param>
+        /// <param name="metrics">Enable telemetry.</param>
+        /// <returns>The task that represents the operation. Null if no associated Outline server.</returns>
+        public async Task<List<HttpStatusCode>?> SetOutlineServer(string? name, string? hostname, int? port, bool? metrics)
+        {
+            if (OutlineApiKey == null)
+                return null;
+
+            using var apiClient = new ApiClient(OutlineApiKey);
+            var tasks = new List<Task<HttpResponseMessage>>();
+            var statusCodes = new List<HttpStatusCode>();
+
+            if (!string.IsNullOrEmpty(name))
+                tasks.Add(apiClient.SetServerNameAsync(name));
+            if (!string.IsNullOrEmpty(hostname))
+                tasks.Add(apiClient.SetServerHostnameAsync(hostname));
+            if (port is int portForNewAccessKeys)
+                tasks.Add(apiClient.SetAccessKeysPortAsync(portForNewAccessKeys));
+            if (metrics is bool enableMetrics)
+                tasks.Add(apiClient.SetServerMetricsAsync(enableMetrics));
+
+            while (tasks.Count > 0)
+            {
+                var finishedTask = await Task.WhenAny(tasks);
+                var responseMessage = await finishedTask;
+                statusCodes.Add(responseMessage.StatusCode);
+                tasks.Remove(finishedTask);
+            }
+
+            return statusCodes;
+        }
+
+        /// <summary>
+        /// Removes the association of the Outline server
+        /// and all saved data related to it.
+        /// </summary>
+        public void RemoveOutlineServer()
+        {
+            OutlineApiKey = null;
+            OutlineServerInfo = null;
+            OutlineAccessKeys = null;
+        }
+
+        public async Task<int> UpdateOutlineServer()
+        {
+            if (OutlineApiKey == null)
+                return -1;
+
+            using var apiClient = new ApiClient(OutlineApiKey);
+            var serverInfoTask = apiClient.GetServerInfoAsync();
+            var accessKeysTask = apiClient.GetAccessKeysAsync();
+            var dataUsageTask = apiClient.GetDataUsageAsync();
+            var tasks = new List<Task>()
+            {
+                serverInfoTask,
+                accessKeysTask,
+                dataUsageTask,
+            };
+
+            while (tasks.Count > 0)
+            {
+                var finishedTask = await Task.WhenAny(tasks);
+                if (finishedTask == serverInfoTask)
+                    OutlineServerInfo = await (Task<ServerInfo?>)finishedTask;
+                else if (finishedTask == accessKeysTask)
+                    OutlineAccessKeys = await (Task<List<AccessKey>?>)finishedTask;
+                else if (finishedTask == dataUsageTask)
+                {
+                    // update data usage
+                }
+                tasks.Remove(finishedTask);
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Sets the data limit.
+        /// </summary>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <param name="global">Set the global data limit of the group.</param>
+        /// <param name="perUser">Set the same data limit for each user.</param>
+        /// <param name="usernames">Only set the data limit to these users.</param>
+        /// <returns></returns>
+        public int SetDataLimit(ulong dataLimit, bool global, bool perUser, string[]? usernames = null)
+        {
+            if (global)
+                DataLimitInBytes = dataLimit;
+            return 0;
         }
     }
 
