@@ -170,6 +170,21 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Sets the data limit to the specified user.
+        /// </summary>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <param name="username">Target user.</param>
+        /// <param name="groups">Only set for these groups.</param>
+        /// <returns>0 on success. -1 on user not found. -2 on group not found.</returns>
+        public int SetDataLimitToUser(ulong dataLimit, string username, string[]? groups = null)
+        {
+            if (UserDict.TryGetValue(username, out User? user))
+                return user.SetDataLimit(dataLimit, groups);
+            else
+                return -1;
+        }
+
+        /// <summary>
         /// Loads users from Users.json.
         /// </summary>
         /// <returns>A <see cref="Users"/> object.</returns>
@@ -226,6 +241,24 @@ namespace ShadowsocksUriGenerator
         /// Used for online configuration delivery (SIP008).
         /// </summary>
         public string Uuid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data limit of the user in bytes.
+        /// </summary>
+        public ulong DataLimitInBytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data usage of the user in bytes.
+        /// The value equals the sum of all node groups.
+        /// </summary>
+        public ulong BytesUsed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data remaining to be used in bytes.
+        /// If any node group has a zero value, the value will be zero.
+        /// Otherwise, the value equals the sum of all node groups.
+        /// </summary>
+        public ulong BytesRemaining { get; set; }
 
         /// <summary>
         /// Gets or sets the credential dictionary of the user.
@@ -318,6 +351,25 @@ namespace ShadowsocksUriGenerator
             return uris;
         }
 
+        /// <summary>
+        /// Sets the data limit.
+        /// </summary>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <param name="groups">Only set for these groups.</param>
+        /// <returns>0 on success. -2 on group not found.</returns>
+        public int SetDataLimit(ulong dataLimit, string[]? groups = null)
+        {
+            if (groups == null)
+                DataLimitInBytes = dataLimit;
+            else
+                foreach (var group in groups)
+                    if (Credentials.TryGetValue(group, out var credential))
+                        credential.DataLimitInBytes = dataLimit;
+                    else
+                        return -2;
+            return 0;
+        }
+
         public static Uri SSUriBuilder(string userinfoBase64url, string host, int port, string fragment, string? plugin = null, string? pluginOpts = null)
         {
             UriBuilder ssUriBuilder = new("ss", host, port)
@@ -345,6 +397,21 @@ namespace ShadowsocksUriGenerator
         public string Password { get; set; }
         public string Userinfo { get; set; }
         public string UserinfoBase64url { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data limit of the user in the group in bytes.
+        /// </summary>
+        public ulong DataLimitInBytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data usage of the user in the group in bytes.
+        /// </summary>
+        public ulong BytesUsed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the data remaining to be used in bytes.
+        /// </summary>
+        public ulong BytesRemaining { get; set; }
 
         /// <summary>
         /// Parameterless constructor for System.Text.Json

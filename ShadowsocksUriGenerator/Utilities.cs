@@ -26,10 +26,54 @@ namespace ShadowsocksUriGenerator
 
         public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new JsonSerializerOptions()
         {
-            WriteIndented = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
             AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            WriteIndented = true,
         };
+
+        /// <summary>
+        /// Tries to parse a data limit string.
+        /// </summary>
+        /// <param name="dataLimit">The data limit string to parse.</param>
+        /// <param name="dataLimitInBytes">The parsed data limit in bytes.</param>
+        /// <returns>True on successful parsing. False on failure.</returns>
+        public static bool TryParseDataLimitString(string dataLimit, out ulong dataLimitInBytes)
+        {
+            dataLimitInBytes = 0UL;
+            if (string.IsNullOrEmpty(dataLimit))
+                return false;
+            ulong multiplier = 1UL;
+            switch (dataLimit[^1])
+            {
+                case 'K':
+                    multiplier = 1024UL;
+                    break;
+                case 'M':
+                    multiplier = 1024UL * 1024UL;
+                    break;
+                case 'G':
+                    multiplier = 1024UL * 1024UL * 1024UL;
+                    break;
+                case 'T':
+                    multiplier = 1024UL * 1024UL * 1024UL * 1024UL;
+                    break;
+                case 'P':
+                    multiplier = 1024UL * 1024UL * 1024UL * 1024UL * 1024UL;
+                    break;
+                case 'E':
+                    multiplier = 1024UL * 1024UL * 1024UL * 1024UL * 1024UL * 1024UL;
+                    break;
+            }
+            if (multiplier == 1UL)
+                return ulong.TryParse(dataLimit, out dataLimitInBytes);
+            else if (ulong.TryParse(dataLimit[0..^1], out var dataLimitBeforeMultiplication))
+            {
+                dataLimitInBytes = dataLimitBeforeMultiplication * multiplier;
+                return true;
+            }
+            else
+                return false;
+        }
 
         /// <summary>
         /// Loads data from a JSON file.
