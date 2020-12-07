@@ -554,7 +554,21 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
                     users = await loadUsersTask;
-
+                    if (groups == null)
+                        await nodes.UpdateOutlineServerForAllGroups();
+                    else
+                        foreach (var group in groups)
+                        {
+                            var result = await nodes.UpdateGroupOutlineServer(group);
+                            if (result == 0)
+                            {
+                                // TODO: update user data usage
+                            }
+                            if (result == -1)
+                                Console.WriteLine($"Group not found: {group}");
+                            else if (result == -2)
+                                Console.WriteLine($"Group not associated with an Outline server: {group}");
+                        }
                     await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
                 });
