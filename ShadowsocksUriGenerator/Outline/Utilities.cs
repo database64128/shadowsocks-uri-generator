@@ -25,6 +25,7 @@ namespace ShadowsocksUriGenerator.Outline
         public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new JsonSerializerOptions()
         {
             AllowTrailingCommas = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             ReadCommentHandling = JsonCommentHandling.Skip,
             WriteIndented = true,
