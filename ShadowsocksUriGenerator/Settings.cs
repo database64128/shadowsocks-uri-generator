@@ -55,6 +55,12 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         public bool OutlineServerDeployOnChange { get; set; }
 
+        /// <summary>
+        /// Gets or sets the global setting
+        /// for Outline server's default access key's user.
+        /// </summary>
+        public string OutlineServerGlobalDefaultUser { get; set; }
+
         public Settings()
         {
             Version = DefaultVersion;
@@ -64,6 +70,7 @@ namespace ShadowsocksUriGenerator
             OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
             OnlineConfigDeliveryRootUri = "";
             OutlineServerDeployOnChange = true;
+            OutlineServerGlobalDefaultUser = "";
         }
 
         /// <summary>

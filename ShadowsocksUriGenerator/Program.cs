@@ -653,6 +653,7 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"OnlineConfigOutputDirectory",-40}|{settings.OnlineConfigOutputDirectory,40}|");
                     Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-40}|{settings.OnlineConfigDeliveryRootUri,40}|");
                     Console.WriteLine($"|{"OutlineServerDeployOnChange",-40}|{settings.OutlineServerDeployOnChange,40}|");
+                    Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-40}|{settings.OutlineServerGlobalDefaultUser,40}|");
                 });
 
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
@@ -661,8 +662,9 @@ namespace ShadowsocksUriGenerator
             settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-deploy-on-change", "Whether changes made to local databases trigger deployments to linked Outline servers."));
+            settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
             settingsSetCommand.Handler = CommandHandler.Create(
-                async (bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange) =>
+                async (bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, string? outlineServerGlobalDefaultUser) =>
                 {
                     settings = await loadSettingsTask;
                     if (onlineConfigSortByName is bool sortByName)
@@ -677,6 +679,8 @@ namespace ShadowsocksUriGenerator
                         settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
                     if (outlineServerDeployOnChange is bool deployOnChange)
                         settings.OutlineServerDeployOnChange = deployOnChange;
+                    if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
+                        settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
                     await Settings.SaveSettingsAsync(settings);
                 });
 
