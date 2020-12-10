@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -390,7 +391,7 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-
+                    // TODO
                 });
 
             groupRemoveUserCommand.AddArgument(new Argument<string>("group", "Target group."));
@@ -400,7 +401,7 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-
+                    // TODO
                 });
 
             groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
@@ -526,15 +527,22 @@ namespace ShadowsocksUriGenerator
                 async (string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser) =>
                 {
                     nodes = await loadNodesTask;
-                    var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser);
-                    if (statusCodes != null)
+                    try
                     {
-                        foreach (var statusCode in statusCodes)
-                            if (statusCode != System.Net.HttpStatusCode.NoContent)
-                                Console.WriteLine($"{statusCode:D} {statusCode:G}");
+                        var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser);
+                        if (statusCodes != null)
+                        {
+                            foreach (var statusCode in statusCodes)
+                                if (statusCode != System.Net.HttpStatusCode.NoContent)
+                                    Console.WriteLine($"{statusCode:D} {statusCode:G}");
+                        }
+                        else
+                            Console.WriteLine("Group not found or no associated Outline server.");
                     }
-                    else
-                        Console.WriteLine("Group not found or no associated Outline server.");
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred while applying settings to Outline servers.\n{ex.Message}");
+                    }
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
@@ -554,43 +562,83 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
                     users = await loadUsersTask;
-                    if (groups == null)
-                        await nodes.UpdateOutlineServerForAllGroups();
-                    else
-                        foreach (var group in groups)
-                        {
-                            var result = await nodes.UpdateGroupOutlineServer(group);
-                            if (result == 0)
+                    try
+                    {
+                        if (groups == null)
+                            await nodes.UpdateOutlineServerForAllGroups();
+                        else
+                            foreach (var group in groups)
                             {
-                                // TODO: update user data usage
+                                var result = await nodes.UpdateGroupOutlineServer(group);
+                                if (result == 0)
+                                {
+                                    // TODO: update user data usage
+                                }
+                                else if (result == -1)
+                                    Console.WriteLine($"Group not found: {group}");
+                                else if (result == -2)
+                                    Console.WriteLine($"Group not associated with an Outline server: {group}");
                             }
-                            if (result == -1)
-                                Console.WriteLine($"Group not found: {group}");
-                            else if (result == -2)
-                                Console.WriteLine($"Group not associated with an Outline server: {group}");
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred while updating from Outline servers.\n{ex.Message}");
+                    }
                     await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
-            outlineServerDeployCommand.AddArgument(new Argument<string>("group", "The associated group."));
+            outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "The associated group."));
             outlineServerDeployCommand.Handler = CommandHandler.Create(
-                async (string group) =>
+                async (string[]? groups) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    settings = await loadSettingsTask;
-
+                    try
+                    {
+                        if (groups == null)
+                            await nodes.DeployAllOutlineServers(users);
+                        else
+                        {
+                            var tasks = groups.Select(async x => await nodes.DeployGroupOutlineServer(x, users));
+                            var results = Task.WhenAll(tasks);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred while deploying Outline servers.\n{ex.Message}");
+                    }
                 });
 
-            outlineServerRotatePasswordCommand.AddArgument(new Argument<string>("username", "The username."));
-            outlineServerRotatePasswordCommand.AddArgument(new Argument<string>("group", "The associated group."));
+            outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--usernames", "Target users."));
+            outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--groups", "Target groups."));
             outlineServerRotatePasswordCommand.Handler = CommandHandler.Create(
-                async (string username, string group) =>
+                async (string[]? usernames, string[]? groups) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-
+                    try
+                    {
+                        if (groups != null)
+                        {
+                            var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, usernames));
+                            await Task.WhenAll(tasks);
+                        }
+                        else if (usernames != null)
+                        {
+                            var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
+                                                        .SelectMany(x => users.UserDict[x].Credentials.Keys)
+                                                        .Distinct();
+                            var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, usernames));
+                            await Task.WhenAll(tasks);
+                        }
+                        else
+                            Console.WriteLine("Please provide either a username or a group, or both.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred while connecting to Outline servers.\n{ex.Message}");
+                    }
                 });
 
             settingsGetCommand.Handler = CommandHandler.Create(

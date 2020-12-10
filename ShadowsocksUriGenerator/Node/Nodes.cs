@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.Outline;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -166,6 +167,23 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Sets the data limit for the specified group.
+        /// </summary>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <param name="group">Target group.</param>
+        /// <param name="global">Set the global data limit of the group.</param>
+        /// <param name="perUser">Set the same data limit for each user.</param>
+        /// <param name="usernames">Only set the data limit to these users.</param>
+        /// <returns>0 on success. -1 on group not found. -2 on user not found.</returns>
+        public int SetDataLimitForGroup(ulong dataLimit, string group, bool global, bool perUser, string[]? usernames = null)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.SetDataLimit(dataLimit, global, perUser, usernames);
+            else
+                return -1;
+        }
+
+        /// <summary>
         /// Associates the Outline server with the node group
         /// by setting the API key.
         /// </summary>
@@ -268,9 +286,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>A task representing the update process.</returns>
         public Task UpdateOutlineServerForAllGroups()
         {
-            var tasks = new List<Task>();
-            foreach (var group in Groups.Values)
-                tasks.Add(group.UpdateOutlineServer());
+            var tasks = Groups.Values.Select(async x => await x.UpdateOutlineServer());
             return Task.WhenAll(tasks);
         }
 
@@ -293,20 +309,51 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Sets the data limit for the specified group.
+        /// Deploys the group's Outline server.
         /// </summary>
-        /// <param name="dataLimit">The data limit in bytes.</param>
         /// <param name="group">Target group.</param>
-        /// <param name="global">Set the global data limit of the group.</param>
-        /// <param name="perUser">Set the same data limit for each user.</param>
-        /// <param name="usernames">Only set the data limit to these users.</param>
-        /// <returns>0 on success. -1 on group not found. -2 on user not found.</returns>
-        public int SetDataLimitForGroup(ulong dataLimit, string group, bool global, bool perUser, string[]? usernames = null)
+        /// <param name="users">The object which contains all users' information.</param>
+        /// <returns>
+        /// 0 on success.
+        /// -1 when target group doesn't exist.
+        /// -2 when no associated Outline server.
+        /// </returns>
+        public Task<int> DeployGroupOutlineServer(string group, Users users)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.SetDataLimit(dataLimit, global, perUser, usernames);
+                return targetGroup.DeployToOutlineServer(group, users);
             else
-                return -1;
+                return Task.FromResult(-1);
+        }
+
+        /// <summary>
+        /// Deploy to every associated Outline server.
+        /// </summary>
+        /// <param name="users">The object which contains all users' information.</param>
+        /// <returns>The task that represents the completion of all deployments.</returns>
+        public Task DeployAllOutlineServers(Users users)
+        {
+            var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users));
+            return Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// Rotate the specified group's user password.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <param name="users">The object which contains all users' information.</param>
+        /// <param name="usernames">Optional. The list of target users.</param>
+        /// <returns>
+        /// 0 on success.
+        /// -1 when target group doesn't exist.
+        /// -2 when no associated Outline server.
+        /// </returns>
+        public Task<int> RotateGroupPassword(string group, Users users, params string[]? usernames)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.RotatePassword(group, users, usernames);
+            else
+                return Task.FromResult(-1);
         }
 
         /// <summary>

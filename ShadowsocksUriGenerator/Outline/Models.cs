@@ -7,5 +7,6 @@ namespace ShadowsocksUriGenerator.Outline
     public record DataLimit(ulong Bytes);
     public record Metrics(bool MetricsEnabled);
     public record AccessKeysPort(int Port);
+    public record AccessKeysResponse(List<AccessKey> AccessKeys);
     public record DataUsage(Dictionary<int, ulong> BytesTransferredByUserId);
 }

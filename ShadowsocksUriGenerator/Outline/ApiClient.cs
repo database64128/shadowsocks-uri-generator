@@ -66,8 +66,8 @@ namespace ShadowsocksUriGenerator.Outline
         public Task<HttpResponseMessage> SetServerMetricsAsync(bool enabled)
             => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/metrics/enabled", new Metrics(enabled), Utilities.commonJsonSerializerOptions);
 
-        public Task<List<AccessKey>?> GetAccessKeysAsync()
-            => _httpClient.GetFromJsonAsync<List<AccessKey>>($"{_apiKey.ApiUrl}/access-keys", Utilities.commonJsonDeserializerOptions);
+        public Task<AccessKeysResponse?> GetAccessKeysAsync()
+            => _httpClient.GetFromJsonAsync<AccessKeysResponse>($"{_apiKey.ApiUrl}/access-keys", Utilities.commonJsonDeserializerOptions);
 
         public Task<HttpResponseMessage> CreateAccessKeyAsync()
             => _httpClient.PostAsync($"{_apiKey.ApiUrl}/access-keys", new StringContent(string.Empty));
