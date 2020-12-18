@@ -171,18 +171,47 @@ namespace ShadowsocksUriGenerator
         /// by adding the API key.
         /// </summary>
         /// <param name="apiKey">The Outline server API key.</param>
-        /// <returns>0 for success. -2 for invalid JSON string.</returns>
-        public int AssociateOutlineServer(string apiKey)
+        /// <param name="globalDefaultUser">The global default user setting.</param>
+        /// <returns>0 for success. -2 for invalid JSON string. -3 when applying default user failed.</returns>
+        public async Task<int> AssociateOutlineServer(string apiKey, string? globalDefaultUser)
         {
             try
             {
                 OutlineApiKey = JsonSerializer.Deserialize<ApiKey>(apiKey, Outline.Utilities.apiKeyJsonSerializerOptions);
-                return 0;
             }
             catch (JsonException)
             {
                 return -2;
             }
+
+            if (OutlineApiKey == null)
+                return -2;
+            _apiClient = new(OutlineApiKey);
+
+            if (!string.IsNullOrEmpty(globalDefaultUser))
+            {
+                var result = await SetOutlineDefaultUser(globalDefaultUser);
+                if (!result.IsSuccessStatusCode)
+                    return -3;
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// Sets and applies the Outline server default user setting.
+        /// </summary>
+        /// <param name="defaultUser">The default username for access key id 0.</param>
+        /// <returns>The task that represents the asynchronous operation.</returns>
+        public Task<HttpResponseMessage> SetOutlineDefaultUser(string defaultUser)
+        {
+            if (OutlineApiKey == null)
+                throw new InvalidOperationException("Outline API key is not found.");
+            if (_apiClient == null)
+                _apiClient = new(OutlineApiKey);
+
+            OutlineDefaultUser = defaultUser;
+            return _apiClient.SetAccessKeyNameAsync("0", defaultUser);
         }
 
         /// <summary>
@@ -192,8 +221,9 @@ namespace ShadowsocksUriGenerator
         /// <param name="hostname">Server hostname.</param>
         /// <param name="port">Port number for new access keys.</param>
         /// <param name="metrics">Enable telemetry.</param>
+        /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <returns>The task that represents the operation. Null if no associated Outline server.</returns>
-        public async Task<List<HttpStatusCode>?> SetOutlineServer(string? name, string? hostname, int? port, bool? metrics)
+        public async Task<List<HttpStatusCode>?> SetOutlineServer(string? name, string? hostname, int? port, bool? metrics, string? defaultUser)
         {
             if (OutlineApiKey == null)
                 return null;
@@ -211,6 +241,8 @@ namespace ShadowsocksUriGenerator
                 tasks.Add(_apiClient.SetAccessKeysPortAsync(portForNewAccessKeys));
             if (metrics is bool enableMetrics)
                 tasks.Add(_apiClient.SetServerMetricsAsync(enableMetrics));
+            if (!string.IsNullOrEmpty(defaultUser))
+                tasks.Add(SetOutlineDefaultUser(defaultUser));
 
             while (tasks.Count > 0)
             {

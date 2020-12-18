@@ -189,17 +189,19 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="apiKey">Outline server API key.</param>
+        /// <param name="globalDefaultUser">The global default user setting.</param>
         /// <returns>
         /// 0 when success.
         /// -1 when target group doesn't exist.
         /// -2 when the API key is not a valid JSON string.
+        /// -3 when applying default user failed.
         /// </returns>
-        public int AssociateOutlineServerWithGroup(string group, string apiKey)
+        public Task<int> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.AssociateOutlineServer(apiKey);
+                return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser);
             else
-                return -1;
+                return Task.FromResult(-1);
         }
 
         /// <summary>
@@ -246,6 +248,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="hostname">Server hostname.</param>
         /// <param name="port">Port number for new access keys.</param>
         /// <param name="metrics">Enable telemetry.</param>
+        /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <returns>
         /// The task that represents the operation.
         /// Null if the group can't be found
@@ -253,11 +256,7 @@ namespace ShadowsocksUriGenerator
         public Task<List<HttpStatusCode>?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-            {
-                if (!string.IsNullOrEmpty(defaultUser))
-                    targetGroup.OutlineDefaultUser = defaultUser;
-                return targetGroup.SetOutlineServer(name, hostname, port, metrics);
-            }
+                return targetGroup.SetOutlineServer(name, hostname, port, metrics, defaultUser);
             else
                 return Task.FromResult<List<HttpStatusCode>?>(null);
         }

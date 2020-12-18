@@ -622,15 +622,34 @@ namespace ShadowsocksUriGenerator
                 async (string group, string apiKey) =>
                 {
                     nodes = await loadNodesTask;
+                    settings = await loadSettingsTask;
+
                     if (string.IsNullOrEmpty(apiKey))
                         Console.WriteLine("You must specify an API key.");
-                    var result = nodes.AssociateOutlineServerWithGroup(group, apiKey);
-                    if (result == 0)
-                        Console.WriteLine($"Successfully associated the Outline server with {group}");
-                    else if (result == -1)
-                        Console.WriteLine($"Group not found: {group}");
-                    else if (result == -2)
-                        Console.WriteLine($"Invalid API key: {apiKey}");
+
+                    int result;
+
+                    if (settings.OutlineServerApplyDefaultUserOnAssociation)
+                        result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser);
+                    else
+                        result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null);
+
+                    switch (result)
+                    {
+                        case 0:
+                            Console.WriteLine($"Successfully associated the Outline server with {group}");
+                            break;
+                        case -1:
+                            Console.WriteLine($"Group not found: {group}");
+                            break;
+                        case -2:
+                            Console.WriteLine($"Invalid API key: {apiKey}");
+                            break;
+                        case -3:
+                            Console.WriteLine($"An error occurred while applying the global default user setting.");
+                            break;
+                    }
+
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
@@ -782,16 +801,17 @@ namespace ShadowsocksUriGenerator
             settingsGetCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"Key",-40}|{"Value",40}|");
+                    Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
                     settings = await loadSettingsTask;
-                    Console.WriteLine($"|{"Version",-40}|{settings.Version,40}|");
-                    Console.WriteLine($"|{"OnlineConfigSortByName",-40}|{settings.OnlineConfigSortByName,40}|");
-                    Console.WriteLine($"|{"OnlineConfigCleanOnUserRemoval",-40}|{settings.OnlineConfigCleanOnUserRemoval,40}|");
-                    Console.WriteLine($"|{"OnlineConfigUpdateDataUsageOnGeneration",-40}|{settings.OnlineConfigUpdateDataUsageOnGeneration,40}|");
-                    Console.WriteLine($"|{"OnlineConfigOutputDirectory",-40}|{settings.OnlineConfigOutputDirectory,40}|");
-                    Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-40}|{settings.OnlineConfigDeliveryRootUri,40}|");
-                    Console.WriteLine($"|{"OutlineServerDeployOnChange",-40}|{settings.OutlineServerDeployOnChange,40}|");
-                    Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-40}|{settings.OutlineServerGlobalDefaultUser,40}|");
+                    Console.WriteLine($"|{"Version",-42}|{settings.Version,40}|");
+                    Console.WriteLine($"|{"OnlineConfigSortByName",-42}|{settings.OnlineConfigSortByName,40}|");
+                    Console.WriteLine($"|{"OnlineConfigCleanOnUserRemoval",-42}|{settings.OnlineConfigCleanOnUserRemoval,40}|");
+                    Console.WriteLine($"|{"OnlineConfigUpdateDataUsageOnGeneration",-42}|{settings.OnlineConfigUpdateDataUsageOnGeneration,40}|");
+                    Console.WriteLine($"|{"OnlineConfigOutputDirectory",-42}|{settings.OnlineConfigOutputDirectory,40}|");
+                    Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-42}|{settings.OnlineConfigDeliveryRootUri,40}|");
+                    Console.WriteLine($"|{"OutlineServerDeployOnChange",-42}|{settings.OutlineServerDeployOnChange,40}|");
+                    Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
+                    Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
                 });
 
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
@@ -800,9 +820,10 @@ namespace ShadowsocksUriGenerator
             settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-deploy-on-change", "Whether changes made to local databases trigger deployments to linked Outline servers."));
+            settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
             settingsSetCommand.Handler = CommandHandler.Create(
-                async (bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, string? outlineServerGlobalDefaultUser) =>
+                async (bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string ? outlineServerGlobalDefaultUser) =>
                 {
                     settings = await loadSettingsTask;
                     if (onlineConfigSortByName is bool sortByName)
@@ -817,6 +838,8 @@ namespace ShadowsocksUriGenerator
                         settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
                     if (outlineServerDeployOnChange is bool deployOnChange)
                         settings.OutlineServerDeployOnChange = deployOnChange;
+                    if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
+                        settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
                     if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                         settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
                     await Settings.SaveSettingsAsync(settings);
