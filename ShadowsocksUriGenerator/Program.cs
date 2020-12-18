@@ -714,19 +714,20 @@ namespace ShadowsocksUriGenerator
                 });
 
             outlineServerUpdateCommand.AddArgument(new Argument<string[]?>("groups", "Specify groups to update for."));
+            outlineServerUpdateCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user credential storage from retrieved access key list."));
             outlineServerUpdateCommand.Handler = CommandHandler.Create(
-                async (string[]? groups) =>
+                async (string[]? groups, bool noSync) =>
                 {
                     nodes = await loadNodesTask;
                     users = await loadUsersTask;
                     try
                     {
                         if (groups == null)
-                            await nodes.UpdateOutlineServerForAllGroups();
+                            await nodes.UpdateOutlineServerForAllGroups(users, !noSync);
                         else
                             foreach (var group in groups)
                             {
-                                var result = await nodes.UpdateGroupOutlineServer(group);
+                                var result = await nodes.UpdateGroupOutlineServer(group, users, !noSync);
                                 if (result == 0)
                                 {
                                     // TODO: update user data usage

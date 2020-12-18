@@ -269,9 +269,16 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Updates the associated Outline server's
         /// information, access keys, and data usage.
+        /// Optionally updates user credential dictionary
+        /// in the local storage.
         /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="updateLocalCredentials">
+        /// Whether to update user credential dictionary.
+        /// </param>
         /// <returns>0 on success. -2 when no associated Outline server.</returns>
-        public async Task<int> UpdateOutlineServer()
+        public async Task<int> UpdateOutlineServer(string group, Users users, bool updateLocalCredentials)
         {
             if (OutlineApiKey == null)
                 return -2;
@@ -300,7 +307,52 @@ namespace ShadowsocksUriGenerator
                 tasks.Remove(finishedTask);
             }
 
+            if (updateLocalCredentials)
+                UpdateLocalCredentials(group, users);
+
             return 0;
+        }
+
+        /// <summary>
+        /// Syncs <see cref="OutlineAccessKeys"/> with user credential dictionary.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        private void UpdateLocalCredentials(string group, Users users)
+        {
+            if (OutlineAccessKeys == null)
+                return;
+
+            var outlineUsers = OutlineAccessKeys.Select(x => x.Name);
+
+            foreach (var userEntry in users.UserDict)
+            {
+                var userHasAccessKey = outlineUsers.Contains(userEntry.Key);
+                var userInGroup = userEntry.Value.Credentials.TryGetValue(group, out var credential);
+
+                AccessKey userAccessKey = null!; // Null forgiving reason: we can guarantee a non-null reference with userHasAccessKey.
+                if (userHasAccessKey)
+                    userAccessKey = OutlineAccessKeys.Where(x => x.Name == userEntry.Key).First();
+
+                if (userHasAccessKey && userInGroup)
+                {
+                    if (credential == null) // No credential. Add it.
+                        userEntry.Value.Credentials[group] = new(userAccessKey.Method, userAccessKey.Password);
+                    else if (credential.Method == userAccessKey.Method && credential.Password == userAccessKey.Password) // Has credential. Compare credential with access key
+                    {
+                    }
+                    else // Unequal credential.
+                        userEntry.Value.Credentials[group] = new(userAccessKey.Method, userAccessKey.Password);
+                }
+                else if (userHasAccessKey) // User not in group. Add to group with credential.
+                {
+                    userEntry.Value.AddCredential(group, userAccessKey.Method, userAccessKey.Password);
+                }
+                else if (userInGroup) // User has no access key. Make sure no associated group credential.
+                {
+                    userEntry.Value.Credentials[group] = null;
+                }
+            }
         }
 
         /// <summary>
@@ -312,7 +364,7 @@ namespace ShadowsocksUriGenerator
             if (OutlineApiKey == null)
                 return -2;
             if (OutlineAccessKeys == null)
-                await UpdateOutlineServer();
+                await UpdateOutlineServer(group, users, true);
             if (OutlineAccessKeys == null)
                 OutlineAccessKeys = new();
 
@@ -353,7 +405,7 @@ namespace ShadowsocksUriGenerator
             if (OutlineApiKey == null)
                 return -2;
             if (OutlineAccessKeys == null)
-                await UpdateOutlineServer();
+                await UpdateOutlineServer(group, users, true);
             if (OutlineAccessKeys == null)
                 OutlineAccessKeys = new();
             if (_apiClient == null)
@@ -383,6 +435,7 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Adds the user to the Outline server.
+        /// Updates local storage with the new access key.
         /// </summary>
         /// <param name="username">Target username.</param>
         /// <param name="userDataLimit">The user's data limit.</param>
@@ -432,6 +485,7 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Removes the listed users from the Outline server.
+        /// Removes the associated credentials from local storage.
         /// </summary>
         /// <param name="usernames">Target user.</param>
         /// <returns>The HTTP status codes from API operations.</returns>
@@ -448,9 +502,9 @@ namespace ShadowsocksUriGenerator
             // Remove from access key list
             OutlineAccessKeys.RemoveAll(x => userIDs.Contains(x.Id));
 
-            // Remove from user credential dictionary
+            // Remove credentials from user credential dictionary
             foreach (var username in usernames)
-                users.RemoveUserFromGroup(username, group);
+                users.RemoveCredentialFromUser(username, group);
 
             // Remove
             var tasks = userIDs.Select(async x => (await _apiClient.DeleteAccessKeyAsync(x)).StatusCode);

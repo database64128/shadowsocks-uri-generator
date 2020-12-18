@@ -283,9 +283,9 @@ namespace ShadowsocksUriGenerator
         /// information, access keys, and data usage.
         /// </summary>
         /// <returns>A task representing the update process.</returns>
-        public Task UpdateOutlineServerForAllGroups()
+        public Task UpdateOutlineServerForAllGroups(Users users, bool updateLocalCredentials)
         {
-            var tasks = Groups.Values.Select(async x => await x.UpdateOutlineServer());
+            var tasks = Groups.Select(async x => await x.Value.UpdateOutlineServer(x.Key, users, updateLocalCredentials));
             return Task.WhenAll(tasks);
         }
 
@@ -299,10 +299,10 @@ namespace ShadowsocksUriGenerator
         /// -1 when target group doesn't exist.
         /// -2 when no associated Outline server.
         /// </returns>
-        public Task<int> UpdateGroupOutlineServer(string group)
+        public Task<int> UpdateGroupOutlineServer(string group, Users users, bool updateLocalCredentials)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.UpdateOutlineServer();
+                return targetGroup.UpdateOutlineServer(group, users, updateLocalCredentials);
             else
                 return Task.FromResult(-1);
         }
