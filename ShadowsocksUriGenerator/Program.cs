@@ -464,6 +464,7 @@ namespace ShadowsocksUriGenerator
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
                     settings = await loadSettingsTask;
+
                     if (Utilities.TryParseDataLimitString(dataLimit, out var dataLimitInBytes))
                         foreach (var username in usernames)
                         {
@@ -475,6 +476,8 @@ namespace ShadowsocksUriGenerator
                         }
                     else
                         Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
+
+                    // TODO: decide what to save
                 });
 
             groupAddUserCommand.AddArgument(new Argument<string>("group", "Target group."));
@@ -553,6 +556,7 @@ namespace ShadowsocksUriGenerator
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
                     settings = await loadSettingsTask;
+
                     if (Utilities.TryParseDataLimitString(dataLimit, out var dataLimitInBytes))
                         foreach (var group in groups)
                         {
@@ -564,6 +568,8 @@ namespace ShadowsocksUriGenerator
                         }
                     else
                         Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
+
+                    // TODO: decide what to save
                 });
 
             onlineConfigGenerateCommand.AddAlias("gen");
@@ -629,10 +635,17 @@ namespace ShadowsocksUriGenerator
 
                     int result;
 
-                    if (settings.OutlineServerApplyDefaultUserOnAssociation)
-                        result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser);
-                    else
-                        result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null);
+                    try
+                    {
+                        if (settings.OutlineServerApplyDefaultUserOnAssociation)
+                            result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser);
+                        else
+                            result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null);
+                    }
+                    catch
+                    {
+                        result = -3;
+                    }
 
                     switch (result)
                     {
@@ -658,6 +671,7 @@ namespace ShadowsocksUriGenerator
                 async (string group) =>
                 {
                     nodes = await loadNodesTask;
+
                     var outlineApiKeyString = nodes.GetOutlineApiKeyStringFromGroup(group);
                     var outlineServerInfo = nodes.GetOutlineServerInfoFromGroup(group);
                     if (outlineApiKeyString != null && outlineServerInfo != null)
@@ -671,6 +685,7 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"{"Port for new keys",-32}{outlineServerInfo.PortForNewAccessKeys,-36}");
                         Console.WriteLine($"{"Telemetry enabled",-32}{outlineServerInfo.MetricsEnabled,-36}");
                     }
+
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
@@ -684,6 +699,7 @@ namespace ShadowsocksUriGenerator
                 async (string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser) =>
                 {
                     nodes = await loadNodesTask;
+
                     try
                     {
                         var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser);
@@ -700,6 +716,7 @@ namespace ShadowsocksUriGenerator
                     {
                         Console.WriteLine($"An error occurred while applying settings to Outline servers.\n{ex.Message}");
                     }
+
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
@@ -720,6 +737,7 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
                     users = await loadUsersTask;
+
                     try
                     {
                         if (groups == null)
@@ -742,6 +760,7 @@ namespace ShadowsocksUriGenerator
                     {
                         Console.WriteLine($"An error occurred while updating from Outline servers.\n{ex.Message}");
                     }
+
                     await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
                 });
@@ -752,6 +771,7 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
+
                     try
                     {
                         if (groups == null)
@@ -759,13 +779,23 @@ namespace ShadowsocksUriGenerator
                         else
                         {
                             var tasks = groups.Select(async x => await nodes.DeployGroupOutlineServer(x, users));
-                            var results = Task.WhenAll(tasks);
+                            var results = await Task.WhenAll(tasks);
+                            foreach (var result in results)
+                                if (result == 0)
+                                    Console.WriteLine("Success.");
+                                else if (result == -1)
+                                    Console.WriteLine("Target group doesn't exist.");
+                                else if (result == -2)
+                                    Console.WriteLine("No associated Outline server.");
                         }
                     }
                     catch (Exception ex)
                     {
                         Console.WriteLine($"An error occurred while deploying Outline servers.\n{ex.Message}");
                     }
+
+                    await Users.SaveUsersAsync(users);
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--usernames", "Target users."));
@@ -775,6 +805,7 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
+
                     try
                     {
                         if (groups != null)
@@ -797,6 +828,9 @@ namespace ShadowsocksUriGenerator
                     {
                         Console.WriteLine($"An error occurred while connecting to Outline servers.\n{ex.Message}");
                     }
+
+                    await Users.SaveUsersAsync(users);
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             settingsGetCommand.Handler = CommandHandler.Create(

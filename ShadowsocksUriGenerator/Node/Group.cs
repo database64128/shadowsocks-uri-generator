@@ -264,6 +264,9 @@ namespace ShadowsocksUriGenerator
             OutlineApiKey = null;
             OutlineServerInfo = null;
             OutlineAccessKeys = null;
+            OutlineDataUsage = null;
+            OutlineUserDataLimit = null;
+            OutlineDefaultUser = null;
         }
 
         /// <summary>
@@ -309,6 +312,8 @@ namespace ShadowsocksUriGenerator
 
             if (updateLocalCredentials)
                 UpdateLocalCredentials(group, users);
+
+            // TODO: update user data usage
 
             return 0;
         }
@@ -476,6 +481,8 @@ namespace ShadowsocksUriGenerator
             var index = OutlineAccessKeys.IndexOf(accessKey);
             if (index != -1)
                 OutlineAccessKeys[index] = accessKey;
+            else
+                OutlineAccessKeys.Add(accessKey);
 
             // Save the new key to user credential dictionary
             credentials[group] = new(accessKey.Method, accessKey.Password);
@@ -499,6 +506,10 @@ namespace ShadowsocksUriGenerator
             // Get ID list
             var userIDs = OutlineAccessKeys.Where(x => usernames.Contains(x.Name)).Select(x => x.Id);
 
+            // Remove
+            var tasks = userIDs.Select(async x => (await _apiClient.DeleteAccessKeyAsync(x)).StatusCode);
+            var result = Task.WhenAll(tasks);
+
             // Remove from access key list
             OutlineAccessKeys.RemoveAll(x => userIDs.Contains(x.Id));
 
@@ -506,9 +517,7 @@ namespace ShadowsocksUriGenerator
             foreach (var username in usernames)
                 users.RemoveCredentialFromUser(username, group);
 
-            // Remove
-            var tasks = userIDs.Select(async x => (await _apiClient.DeleteAccessKeyAsync(x)).StatusCode);
-            return Task.WhenAll(tasks);
+            return result;
         }
     }
 }
