@@ -77,6 +77,9 @@ namespace ShadowsocksUriGenerator
             var onlineConfig = new OnlineConfig(userEntry.Key, user.Uuid, user.BytesUsed, user.BytesRemaining);
             foreach (var credEntry in user.Credentials)
             {
+                if (credEntry.Value == null)
+                    continue;
+                
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
                 {
                     // add each node to the Servers list.

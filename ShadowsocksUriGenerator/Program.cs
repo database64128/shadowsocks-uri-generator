@@ -22,8 +22,10 @@ namespace ShadowsocksUriGenerator
             var userRenameCommand = new Command("rename", "Renames an existing user with a new name.");
             var userRemoveCommand = new Command("remove", "Remove users.");
             var userListCommand = new Command("list", "List all users.");
-            var userJoinGroupCommand = new Command("join", "Add a credential to a node group for a user.");
-            var userLeaveGroupCommand = new Command("leave", "Remove a node group's credential from a user.");
+            var userJoinGroupCommand = new Command("join", "Join a group.");
+            var userLeaveGroupCommand = new Command("leave", "Leave a group.");
+            var userAddCredentialCommand = new Command("add-credential", "Add a credential associated with a group for the user.");
+            var userRemoveCredentialCommand = new Command("remove-credential", "Remove the group's credential from the user.");
             var userListCredentialsCommand = new Command("list-credentials", "List all user credentials.");
             var userGetSSLinksCommand = new Command("get-ss-links", "Get the user's associated Shadowsocks URLs.");
             var userSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
@@ -41,9 +43,9 @@ namespace ShadowsocksUriGenerator
                 userSetDataLimitCommand,
             };
 
-            var nodeAddCommand = new Command("add", "Add a node to a node group.");
+            var nodeAddCommand = new Command("add", "Add a node to a group.");
             var nodeRenameCommand = new Command("rename", "Renames an existing node with a new name.");
-            var nodeRemoveCommand = new Command("remove", "Remove nodes from a node group.");
+            var nodeRemoveCommand = new Command("remove", "Remove nodes from a group.");
             var nodeListCommand = new Command("list", "List nodes from the specified group or all groups.");
 
             var nodeCommand = new Command("node", "Manage nodes.")
@@ -54,12 +56,12 @@ namespace ShadowsocksUriGenerator
                 nodeListCommand,
             };
 
-            var groupAddCommand = new Command("add", "Add node groups.");
-            var groupRenameCommand = new Command("rename", "Renames an existing node group with a new name.");
-            var groupRemoveCommand = new Command("remove", "Remove node groups and its nodes.");
-            var groupListCommand = new Command("list", "List all node groups.");
-            var groupAddUserCommand = new Command("add-user", "Add users to the node group.");
-            var groupRemoveUserCommand = new Command("remove-user", "Remove users from the node group.");
+            var groupAddCommand = new Command("add", "Add groups.");
+            var groupRenameCommand = new Command("rename", "Renames an existing group with a new name.");
+            var groupRemoveCommand = new Command("remove", "Remove groups and its nodes.");
+            var groupListCommand = new Command("list", "List all groups.");
+            var groupAddUserCommand = new Command("add-user", "Add users to the group.");
+            var groupRemoveUserCommand = new Command("remove-user", "Remove users from the group.");
             var groupSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
 
             var groupCommand = new Command("group", "Manage groups.")
@@ -84,10 +86,10 @@ namespace ShadowsocksUriGenerator
                 onlineConfigCleanCommand,
             };
 
-            var outlineServerAddCommand = new Command("add", "Associate an Outline server with a node group.");
+            var outlineServerAddCommand = new Command("add", "Associate an Outline server with a group.");
             var outlineServerGetCommand = new Command("get", "Get the associated Outline server's information.");
             var outlineServerSetCommand = new Command("set", "Change settings of the associated Outline server.");
-            var outlineServerRemoveCommand = new Command("remove", "Remove the Outline server from the node group.");
+            var outlineServerRemoveCommand = new Command("remove", "Remove the Outline server from the group.");
             var outlineServerUpdateCommand = new Command("update", "Update server information, access keys, and metrics from the associated Outline server.");
             var outlineServerDeployCommand = new Command("deploy", "Deploy the group's configuration to the associated Outline server.");
             var outlineServerRotatePasswordCommand = new Command("rotate-password", "Rotate passwords for the specified users and/or groups.");
@@ -134,7 +136,7 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"{username}");
                 });
 
-            nodeAddCommand.AddArgument(new Argument<string>("group", "The node group that the new node belongs to."));
+            nodeAddCommand.AddArgument(new Argument<string>("group", "The group that the new node belongs to."));
             nodeAddCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             nodeAddCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
             nodeAddCommand.AddArgument(new Argument<string>("portString", "Port number of the new node."));
@@ -177,7 +179,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
-            nodeRenameCommand.AddArgument(new Argument<string>("group", "The node group which contains the node."));
+            nodeRenameCommand.AddArgument(new Argument<string>("group", "The group which contains the node."));
             nodeRenameCommand.AddArgument(new Argument<string>("oldName", "The existing node name."));
             nodeRenameCommand.AddArgument(new Argument<string>("newName", "The new node name."));
             nodeRenameCommand.Handler = CommandHandler.Create(
@@ -228,7 +230,7 @@ namespace ShadowsocksUriGenerator
                 });
 
             nodeRemoveCommand.AddAlias("rm");
-            nodeRemoveCommand.AddArgument(new Argument<string>("group", "The node group that the target node belongs to."));
+            nodeRemoveCommand.AddArgument(new Argument<string>("group", "The group that the target node belongs to."));
             nodeRemoveCommand.AddArgument(new Argument<string[]>("nodenames", "A list of node names to remove."));
             nodeRemoveCommand.Handler = CommandHandler.Create(
                 async (string group, string[] nodenames) =>
@@ -260,20 +262,6 @@ namespace ShadowsocksUriGenerator
                     users = await loadUsersTask;
                     foreach (var user in users.UserDict)
                         Console.WriteLine($"|{user.Key,-16}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,21}|");
-                });
-
-            userListCredentialsCommand.Handler = CommandHandler.Create(
-                async () =>
-                {
-                    Console.WriteLine($"|{"User",-16}|{"Group",-16}|{"Method",-24}|{"Password",-32}|");
-                    users = await loadUsersTask;
-                    foreach (var user in users.UserDict)
-                    {
-                        foreach (var credEntry in user.Value.Credentials)
-                        {
-                            Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{credEntry.Value.Method,-24}|{credEntry.Value.Password,-32}|");
-                        }
-                    }
                 });
 
             nodeListCommand.AddAlias("ls");
@@ -311,31 +299,40 @@ namespace ShadowsocksUriGenerator
                 });
 
             userJoinGroupCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
-            userJoinGroupCommand.AddArgument(new Argument<string>("group", "The group that the credential is for."));
-            userJoinGroupCommand.AddOption(new Option<string>("--method", "The encryption method. MUST be combined with --password."));
-            userJoinGroupCommand.AddOption(new Option<string>("--password", "The password. MUST be combined with --method."));
-            userJoinGroupCommand.AddOption(new Option<string>("--userinfo-base64url", "The userinfo encoded in URL-safe base64. Can't be used with any other option."));
+            userJoinGroupCommand.AddArgument(new Argument<string[]>("groups", "The group that the credential is for."));
             userJoinGroupCommand.Handler = CommandHandler.Create(
-                async (string username, string group, string method, string password, string userinfoBase64url) =>
+                async (string username, string[] groups) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    int result;
-                    if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
-                        result = users.AddCredentialToUser(username, group, method, password, nodes);
-                    else if (!string.IsNullOrEmpty(userinfoBase64url))
-                        result = users.AddCredentialToUser(username, group, userinfoBase64url, nodes);
-                    else
+
+                    foreach (var group in groups)
                     {
-                        Console.WriteLine("Not enough options. Either provide a method and a password, or provide a userinfo base64url.");
-                        return;
+                        if (!nodes.Groups.ContainsKey(group))
+                        {
+                            Console.WriteLine($"Group not found: {group}");
+                            continue;
+                        }
+
+                        var result = users.AddUserToGroup(username, group);
+
+                        switch (result)
+                        {
+                            case 0:
+                                Console.WriteLine($"Successfully added {username} to {group}.");
+                                break;
+                            case 1:
+                                Console.WriteLine($"The user is already in the group.");
+                                break;
+                            case -1:
+                                Console.WriteLine("User not found.");
+                                break;
+                            default:
+                                Console.WriteLine($"Unknown error: {result}.");
+                                break;
+                        }
                     }
-                    if (result == 0)
-                        Console.WriteLine($"Successfully added {group}'s credential to {username}");
-                    else if (result == 1)
-                        Console.WriteLine("The user already has a credential for the group.");
-                    else
-                        Console.WriteLine("User or group not found.");
+
                     await Users.SaveUsersAsync(users);
                 });
 
@@ -345,9 +342,105 @@ namespace ShadowsocksUriGenerator
                 async (string username, string[] groups) =>
                 {
                     users = await loadUsersTask;
-                    if (users.RemoveCredentialsFromUser(username, groups) == -1)
-                        Console.WriteLine($"User not found: {username}");
+
+                    foreach (var group in groups)
+                    {
+                        var result = users.RemoveUserFromGroup(username, group);
+
+                        if (result == 1)
+                            Console.WriteLine($"User {username} is not in group {group}.");
+                        else if (result == -2)
+                            Console.WriteLine($"User not found: {username}");
+                    }
+
                     await Users.SaveUsersAsync(users);
+                });
+
+            userAddCredentialCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
+            userAddCredentialCommand.AddArgument(new Argument<string>("group", "The group that the credential is for."));
+            userAddCredentialCommand.AddOption(new Option<string?>("--method", "The encryption method. MUST be combined with --password."));
+            userAddCredentialCommand.AddOption(new Option<string?>("--password", "The password. MUST be combined with --method."));
+            userAddCredentialCommand.AddOption(new Option<string?>("--userinfo-base64url", "The userinfo encoded in URL-safe base64. Can't be used with any other option."));
+            userAddCredentialCommand.Handler = CommandHandler.Create(
+                async (string username, string group, string? method, string? password, string? userinfoBase64url) =>
+                {
+                    users = await loadUsersTask;
+                    nodes = await loadNodesTask;
+
+                    if (!nodes.Groups.ContainsKey(group))
+                    {
+                        Console.WriteLine($"Group not found: {group}");
+                        return;
+                    }
+
+                    int result;
+
+                    if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
+                        result = users.AddCredentialToUser(username, group, method, password);
+                    else if (!string.IsNullOrEmpty(userinfoBase64url))
+                        result = users.AddCredentialToUser(username, group, userinfoBase64url);
+                    else
+                        result = users.AddUserToGroup(username, group);
+
+                    switch (result)
+                    {
+                        case 0:
+                            Console.WriteLine($"Successfully added {username} to {group}.");
+                            break;
+                        case 1:
+                            Console.WriteLine($"The user is already in the group.");
+                            break;
+                        case 2:
+                            Console.WriteLine("The user already has a credential for the group.");
+                            break;
+                        case -1:
+                            Console.WriteLine("User not found.");
+                            break;
+                        case -2:
+                            Console.WriteLine("The provided credential is invalid.");
+                            break;
+                        default:
+                            Console.WriteLine($"Unknown error: {result}.");
+                            break;
+                    }
+
+                    await Users.SaveUsersAsync(users);
+                });
+
+            userRemoveCredentialCommand.AddArgument(new Argument<string>("username", "Target user."));
+            userRemoveCredentialCommand.AddArgument(new Argument<string[]>("groups", "A list of groups the credentials are for."));
+            userRemoveCredentialCommand.Handler = CommandHandler.Create(
+                async (string username, string[] groups) =>
+                {
+                    users = await loadUsersTask;
+
+                    foreach (var group in groups)
+                    {
+                        var result = users.RemoveCredentialFromUser(username, group);
+                        if (result == -1)
+                            Console.WriteLine($"User {username} is not in group {group}.");
+                        else if (result == -2)
+                            Console.WriteLine($"User not found: {username}");
+                    }
+
+                    await Users.SaveUsersAsync(users);
+                });
+
+            userListCredentialsCommand.Handler = CommandHandler.Create(
+                async () =>
+                {
+                    Console.WriteLine($"|{"User",-16}|{"Group",-16}|{"Method",-24}|{"Password",-32}|");
+                    users = await loadUsersTask;
+                    foreach (var user in users.UserDict)
+                    {
+                        foreach (var credEntry in user.Value.Credentials)
+                        {
+                            if (credEntry.Value == null)
+                                Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{string.Empty,-24}|{string.Empty,-32}|");
+                            else
+                                Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{credEntry.Value.Method,-24}|{credEntry.Value.Password,-32}|");
+                        }
+                    }
                 });
 
             userGetSSLinksCommand.AddAlias("ss");
@@ -391,7 +484,35 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    // TODO
+
+                    if (!nodes.Groups.ContainsKey(group))
+                    {
+                        Console.WriteLine($"Group not found: {group}");
+                        return;
+                    }
+
+                    foreach (var username in usernames)
+                    {
+                        var result = users.AddUserToGroup(username, group);
+
+                        switch (result)
+                        {
+                            case 0:
+                                Console.WriteLine($"Successfully added {username} to {group}.");
+                                break;
+                            case 1:
+                                Console.WriteLine($"The user is already in the group.");
+                                break;
+                            case -1:
+                                Console.WriteLine("User not found.");
+                                break;
+                            default:
+                                Console.WriteLine($"Unknown error: {result}.");
+                                break;
+                        }
+                    }
+
+                    await Users.SaveUsersAsync(users);
                 });
 
             groupRemoveUserCommand.AddArgument(new Argument<string>("group", "Target group."));
@@ -401,7 +522,24 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    // TODO
+
+                    if (!nodes.Groups.ContainsKey(group))
+                    {
+                        Console.WriteLine($"Group not found: {group}");
+                        return;
+                    }
+
+                    foreach (var username in usernames)
+                    {
+                        var result = users.RemoveUserFromGroup(username, group);
+
+                        if (result == 1)
+                            Console.WriteLine($"User {username} is not in group {group}.");
+                        else if (result == -2)
+                            Console.WriteLine($"User not found: {username}");
+                    }
+
+                    await Users.SaveUsersAsync(users);
                 });
 
             groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));

@@ -90,31 +90,43 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Adds a group credential to the specified user.
+        /// Adds the user to the specified group.
+        /// Make sure to check if the target group exists
+        /// before calling this method.
         /// </summary>
-        /// <returns>
-        /// 0 for success.
-        /// 1 for duplicated credential.
-        /// -1 for non-existing target user or group.
-        /// -2 for invalid userinfoBase64url.
-        /// </returns>
-        public int AddCredentialToUser(string user, string group, string method, string password, Nodes nodes)
+        /// <param name="user">Target user.</param>
+        /// <param name="group">Target group.</param>
+        /// <returns>0 when success. 1 when already in group. -1 when user not found.</returns>
+        public int AddUserToGroup(string user, string group)
         {
-            if (UserDict.TryGetValue(user, out User? targetUser) && nodes.Groups.ContainsKey(group))
-            {
-                return targetUser.AddCredential(group, method, password);
-            }
+            if (UserDict.TryGetValue(user, out var targetUser))
+                return targetUser.AddToGroup(group) ? 0 : 1;
             else
                 return -1;
         }
 
-        /// <inheritdoc cref="AddCredentialToUser(string, string, string, string, Nodes)"/>
-        public int AddCredentialToUser(string user, string group, string userinfoBase64url, Nodes nodes)
+        /// <summary>
+        /// Adds a group credential to the specified user.
+        /// </summary>
+        /// <returns>
+        /// 0 for success.
+        /// 2 for duplicated credential.
+        /// -1 for non-existing target user.
+        /// -2 for invalid userinfoBase64url.
+        /// </returns>
+        public int AddCredentialToUser(string user, string group, string method, string password)
         {
-            if (UserDict.TryGetValue(user, out User? targetUser) && nodes.Groups.ContainsKey(group))
-            {
+            if (UserDict.TryGetValue(user, out User? targetUser))
+                return targetUser.AddCredential(group, method, password);
+            else
+                return -1;
+        }
+
+        /// <inheritdoc cref="AddCredentialToUser(string, string, string, string)"/>
+        public int AddCredentialToUser(string user, string group, string userinfoBase64url)
+        {
+            if (UserDict.TryGetValue(user, out User? targetUser))
                 return targetUser.AddCredential(group, userinfoBase64url);
-            }
             else
                 return -1;
         }
@@ -134,18 +146,39 @@ namespace ShadowsocksUriGenerator
             }
         }
 
-        public int RemoveCredentialsFromUser(string user, string[] groups)
+        /// <summary>
+        /// Removes the user from the group.
+        /// </summary>
+        /// <param name="user">Target user.</param>
+        /// <param name="group">Target group.</param>
+        /// <returns>0 when success. 1 when not in group. -2 when user not found.</returns>
+        public int RemoveUserFromGroup(string user, string group)
         {
-            if (UserDict.TryGetValue(user, out User? targetUser))
-            {
-                targetUser.RemoveCredentials(groups);
-                return 0;
-            }
+            if (UserDict.TryGetValue(user, out var targetUser))
+                return targetUser.RemoveFromGroup(group) ? 0 : 1;
             else
-                return -1;
+                return -2;
         }
 
-        public void RemoveCredentialsFromAllUsers(string[] groups)
+        /// <summary>
+        /// Removes group credential from user.
+        /// </summary>
+        /// <param name="user">Target user.</param>
+        /// <param name="group">Target group.</param>
+        /// <returns>0 when success. -1 when user not in group. -2 when user not found.</returns>
+        public int RemoveCredentialFromUser(string user, string group)
+        {
+            if (UserDict.TryGetValue(user, out User? targetUser))
+                return targetUser.RemoveCredential(group);
+            else
+                return -2;
+        }
+
+        /// <summary>
+        /// Removes credentials associated with the specified groups from all users.
+        /// </summary>
+        /// <param name="groups">A list of groups.</param>
+        public void RemoveCredentialsFromAllUsers(IEnumerable<string> groups)
         {
             foreach (var userEntry in UserDict)
                 userEntry.Value.RemoveCredentials(groups);
@@ -221,7 +254,11 @@ namespace ShadowsocksUriGenerator
                 case 1: // Userinfo_base64url => UserinfoBase64url
                     foreach (var userEntry in users.UserDict)
                         foreach (var credEntry in userEntry.Value.Credentials)
+                        {
+                            if (credEntry.Value == null)
+                                continue;
                             credEntry.Value.UserinfoBase64url = Credential.Base64UserinfoEncoder(credEntry.Value.Userinfo);
+                        }
                     users.Version++;
                     goto default; // go to the next update path
                 default:

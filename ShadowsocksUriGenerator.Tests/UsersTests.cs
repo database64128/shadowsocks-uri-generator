@@ -79,7 +79,7 @@ namespace ShadowsocksUriGenerator.Tests
         }
 
         [Fact]
-        public void Add_Update_Remove_Credential_ReturnsResult()
+        public void Add_Update_Remove_Group_ReturnsResult()
         {
             var nodes = new Nodes();
             nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
@@ -91,13 +91,11 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.True(users.UserDict.ContainsKey("http"));
 
             // Add
-            var successAdd = users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ", nodes);
-            var anotherSuccessAdd = users.AddCredentialToUser("http", "MyGroup", "YWVzLTEyOC1nY206dEsqc2shOU44QDg2OlVWbWM", nodes);
-            var yetAnotherSuccessAdd = users.AddCredentialToUser("root", "MyGroupWithPlugin", "YWVzLTEyOC1nY206dkFBbiY4a1I6JGlBRTQ0JA", nodes);
-            var duplicateAdd = users.AddCredentialToUser("root", "MyGroup", "aes-256-gcm", "wLhN2STZ", nodes);
-            var badUserAdd = users.AddCredentialToUser("nobody", "MyGroup", "aes-256-gcm", "wLhN2STZ", nodes);
-            var badGroupAdd = users.AddCredentialToUser("root", "MyGroupWithoutPlugin", "aes-256-gcm", "wLhN2STZ", nodes);
-            var badUserinfoAdd = users.AddCredentialToUser("http", "MyGroupWithPlugin", "PR6Lf9UR22C5LNBhzEcpsWxd6WpsaeSs", nodes);
+            var successAdd = users.AddUserToGroup("root", "MyGroup");
+            var anotherSuccessAdd = users.AddUserToGroup("http", "MyGroup");
+            var yetAnotherSuccessAdd = users.AddUserToGroup("root", "MyGroupWithPlugin");
+            var duplicateAdd = users.AddUserToGroup("root", "MyGroup");
+            var badUserAdd = users.AddUserToGroup("nobody", "MyGroup");
 
             var rootUserCredentials = users.UserDict["root"].Credentials;
             var httpUserCredentials = users.UserDict["http"].Credentials;
@@ -110,8 +108,6 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(0, yetAnotherSuccessAdd);
             Assert.Equal(1, duplicateAdd);
             Assert.Equal(-1, badUserAdd);
-            Assert.Equal(-1, badGroupAdd);
-            Assert.Equal(-2, badUserinfoAdd);
 
             Assert.True(rootUserCredentials.ContainsKey("MyGroup"));
             Assert.True(rootUserCredentials.ContainsKey("MyGroupWithPlugin"));
@@ -130,19 +126,73 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(httpMyGroupCredential, httpUserCredentials["MyGroupNew"]);
 
             // Remove
-            var successRemoval = users.RemoveCredentialsFromUser("root", new string[] { "MyGroupWithPlugin" });
-            var nonExistingUserRemoval = users.RemoveCredentialsFromUser("nobody", new string[] { "MyGroup" });
-            var nonExistingGroupRemoval = users.RemoveCredentialsFromUser("root", new string[] { "MyGroupWithoutPlugin" });
+            var successRemoval = users.RemoveUserFromGroup("root", "MyGroupWithPlugin");
+            var nonExistingUserRemoval = users.RemoveUserFromGroup("nobody", "MyGroup");
+            var nonExistingGroupRemoval = users.RemoveUserFromGroup("root", "MyGroupWithoutPlugin");
 
             Assert.Equal(0, successRemoval);
-            Assert.Equal(-1, nonExistingUserRemoval);
-            Assert.Equal(0, nonExistingGroupRemoval);
+            Assert.Equal(-2, nonExistingUserRemoval);
+            Assert.Equal(1, nonExistingGroupRemoval);
 
             Assert.Single(rootUserCredentials);
+        }
 
-            users.RemoveCredentialsFromAllUsers(new string[] { "MyGroupNew" });
-            Assert.Empty(rootUserCredentials);
-            Assert.Empty(httpUserCredentials);
+        [Fact]
+        public void Add_Remove_Credential_ReturnsResult()
+        {
+            var nodes = new Nodes();
+            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
+            var users = new Users();
+            users.AddUsers(new string[] { "root", "http" });
+            Assert.True(users.UserDict.ContainsKey("root"));
+            Assert.True(users.UserDict.ContainsKey("http"));
+
+            // Add
+            var successAdd = users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
+            var anotherSuccessAdd = users.AddCredentialToUser("http", "MyGroup", "YWVzLTEyOC1nY206dEsqc2shOU44QDg2OlVWbWM");
+            var yetAnotherSuccessAdd = users.AddCredentialToUser("root", "MyGroupWithPlugin", "YWVzLTEyOC1nY206dkFBbiY4a1I6JGlBRTQ0JA");
+            var duplicateAdd = users.AddCredentialToUser("root", "MyGroup", "aes-256-gcm", "wLhN2STZ");
+            var badUserAdd = users.AddCredentialToUser("nobody", "MyGroup", "aes-256-gcm", "wLhN2STZ");
+            var badUserinfoAdd = users.AddCredentialToUser("http", "MyGroupWithPlugin", "PR6Lf9UR22C5LNBhzEcpsWxd6WpsaeSs");
+
+            var rootUserCredentials = users.UserDict["root"].Credentials;
+            var httpUserCredentials = users.UserDict["http"].Credentials;
+
+            Assert.Equal(0, successAdd);
+            Assert.Equal(0, anotherSuccessAdd);
+            Assert.Equal(0, yetAnotherSuccessAdd);
+            Assert.Equal(2, duplicateAdd);
+            Assert.Equal(-1, badUserAdd);
+            Assert.Equal(-2, badUserinfoAdd);
+
+            Assert.True(rootUserCredentials.ContainsKey("MyGroup"));
+            Assert.True(rootUserCredentials.ContainsKey("MyGroupWithPlugin"));
+            Assert.True(httpUserCredentials.ContainsKey("MyGroup"));
+
+            Assert.NotNull(rootUserCredentials["MyGroup"]);
+            Assert.NotNull(rootUserCredentials["MyGroupWithPlugin"]);
+            Assert.NotNull(httpUserCredentials["MyGroup"]);
+
+            // Remove
+            var successRemoval = users.RemoveCredentialFromUser("root", "MyGroupWithPlugin");
+            var nonExistingUserRemoval = users.RemoveCredentialFromUser("nobody", "MyGroupNew");
+            var nonExistingGroupRemoval = users.RemoveCredentialFromUser("root", "MyGroupWithoutPlugin");
+
+            Assert.Equal(0, successRemoval);
+            Assert.Equal(-2, nonExistingUserRemoval);
+            Assert.Equal(-1, nonExistingGroupRemoval);
+
+            Assert.NotNull(rootUserCredentials["MyGroup"]);
+            Assert.NotNull(httpUserCredentials["MyGroup"]);
+            Assert.Null(rootUserCredentials["MyGroupWithPlugin"]);
+
+            // Remove from all
+            users.RemoveCredentialsFromAllUsers(new string[] { "MyGroup" });
+
+            Assert.Null(rootUserCredentials["MyGroup"]);
+            Assert.Null(httpUserCredentials["MyGroup"]);
         }
 
         [Theory]
