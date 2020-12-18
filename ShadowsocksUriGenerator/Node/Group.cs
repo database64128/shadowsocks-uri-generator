@@ -328,10 +328,10 @@ namespace ShadowsocksUriGenerator
 
             // Add
             foreach (var username in usersToCreate)
-                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes));
+                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes, users.UserDict[username].Credentials, group));
 
             // Remove
-            tasks.Add(RemoveUserFromOutlineServer(usersToRemove));
+            tasks.Add(RemoveUserFromOutlineServer(usersToRemove, users, group));
 
             while (tasks.Count > 0)
             {
@@ -352,6 +352,10 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null)
                 return -2;
+            if (OutlineAccessKeys == null)
+                await UpdateOutlineServer();
+            if (OutlineAccessKeys == null)
+                OutlineAccessKeys = new();
             if (_apiClient == null)
                 _apiClient = new(OutlineApiKey);
 
@@ -360,12 +364,12 @@ namespace ShadowsocksUriGenerator
             var targetUsers = usernames ?? users.UserDict.Where(x => x.Value.Credentials.ContainsKey(group)).Select(x => x.Key);
 
             // Remove
-            var removalResponse = await RemoveUserFromOutlineServer(targetUsers);
+            var removalResponse = await RemoveUserFromOutlineServer(targetUsers, users, group);
             statusCodes.AddRange(removalResponse);
 
             // Add
             foreach (var username in targetUsers)
-                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes));
+                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes, users.UserDict[username].Credentials, group));
 
             while (tasks.Count > 0)
             {
@@ -383,12 +387,14 @@ namespace ShadowsocksUriGenerator
         /// <param name="username">Target username.</param>
         /// <param name="userDataLimit">The user's data limit.</param>
         /// <returns>The HTTP status codes from API operations.</returns>
-        private async Task<HttpStatusCode[]> AddUserToOutlineServer(string username, ulong userDataLimit)
+        private async Task<HttpStatusCode[]> AddUserToOutlineServer(string username, ulong userDataLimit, Dictionary<string, Credential?> credentials, string group)
         {
             if (OutlineApiKey == null)
                 throw new InvalidOperationException("Outline API key is not found.");
             if (_apiClient == null)
                 _apiClient = new(OutlineApiKey);
+            if (OutlineAccessKeys == null)
+                OutlineAccessKeys = new();
 
             var statusCodes = new List<HttpStatusCode>();
 
@@ -412,6 +418,15 @@ namespace ShadowsocksUriGenerator
                 statusCodes.Add(setLimitResponse.StatusCode);
             }
 
+            // Save the new key to access key list
+            accessKey.Name = username;
+            var index = OutlineAccessKeys.IndexOf(accessKey);
+            if (index != -1)
+                OutlineAccessKeys[index] = accessKey;
+
+            // Save the new key to user credential dictionary
+            credentials[group] = new(accessKey.Method, accessKey.Password);
+
             return statusCodes.ToArray();
         }
 
@@ -420,7 +435,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="usernames">Target user.</param>
         /// <returns>The HTTP status codes from API operations.</returns>
-        private Task<HttpStatusCode[]> RemoveUserFromOutlineServer(IEnumerable<string> usernames)
+        private Task<HttpStatusCode[]> RemoveUserFromOutlineServer(IEnumerable<string> usernames, Users users, string group)
         {
             if (OutlineApiKey == null || OutlineAccessKeys == null)
                 throw new InvalidOperationException("Outline API key is not found.");
@@ -429,6 +444,13 @@ namespace ShadowsocksUriGenerator
 
             // Get ID list
             var userIDs = OutlineAccessKeys.Where(x => usernames.Contains(x.Name)).Select(x => x.Id);
+
+            // Remove from access key list
+            OutlineAccessKeys.RemoveAll(x => userIDs.Contains(x.Id));
+
+            // Remove from user credential dictionary
+            foreach (var username in usernames)
+                users.RemoveUserFromGroup(username, group);
 
             // Remove
             var tasks = userIDs.Select(async x => (await _apiClient.DeleteAccessKeyAsync(x)).StatusCode);
