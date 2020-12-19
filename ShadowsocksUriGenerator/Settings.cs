@@ -75,7 +75,7 @@ namespace ShadowsocksUriGenerator
             OnlineConfigUpdateDataUsageOnGeneration = true;
             OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
             OnlineConfigDeliveryRootUri = "";
-            OutlineServerDeployOnChange = true;
+            OutlineServerDeployOnChange = false;
             OutlineServerApplyDefaultUserOnAssociation = true;
             OutlineServerGlobalDefaultUser = "";
         }

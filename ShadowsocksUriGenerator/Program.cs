@@ -38,6 +38,8 @@ namespace ShadowsocksUriGenerator
                 userListCommand,
                 userJoinGroupCommand,
                 userLeaveGroupCommand,
+                userAddCredentialCommand,
+                userRemoveCredentialCommand,
                 userListCredentialsCommand,
                 userGetSSLinksCommand,
                 userSetDataLimitCommand,
