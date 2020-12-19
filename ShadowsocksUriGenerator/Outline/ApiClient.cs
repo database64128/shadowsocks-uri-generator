@@ -24,6 +24,7 @@ namespace ShadowsocksUriGenerator.Outline
                 SslOptions = sslClientAuthenticationOptions,
             };
             _httpClient = new(socketsHttpHandler);
+            _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
         private readonly ApiKey _apiKey;
