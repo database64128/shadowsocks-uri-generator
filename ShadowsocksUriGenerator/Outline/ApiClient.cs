@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.Security;
@@ -30,6 +29,13 @@ namespace ShadowsocksUriGenerator.Outline
         private readonly ApiKey _apiKey;
         private readonly HttpClient _httpClient;
         private bool disposedValue;
+
+        /// <inheritdoc cref="HttpClient.Timeout"/>
+        public TimeSpan Timeout
+        {
+            get => _httpClient.Timeout;
+            set => _httpClient.Timeout = value;
+        }
 
         private bool ValidateServerCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
         {

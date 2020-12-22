@@ -76,6 +76,42 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Converts a data representation in bytes
+        /// to a human readable data string.
+        /// </summary>
+        /// <param name="dataInBytes">
+        /// The number of bytes.
+        /// </param>
+        /// <param name="middle_i">
+        /// Whether to use 'GiB', 'TiB' instead of 'GB', 'TB'.
+        /// Defaults to false, or 'GB', 'TB'.
+        /// No matter true or false, 1024 is always used as the base.
+        /// </param>
+        /// <param name="trailingB">
+        /// Whether the returned string has a trailing 'B' representing bytes.
+        /// Defaults to true, or 'GB', 'TB'.
+        /// Set to false for 'G', 'T'.
+        /// </param>
+        /// <returns>
+        /// A human readable string representation of the amount of data.
+        /// </returns>
+        public static string HumanReadableDataString(ulong dataInBytes, bool middle_i = false, bool trailingB = true)
+        {
+            var stringTail = $@"{(middle_i ? "i" : "")}{(trailingB ? "B" : "")}";
+
+            return dataInBytes switch
+            {
+                < 1024UL => $@"{dataInBytes}{(trailingB ? "B" : "")}",
+                < 1024UL * 1024UL => $@"{dataInBytes / 1024.0:G4}K{stringTail}",
+                < 1024UL * 1024UL * 1024UL => $@"{dataInBytes / 1024.0 / 1024.0:G4}M{stringTail}",
+                < 1024UL * 1024UL * 1024UL * 1024UL => $@"{dataInBytes / 1024.0 / 1024.0 / 1024.0:G4}G{stringTail}",
+                < 1024UL * 1024UL * 1024UL * 1024UL * 1024UL => $@"{dataInBytes / 1024.0 / 1024.0 / 1024.0 / 1024.0:G4}T{stringTail}",
+                < 1024UL * 1024UL * 1024UL * 1024UL * 1024UL * 1024UL => $@"{dataInBytes / 1024.0 / 1024.0 / 1024.0 / 1024.0 / 1024.0:G4}P{stringTail}",
+                _ => $@"{dataInBytes / 1024.0 / 1024.0 / 1024.0 / 1024.0 / 1024.0 / 1024.0:G4}E{stringTail}",
+            };
+        }
+
+        /// <summary>
         /// Loads data from a JSON file.
         /// </summary>
         /// <typeparam name="T">Data object type.</typeparam>

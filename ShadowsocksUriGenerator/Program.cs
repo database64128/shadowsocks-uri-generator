@@ -28,6 +28,7 @@ namespace ShadowsocksUriGenerator
             var userRemoveCredentialCommand = new Command("remove-credential", "Remove the group's credential from the user.");
             var userListCredentialsCommand = new Command("list-credentials", "List all user credentials.");
             var userGetSSLinksCommand = new Command("get-ss-links", "Get the user's associated Shadowsocks URLs.");
+            var userGetDataUsageCommand = new Command("get-data-usage", "Get the user's data usage records.");
             var userSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
 
             var userCommand = new Command("user", "Manage users.")
@@ -42,6 +43,7 @@ namespace ShadowsocksUriGenerator
                 userRemoveCredentialCommand,
                 userListCredentialsCommand,
                 userGetSSLinksCommand,
+                userGetDataUsageCommand,
                 userSetDataLimitCommand,
             };
 
@@ -64,6 +66,7 @@ namespace ShadowsocksUriGenerator
             var groupListCommand = new Command("list", "List all groups.");
             var groupAddUserCommand = new Command("add-user", "Add users to the group.");
             var groupRemoveUserCommand = new Command("remove-user", "Remove users from the group.");
+            var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
             var groupSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
 
             var groupCommand = new Command("group", "Manage groups.")
@@ -74,6 +77,7 @@ namespace ShadowsocksUriGenerator
                 groupListCommand,
                 groupAddUserCommand,
                 groupRemoveUserCommand,
+                groupGetDataUsageCommand,
                 groupSetDataLimitCommand,
             };
 
@@ -452,9 +456,75 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    List<Uri> uris = users.GetUserSSUris(username, nodes);
+                    var uris = users.GetUserSSUris(username, nodes);
                     foreach (var uri in uris)
                         Console.WriteLine($"{uri.AbsoluteUri}");
+                });
+
+            userGetDataUsageCommand.AddArgument(new Argument<string>("username", "Target user."));
+            userGetDataUsageCommand.Handler = CommandHandler.Create(
+                async (string username) =>
+                {
+                    users = await loadUsersTask;
+                    nodes = await loadNodesTask;
+
+                    var records = users.GetUserDataUsage(username, nodes);
+
+                    Console.WriteLine($"{"User",-16}{username,-32}");
+                    if (users.UserDict.TryGetValue(username, out var user))
+                    {
+                        Console.WriteLine($"{"Data used",-16}{Utilities.HumanReadableDataString(user.BytesUsed),-32}");
+                        if (user.BytesRemaining != 0UL)
+                            Console.WriteLine($"{"Data remaining",-16}{Utilities.HumanReadableDataString(user.BytesRemaining),-32}");
+                        if (user.DataLimitInBytes != 0UL)
+                            Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString(user.DataLimitInBytes),-32}");
+                    }
+
+                    Console.WriteLine();
+
+                    Console.Write('+');
+                    for (var i = 0; i < 32; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 11; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 16; i++)
+                        Console.Write('-');
+                    Console.Write("+\n");
+
+                    Console.WriteLine($"|{"Group",-32}|{"Data Used",11}|{"Data Remaining",16}|");
+
+                    Console.Write('+');
+                    for (var i = 0; i < 32; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 11; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 16; i++)
+                        Console.Write('-');
+                    Console.Write("+\n");
+
+                    foreach (var (group, bytesUsed, bytesRemaining) in records)
+                    {
+                        Console.Write($"|{group,-32}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        if (bytesRemaining != 0UL)
+                            Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        else
+                            Console.WriteLine($"{string.Empty,16}|");
+                    }
+
+                    Console.Write('+');
+                    for (var i = 0; i < 32; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 11; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 16; i++)
+                        Console.Write('-');
+                    Console.Write("+\n");
                 });
 
             userSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
@@ -465,7 +535,6 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    settings = await loadSettingsTask;
 
                     if (Utilities.TryParseDataLimitString(dataLimit, out var dataLimitInBytes))
                         foreach (var username in usernames)
@@ -479,7 +548,7 @@ namespace ShadowsocksUriGenerator
                     else
                         Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
 
-                    // TODO: decide what to save
+                    await Users.SaveUsersAsync(users);
                 });
 
             groupAddUserCommand.AddArgument(new Argument<string>("group", "Target group."));
@@ -547,6 +616,72 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            groupGetDataUsageCommand.AddArgument(new Argument<string>("group", "Target group."));
+            groupGetDataUsageCommand.Handler = CommandHandler.Create(
+                async (string group) =>
+                {
+                    users = await loadUsersTask;
+                    nodes = await loadNodesTask;
+
+                    var records = nodes.GetGroupDataUsage(group);
+
+                    Console.WriteLine($"{"Group",-16}{group,-32}");
+                    if (nodes.Groups.TryGetValue(group, out var targetGroup))
+                    {
+                        Console.WriteLine($"{"Data used",-16}{Utilities.HumanReadableDataString(targetGroup.BytesUsed),-32}");
+                        if (targetGroup.BytesRemaining != 0UL)
+                            Console.WriteLine($"{"Data remaining",-16}{Utilities.HumanReadableDataString(targetGroup.BytesRemaining),-32}");
+                        if (targetGroup.DataLimitInBytes != 0UL)
+                            Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString(targetGroup.DataLimitInBytes),-32}");
+                    }
+
+                    Console.WriteLine();
+
+                    Console.Write('+');
+                    for (var i = 0; i < 32; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 11; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 16; i++)
+                        Console.Write('-');
+                    Console.Write("+\n");
+
+                    Console.WriteLine($"|{"User",-32}|{"Data Used",11}|{"Data Remaining",16}|");
+
+                    Console.Write('+');
+                    for (var i = 0; i < 32; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 11; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 16; i++)
+                        Console.Write('-');
+                    Console.Write("+\n");
+
+                    foreach (var (username, bytesUsed, bytesRemaining) in records)
+                    {
+                        Console.Write($"|{username,-32}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        if (bytesRemaining != 0UL)
+                            Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        else
+                            Console.WriteLine($"{string.Empty,16}|");
+                    }
+
+                    Console.Write('+');
+                    for (var i = 0; i < 32; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 11; i++)
+                        Console.Write('-');
+                    Console.Write('+');
+                    for (var i = 0; i < 16; i++)
+                        Console.Write('-');
+                    Console.Write("+\n");
+                });
+
             groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
             groupSetDataLimitCommand.AddArgument(new Argument<string[]>("groups", "Target groups."));
             groupSetDataLimitCommand.AddOption(new Option<bool>("--global", "Set the global data limit of the group."));
@@ -557,7 +692,6 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    settings = await loadSettingsTask;
 
                     if (Utilities.TryParseDataLimitString(dataLimit, out var dataLimitInBytes))
                         foreach (var group in groups)
@@ -571,7 +705,7 @@ namespace ShadowsocksUriGenerator
                     else
                         Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
 
-                    // TODO: decide what to save
+                    await Users.SaveUsersAsync(users);
                 });
 
             onlineConfigGenerateCommand.AddAlias("gen");
@@ -750,7 +884,6 @@ namespace ShadowsocksUriGenerator
                                 var result = await nodes.UpdateGroupOutlineServer(group, users, !noSync);
                                 if (result == 0)
                                 {
-                                    // TODO: update user data usage
                                 }
                                 else if (result == -1)
                                     Console.WriteLine($"Group not found: {group}");

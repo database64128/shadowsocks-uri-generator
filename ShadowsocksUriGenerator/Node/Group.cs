@@ -146,6 +146,40 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Calculates the group's total data usage
+        /// with statistics from Outline server.
+        /// </summary>
+        public void CalculateTotalDataUsage()
+        {
+            BytesUsed = OutlineDataUsage?.BytesTransferredByUserId.Values.Aggregate((x, y) => x + y) ?? 0;
+            if (DataLimitInBytes > 0UL)
+                BytesRemaining = DataLimitInBytes - BytesUsed;
+        }
+
+        /// <summary>
+        /// Gets all data usage records of the group.
+        /// </summary>
+        /// <returns>A list of data usage records as tuples.</returns>
+        public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage()
+        {
+            List<(string username, ulong bytesUsed, ulong bytesRemaining)> result = new();
+
+            if (OutlineAccessKeys == null || OutlineDataUsage == null)
+                return result;
+
+            foreach (var dataUsage in OutlineDataUsage.BytesTransferredByUserId)
+            {
+                var usernames = OutlineAccessKeys.Where(x => x.Id == dataUsage.Key.ToString()).Select(x => x.Name);
+                var username = usernames.Any() ? usernames.First() : "";
+                var bytesUsed = dataUsage.Value;
+                var bytesRemaining = PerUserDataLimitInBytes == 0 ? 0 : PerUserDataLimitInBytes - bytesUsed;
+                result.Add((username, bytesUsed, bytesRemaining));
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Sets the data limit.
         /// </summary>
         /// <param name="dataLimit">The data limit in bytes.</param>
@@ -313,7 +347,7 @@ namespace ShadowsocksUriGenerator
             if (updateLocalCredentials)
                 UpdateLocalCredentials(group, users);
 
-            // TODO: update user data usage
+            CalculateTotalDataUsage();
 
             return 0;
         }

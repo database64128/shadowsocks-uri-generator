@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ShadowsocksUriGenerator
 {
@@ -172,6 +173,71 @@ namespace ShadowsocksUriGenerator
                     continue; // ignoring is intentional, as groups may get removed.
             }
             return uris;
+        }
+
+        /// <summary>
+        /// Gathers user's data usage metrics from all groups
+        /// and calculates the total data usage of the user.
+        /// </summary>
+        /// <param name="username">Target user.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        public void CalculateTotalDataUsage(string username, Nodes nodes)
+        {
+            BytesUsed = 0UL;
+            var bytesUsedInGroup = 0UL; // make compiler happy
+            
+            foreach (var groupEntry in nodes.Groups)
+            {
+                // Filter out access key ids that belongs to the user.
+                var filteredAccessKeyIds = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username).Select(x => x.Id);
+                if (filteredAccessKeyIds != null)
+                {
+                    foreach (var id in filteredAccessKeyIds)
+                    {
+                        if (int.TryParse(id, out var keyId)
+                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) is bool hasDataUsage
+                            && hasDataUsage)
+                            BytesUsed += bytesUsedInGroup;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets all data usage records associated with the user.
+        /// </summary>
+        /// <param name="username">Target user.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        /// <returns>A list of data usage records as tuples.</returns>
+        public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage(string username, Nodes nodes)
+        {
+            List<(string group, ulong bytesUsed, ulong bytesRemaining)> results = new();
+            var bytesUsedInGroup = 0UL; // make compiler happy
+            BytesUsed = 0UL;
+
+            foreach (var groupEntry in nodes.Groups)
+            {
+                // Filter out access key ids that belongs to the user.
+                var filteredAccessKeyIds = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username).Select(x => x.Id);
+                if (filteredAccessKeyIds != null)
+                {
+                    foreach (var id in filteredAccessKeyIds)
+                    {
+                        if (int.TryParse(id, out var keyId)
+                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) is bool hasDataUsage
+                            && hasDataUsage)
+                        {
+                            var group = groupEntry.Key;
+                            var bytesUsed = bytesUsedInGroup;
+                            var bytesRemaining = DataLimitInBytes == 0 ? 0 : DataLimitInBytes - bytesUsed;
+                            BytesUsed += bytesUsed;
+                            results.Add((group, bytesUsed, bytesRemaining));
+                        }
+                    }
+                }
+            }
+
+            return results;
         }
 
         /// <summary>

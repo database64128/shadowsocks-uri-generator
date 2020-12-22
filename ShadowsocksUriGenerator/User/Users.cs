@@ -116,7 +116,7 @@ namespace ShadowsocksUriGenerator
         /// </returns>
         public int AddCredentialToUser(string user, string group, string method, string password)
         {
-            if (UserDict.TryGetValue(user, out User? targetUser))
+            if (UserDict.TryGetValue(user, out var targetUser))
                 return targetUser.AddCredential(group, method, password);
             else
                 return -1;
@@ -125,7 +125,7 @@ namespace ShadowsocksUriGenerator
         /// <inheritdoc cref="AddCredentialToUser(string, string, string, string)"/>
         public int AddCredentialToUser(string user, string group, string userinfoBase64url)
         {
-            if (UserDict.TryGetValue(user, out User? targetUser))
+            if (UserDict.TryGetValue(user, out var targetUser))
                 return targetUser.AddCredential(group, userinfoBase64url);
             else
                 return -1;
@@ -168,7 +168,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>0 when success. -1 when user not in group. -2 when user not found.</returns>
         public int RemoveCredentialFromUser(string user, string group)
         {
-            if (UserDict.TryGetValue(user, out User? targetUser))
+            if (UserDict.TryGetValue(user, out var targetUser))
                 return targetUser.RemoveCredential(group);
             else
                 return -2;
@@ -194,11 +194,35 @@ namespace ShadowsocksUriGenerator
         /// </returns>
         public List<Uri> GetUserSSUris(string username, Nodes nodes)
         {
-            if (UserDict.TryGetValue(username, out User? user))
-            {
+            if (UserDict.TryGetValue(username, out var user))
                 return user.GetSSUris(nodes);
-            }
-            return new();
+            else
+                return new();
+        }
+
+        /// <summary>
+        /// Calculates data usage for all users.
+        /// This method is intended to be called
+        /// by online config generator.
+        /// </summary>
+        /// <param name="nodes"></param>
+        public void CalculateDataUsageForAllUsers(Nodes nodes)
+        {
+            foreach (var userEntry in UserDict)
+                userEntry.Value.CalculateTotalDataUsage(userEntry.Key, nodes);
+        }
+
+        /// <summary>
+        /// Gets all users' data usage records.
+        /// </summary>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        /// <returns>A list of data usage records as tuples.</returns>
+        public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetUserDataUsage(string username, Nodes nodes)
+        {
+            if (UserDict.TryGetValue(username, out var user))
+                return user.GetDataUsage(username, nodes);
+            else
+                return new();
         }
 
         /// <summary>
@@ -210,7 +234,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>0 on success. -1 on user not found. -2 on group not found.</returns>
         public int SetDataLimitToUser(ulong dataLimit, string username, string[]? groups = null)
         {
-            if (UserDict.TryGetValue(username, out User? user))
+            if (UserDict.TryGetValue(username, out var user))
                 return user.SetDataLimit(dataLimit, groups);
             else
                 return -1;

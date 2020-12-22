@@ -73,8 +73,10 @@ namespace ShadowsocksUriGenerator
         /// <returns>The object of the user's SIP008 configuration.</returns>
         public static OnlineConfig Generate(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
         {
+            var username = userEntry.Key;
             var user = userEntry.Value;
-            var onlineConfig = new OnlineConfig(userEntry.Key, user.Uuid, user.BytesUsed, user.BytesRemaining);
+            user.CalculateTotalDataUsage(username, nodes);
+            var onlineConfig = new OnlineConfig(username, user.Uuid, user.BytesUsed, user.BytesRemaining);
             foreach (var credEntry in user.Credentials)
             {
                 if (credEntry.Value == null)
