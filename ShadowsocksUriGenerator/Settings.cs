@@ -16,6 +16,16 @@ namespace ShadowsocksUriGenerator
         public int Version { get; set; }
 
         /// <summary>
+        /// Gets or sets the default sort rule for user data usage report.
+        /// </summary>
+        public SortBy UserDataUsageDefaultSortBy { get; set; }
+
+        /// <summary>
+        /// Gets or sets the default sort rule for group data usage report.
+        /// </summary>
+        public SortBy GroupDataUsageDefaultSortBy { get; set; }
+
+        /// <summary>
         /// Gets or sets whether the generated servers list
         /// in an SIP008 JSON should be sorted by server name.
         /// Defaults to true.
@@ -70,6 +80,8 @@ namespace ShadowsocksUriGenerator
         public Settings()
         {
             Version = DefaultVersion;
+            UserDataUsageDefaultSortBy = SortBy.DefaultAscending;
+            GroupDataUsageDefaultSortBy = SortBy.DataUsedDescending;
             OnlineConfigSortByName = true;
             OnlineConfigCleanOnUserRemoval = true;
             OnlineConfigUpdateDataUsageOnGeneration = true;

@@ -462,13 +462,45 @@ namespace ShadowsocksUriGenerator
                 });
 
             userGetDataUsageCommand.AddArgument(new Argument<string>("username", "Target user."));
+            userGetDataUsageCommand.AddOption(new Option<SortBy?>("--sort-by", "Sort rule used for the data usage records."));
             userGetDataUsageCommand.Handler = CommandHandler.Create(
-                async (string username) =>
+                async (string username, SortBy? sortBy) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
+                    settings = await loadSettingsTask;
 
                     var records = users.GetUserDataUsage(username, nodes);
+
+                    var sortByInEffect = settings.UserDataUsageDefaultSortBy;
+                    if (sortBy is SortBy currentRunSortBy)
+                        sortByInEffect = currentRunSortBy;
+                    switch (sortByInEffect)
+                    {
+                        case SortBy.DefaultAscending:
+                            break;
+                        case SortBy.DefaultDescending:
+                            records.Reverse();
+                            break;
+                        case SortBy.NameAscending:
+                            records = records.OrderBy(x => x.group).ToList();
+                            break;
+                        case SortBy.NameDescending:
+                            records = records.OrderByDescending(x => x.group).ToList();
+                            break;
+                        case SortBy.DataUsedAscending:
+                            records = records.OrderBy(x => x.bytesUsed).ToList();
+                            break;
+                        case SortBy.DataUsedDescending:
+                            records = records.OrderByDescending(x => x.bytesUsed).ToList();
+                            break;
+                        case SortBy.DataRemainingAscending:
+                            records = records.OrderBy(x => x.bytesRemaining).ToList();
+                            break;
+                        case SortBy.DataRemainingDescending:
+                            records = records.OrderByDescending(x => x.bytesRemaining).ToList();
+                            break;
+                    }
 
                     Console.WriteLine($"{"User",-16}{username,-32}");
                     if (users.UserDict.TryGetValue(username, out var user))
@@ -617,13 +649,45 @@ namespace ShadowsocksUriGenerator
                 });
 
             groupGetDataUsageCommand.AddArgument(new Argument<string>("group", "Target group."));
+            groupGetDataUsageCommand.AddOption(new Option<SortBy?>("--sort-by", "Sort rule used for the data usage records."));
             groupGetDataUsageCommand.Handler = CommandHandler.Create(
-                async (string group) =>
+                async (string group, SortBy? sortBy) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
+                    settings = await loadSettingsTask;
 
                     var records = nodes.GetGroupDataUsage(group);
+
+                    var sortByInEffect = settings.GroupDataUsageDefaultSortBy;
+                    if (sortBy is SortBy currentRunSortBy)
+                        sortByInEffect = currentRunSortBy;
+                    switch (sortByInEffect)
+                    {
+                        case SortBy.DefaultAscending:
+                            break;
+                        case SortBy.DefaultDescending:
+                            records.Reverse();
+                            break;
+                        case SortBy.NameAscending:
+                            records = records.OrderBy(x => x.username).ToList();
+                            break;
+                        case SortBy.NameDescending:
+                            records = records.OrderByDescending(x => x.username).ToList();
+                            break;
+                        case SortBy.DataUsedAscending:
+                            records = records.OrderBy(x => x.bytesUsed).ToList();
+                            break;
+                        case SortBy.DataUsedDescending:
+                            records = records.OrderByDescending(x => x.bytesUsed).ToList();
+                            break;
+                        case SortBy.DataRemainingAscending:
+                            records = records.OrderBy(x => x.bytesRemaining).ToList();
+                            break;
+                        case SortBy.DataRemainingDescending:
+                            records = records.OrderByDescending(x => x.bytesRemaining).ToList();
+                            break;
+                    }
 
                     Console.WriteLine($"{"Group",-16}{group,-32}");
                     if (nodes.Groups.TryGetValue(group, out var targetGroup))
@@ -974,6 +1038,8 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
                     settings = await loadSettingsTask;
                     Console.WriteLine($"|{"Version",-42}|{settings.Version,40}|");
+                    Console.WriteLine($"|{"UserDataUsageDefaultSortBy",-42}|{settings.UserDataUsageDefaultSortBy,40}|");
+                    Console.WriteLine($"|{"GroupDataUsageDefaultSortBy",-42}|{settings.GroupDataUsageDefaultSortBy,40}|");
                     Console.WriteLine($"|{"OnlineConfigSortByName",-42}|{settings.OnlineConfigSortByName,40}|");
                     Console.WriteLine($"|{"OnlineConfigCleanOnUserRemoval",-42}|{settings.OnlineConfigCleanOnUserRemoval,40}|");
                     Console.WriteLine($"|{"OnlineConfigUpdateDataUsageOnGeneration",-42}|{settings.OnlineConfigUpdateDataUsageOnGeneration,40}|");
@@ -984,6 +1050,8 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
                 });
 
+            settingsSetCommand.AddOption(new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report."));
+            settingsSetCommand.AddOption(new Option<SortBy?>("--group-data-usage-default-sort-by", "The default sort rule for group data usage report."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-update-data-usage-on-generation", "Whether data usage metrics are updated from configured sources when generating online config."));
@@ -993,9 +1061,13 @@ namespace ShadowsocksUriGenerator
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
             settingsSetCommand.Handler = CommandHandler.Create(
-                async (bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string ? outlineServerGlobalDefaultUser) =>
+                async (SortBy? userDataUsageDefaultSortBy, SortBy? groupDataUsageDefaultSortBy, bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string? outlineServerGlobalDefaultUser) =>
                 {
                     settings = await loadSettingsTask;
+                    if (userDataUsageDefaultSortBy is SortBy userSortBy)
+                        settings.UserDataUsageDefaultSortBy = userSortBy;
+                    if (groupDataUsageDefaultSortBy is SortBy groupSortBy)
+                        settings.GroupDataUsageDefaultSortBy = groupSortBy;
                     if (onlineConfigSortByName is bool sortByName)
                         settings.OnlineConfigSortByName = sortByName;
                     if (onlineConfigCleanOnUserRemoval is bool cleanOnUserRemoval)
