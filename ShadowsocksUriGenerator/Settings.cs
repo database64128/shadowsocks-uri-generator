@@ -112,8 +112,8 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="settings">The <see cref="Settings"/> object to save.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static async Task SaveSettingsAsync(Settings settings)
-            => await Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions);
+        public static Task SaveSettingsAsync(Settings settings)
+            => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions);
 
         /// <summary>
         /// Updates the settings version.

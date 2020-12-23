@@ -156,7 +156,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>A task that represents the asynchronous write operation.</returns>
         public static async Task SaveJsonAsync<T>(string filename, T jsonData, JsonSerializerOptions? jsonSerializerOptions = null)
         {
-            FileStream jsonFile = null!;
+            FileStream? jsonFile = null;
             try
             {
                 jsonFile = new FileStream(filename, FileMode.Create);

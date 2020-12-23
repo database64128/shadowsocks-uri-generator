@@ -1,22 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
 {
     class Program
     {
-        static async Task Main(string[] args)
+        static Task<int> Main(string[] args)
         {
             Users users;
             Nodes nodes;
             Settings settings;
-            Task<Users> loadUsersTask = Users.LoadUsersAsync();
-            Task<Nodes> loadNodesTask = Nodes.LoadNodesAsync();
-            Task<Settings> loadSettingsTask = Settings.LoadSettingsAsync();
+
+            var loadUsersTask = Users.LoadUsersAsync();
+            var loadNodesTask = Nodes.LoadNodesAsync();
+            var loadSettingsTask = Settings.LoadSettingsAsync();
 
             var userAddCommand = new Command("add", "Add users.");
             var userRenameCommand = new Command("rename", "Renames an existing user with a new name.");
@@ -135,7 +136,7 @@ namespace ShadowsocksUriGenerator
                 async (string[] usernames) =>
                 {
                     users = await loadUsersTask;
-                    List<string> addedUsers = users.AddUsers(usernames);
+                    var addedUsers = users.AddUsers(usernames);
                     await Users.SaveUsersAsync(users);
                     Console.WriteLine("Successfully added:");
                     foreach (var username in addedUsers)
@@ -164,7 +165,7 @@ namespace ShadowsocksUriGenerator
                 async (string[] groups) =>
                 {
                     nodes = await loadNodesTask;
-                    List<string> addedNodes = nodes.AddGroups(groups);
+                    var addedNodes = nodes.AddGroups(groups);
                     await Nodes.SaveNodesAsync(nodes);
                     Console.WriteLine("Successfully added:");
                     foreach (var nodename in addedNodes)
@@ -1070,8 +1071,8 @@ namespace ShadowsocksUriGenerator
                     await Settings.SaveSettingsAsync(settings);
                 });
 
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-            await rootCommand.InvokeAsync(args);
+            Console.OutputEncoding = Encoding.UTF8;
+            return rootCommand.InvokeAsync(args);
         }
 
         public static void PrintTableBorder(params int[] columnWidths)
