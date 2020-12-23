@@ -514,29 +514,11 @@ namespace ShadowsocksUriGenerator
 
                     Console.WriteLine();
 
-                    Console.Write('+');
-                    for (var i = 0; i < 32; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 11; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 16; i++)
-                        Console.Write('-');
-                    Console.Write("+\n");
+                    PrintTableBorder(32, 11, 16);
 
                     Console.WriteLine($"|{"Group",-32}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    Console.Write('+');
-                    for (var i = 0; i < 32; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 11; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 16; i++)
-                        Console.Write('-');
-                    Console.Write("+\n");
+                    PrintTableBorder(32, 11, 16);
 
                     foreach (var (group, bytesUsed, bytesRemaining) in records)
                     {
@@ -547,16 +529,7 @@ namespace ShadowsocksUriGenerator
                             Console.WriteLine($"{string.Empty,16}|");
                     }
 
-                    Console.Write('+');
-                    for (var i = 0; i < 32; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 11; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 16; i++)
-                        Console.Write('-');
-                    Console.Write("+\n");
+                    PrintTableBorder(32, 11, 16);
                 });
 
             userSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
@@ -701,29 +674,11 @@ namespace ShadowsocksUriGenerator
 
                     Console.WriteLine();
 
-                    Console.Write('+');
-                    for (var i = 0; i < 32; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 11; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 16; i++)
-                        Console.Write('-');
-                    Console.Write("+\n");
+                    PrintTableBorder(32, 11, 16);
 
                     Console.WriteLine($"|{"User",-32}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    Console.Write('+');
-                    for (var i = 0; i < 32; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 11; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 16; i++)
-                        Console.Write('-');
-                    Console.Write("+\n");
+                    PrintTableBorder(32, 11, 16);
 
                     foreach (var (username, bytesUsed, bytesRemaining) in records)
                     {
@@ -734,16 +689,7 @@ namespace ShadowsocksUriGenerator
                             Console.WriteLine($"{string.Empty,16}|");
                     }
 
-                    Console.Write('+');
-                    for (var i = 0; i < 32; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 11; i++)
-                        Console.Write('-');
-                    Console.Write('+');
-                    for (var i = 0; i < 16; i++)
-                        Console.Write('-');
-                    Console.Write("+\n");
+                    PrintTableBorder(32, 11, 16);
                 });
 
             groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
@@ -1089,6 +1035,17 @@ namespace ShadowsocksUriGenerator
 
             Console.OutputEncoding = System.Text.Encoding.UTF8;
             await rootCommand.InvokeAsync(args);
+        }
+
+        public static void PrintTableBorder(params int[] columnWidths)
+        {
+            foreach (var columnWidth in columnWidths)
+            {
+                Console.Write('+');
+                for (var i = 0; i < columnWidth; i++)
+                    Console.Write('-');
+            }
+            Console.Write("+\n");
         }
     }
 }
