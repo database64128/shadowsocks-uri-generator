@@ -100,7 +100,7 @@ namespace ShadowsocksUriGenerator
             var outlineServerDeployCommand = new Command("deploy", "Deploy the group's configuration to the associated Outline server.");
             var outlineServerRotatePasswordCommand = new Command("rotate-password", "Rotate passwords for the specified users and/or groups.");
 
-            var outlineServerCommand = new Command("outline-server", "Manage Outline Server.")
+            var outlineServerCommand = new Command("outline-server", "Manage Outline server.")
             {
                 outlineServerAddCommand,
                 outlineServerGetCommand,
@@ -264,10 +264,16 @@ namespace ShadowsocksUriGenerator
             userListCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"User",-16}|{"UUID",36}|{"Number of Credentials",21}|");
                     users = await loadUsersTask;
+
+                    PrintTableBorder(16, 36, 21);
+                    Console.WriteLine($"|{"User",-16}|{"UUID",36}|{"Number of Credentials",21}|");
+                    PrintTableBorder(16, 36, 21);
+
                     foreach (var user in users.UserDict)
                         Console.WriteLine($"|{user.Key,-16}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,21}|");
+
+                    PrintTableBorder(16, 36, 21);
                 });
 
             nodeListCommand.AddAlias("ls");
@@ -275,33 +281,45 @@ namespace ShadowsocksUriGenerator
             nodeListCommand.Handler = CommandHandler.Create(
                 async (string? group) =>
                 {
-                    Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",-40}|{"Port",5}|{"Plugin",12}|{"Plugin Options",24}|");
                     nodes = await loadNodesTask;
+
+                    PrintTableBorder(32, 16, 36, 24, 5, 12, 32);
+                    Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",24}|{"Port",5}|{"Plugin",12}|{"Plugin Options",32}|");
+                    PrintTableBorder(32, 16, 36, 24, 5, 12, 32);
+
                     if (string.IsNullOrEmpty(group))
                     {
                         foreach (var groupEntry in nodes.Groups)
                             foreach (var node in groupEntry.Value.NodeDict)
-                                Console.WriteLine($"|{node.Key,-32}|{groupEntry.Key,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,24}|");
+                                Console.WriteLine($"|{node.Key,-32}|{groupEntry.Key,-16}|{node.Value.Uuid,36}|{node.Value.Host,24}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,32}|");
                     }
                     else if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
                     {
                         foreach (var node in targetGroup.NodeDict)
-                            Console.WriteLine($"|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,-40}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,24}|");
+                            Console.WriteLine($"|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,24}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,32}|");
                     }
                     else
                         Console.WriteLine($"Group not found: {group}.");
+
+                    PrintTableBorder(32, 16, 36, 24, 5, 12, 32);
                 });
 
             groupListCommand.AddAlias("ls");
             groupListCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"Group",-16}|{"Number of Nodes",16}|");
                     nodes = await loadNodesTask;
+
+                    PrintTableBorder(16, 16, 16);
+                    Console.WriteLine($"|{"Group",-16}|{"Number of Nodes",16}|{"Outline Server",16}|");
+                    PrintTableBorder(16, 16, 16);
+
                     foreach (var group in nodes.Groups)
                     {
-                        Console.WriteLine($"|{group.Key,-16}|{group.Value.NodeDict.Count,16}|");
+                        Console.WriteLine($"|{group.Key,-16}|{group.Value.NodeDict.Count,16}|{group.Value.OutlineServerInfo?.Name ?? "No",16}|");
                     }
+
+                    PrintTableBorder(16, 16, 16);
                 });
 
             userJoinGroupCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
@@ -435,8 +453,12 @@ namespace ShadowsocksUriGenerator
             userListCredentialsCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"User",-16}|{"Group",-16}|{"Method",-24}|{"Password",-32}|");
                     users = await loadUsersTask;
+
+                    PrintTableBorder(16, 16, 24, 32);
+                    Console.WriteLine($"|{"User",-16}|{"Group",-16}|{"Method",-24}|{"Password",-32}|");
+                    PrintTableBorder(16, 16, 24, 32);
+
                     foreach (var user in users.UserDict)
                     {
                         foreach (var credEntry in user.Value.Credentials)
@@ -447,6 +469,8 @@ namespace ShadowsocksUriGenerator
                                 Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{credEntry.Value.Method,-24}|{credEntry.Value.Password,-32}|");
                         }
                     }
+
+                    PrintTableBorder(16, 16, 24, 32);
                 });
 
             userGetSSLinksCommand.AddAlias("ss");
@@ -735,13 +759,18 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"One or more specified users are not found.");
                 });
 
+            onlineConfigGetLinkCommand.AddAlias("link");
             onlineConfigGetLinkCommand.AddArgument(new Argument<string[]?>("usernames", "Target users. Leave empty for all users."));
             onlineConfigGetLinkCommand.Handler = CommandHandler.Create(
                 async (string[]? usernames) =>
                 {
-                    Console.WriteLine($"|{"User",-16}|{"Online Configuration Delivery URL",110}|");
                     users = await loadUsersTask;
                     settings = await loadSettingsTask;
+
+                    PrintTableBorder(16, 110);
+                    Console.WriteLine($"|{"User",-16}|{"Online Configuration Delivery URL",110}|");
+                    PrintTableBorder(16, 110);
+
                     if (usernames == null)
                         foreach (var user in users.UserDict)
                             Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
@@ -751,6 +780,8 @@ namespace ShadowsocksUriGenerator
                                 Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
                             else
                                 Console.WriteLine($"User not found: {username}.");
+
+                    PrintTableBorder(16, 110);
                 });
 
             onlineConfigCleanCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));
@@ -981,8 +1012,12 @@ namespace ShadowsocksUriGenerator
             settingsGetCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
-                    Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
                     settings = await loadSettingsTask;
+
+                    PrintTableBorder(42, 40);
+                    Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
+                    PrintTableBorder(42, 40);
+
                     Console.WriteLine($"|{"Version",-42}|{settings.Version,40}|");
                     Console.WriteLine($"|{"UserDataUsageDefaultSortBy",-42}|{settings.UserDataUsageDefaultSortBy,40}|");
                     Console.WriteLine($"|{"GroupDataUsageDefaultSortBy",-42}|{settings.GroupDataUsageDefaultSortBy,40}|");
@@ -994,6 +1029,8 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"OutlineServerDeployOnChange",-42}|{settings.OutlineServerDeployOnChange,40}|");
                     Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
                     Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
+
+                    PrintTableBorder(42, 40);
                 });
 
             settingsSetCommand.AddOption(new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report."));
