@@ -121,7 +121,7 @@ namespace ShadowsocksUriGenerator
                 settingsSetCommand,
             };
 
-            var rootCommand = new RootCommand()
+            var rootCommand = new RootCommand("A light-weight command line automation tool for multi-user ss:// URL generation, SIP008 online configuration delivery, and Outline server deployment and management.")
             {
                 userCommand,
                 nodeCommand,
