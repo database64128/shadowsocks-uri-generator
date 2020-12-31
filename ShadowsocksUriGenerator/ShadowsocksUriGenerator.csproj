@@ -10,7 +10,7 @@
     <Authors>database64128</Authors>
     <Product>ShadowsocksUriGenerator</Product>
     <Description>A light-weight command line automation tool for multi-user ss:// URL generation, SIP008 online configuration delivery, and Outline server deployment and management.</Description>
-    <Copyright>© 2020 database64128</Copyright>
+    <Copyright>© 2021 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>

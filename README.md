@@ -77,4 +77,4 @@ $ ./ss-uri-gen settings set --online-config-output-directory sip008
 
 - [`JsonSnakeCaseNamingPolicy`](https://github.com/dotnet/corefx/pull/40003) is licensed under the MIT license.
 
-© 2020 database64128
+© 2021 database64128
