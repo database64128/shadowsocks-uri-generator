@@ -72,7 +72,7 @@ jobs:
           7z a -tzip -mx=9 -mfb=128 -md=32k ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-x64.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-x64.7z .
       # Release
-      - name: Upload release assets
+      - name: Upload release assets for Linux
         uses: svenstaro/upload-release-action@v2
         if: matrix.os == 'ubuntu-20.04'
         with:
@@ -81,12 +81,21 @@ jobs:
           tag: ${{ github.ref }}
           file_glob: true
           prerelease: true
-      - name: Upload release assets
+      - name: Upload release assets for Windows 7z
         uses: svenstaro/upload-release-action@v2
         if: matrix.os == 'windows-latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ShadowsocksUriGenerator/bin/Release/net5.0/ss-uri-gen-*
+          file: ShadowsocksUriGenerator/bin/Release/net5.0/*.7z
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
+      - name: Upload release assets for Windows zip
+        uses: svenstaro/upload-release-action@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ShadowsocksUriGenerator/bin/Release/net5.0/*.zip
           tag: ${{ github.ref }}
           file_glob: true
           prerelease: true
