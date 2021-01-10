@@ -15,7 +15,7 @@ jobs:
     name: Build
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-20.04, windows-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
 
@@ -35,10 +35,10 @@ jobs:
       - name: Publish framework-dependent
         run: dotnet publish ShadowsocksUriGenerator -c Release --no-restore
       - name: Publish self-contained for Linux ARM64
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-20.04'
         run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-arm64 --self-contained
       - name: Publish self-contained for Linux x64
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-20.04'
         run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-x64 --self-contained
       - name: Publish self-contained for Windows ARM64
         if: matrix.os == 'windows-latest'
@@ -48,19 +48,19 @@ jobs:
         run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r win-x64 --self-contained
       # Upload
       - name: Upload artifacts for Linux ARM64
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v2
         with:
           name: ss-uri-gen-${{ github.sha }}-linux-arm64
           path: ShadowsocksUriGenerator/bin/Release/net5.0/linux-arm64/publish/
       - name: Upload artifacts for Linux x64
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v2
         with:
           name: ss-uri-gen-${{ github.sha }}-linux-x64
           path: ShadowsocksUriGenerator/bin/Release/net5.0/linux-x64/publish/
       - name: Upload artifacts for Linux framework-dependent
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v2
         with:
           name: ss-uri-gen-${{ github.sha }}-linux
