@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  publish_upload:
+    name: Publish and upload
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 5.0.x
+      - name: Restore dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --no-restore
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+      # Publish
+      - name: Publish framework-dependent
+        run: dotnet publish ShadowsocksUriGenerator -c Release --no-restore
+      - name: Publish self-contained for Linux ARM64
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-arm64 --self-contained
+      - name: Publish self-contained for Linux x64
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-x64 --self-contained
+      - name: Publish self-contained for Windows ARM64
+        if: matrix.os == 'windows-latest'
+        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r win-arm64 --self-contained
+      - name: Publish self-contained for Windows x64
+        if: matrix.os == 'windows-latest'
+        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r win-x64 --self-contained
+      # Get version
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: echo ::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)
+      # Package
+      - name: Package for Linux
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          ZSTD_CLEVEL: 19
+          ZSTD_NBTHREADS: 2
+        run: |
+          cd ShadowsocksUriGenerator/bin/Release/net5.0/publish
+          tar -acf ../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-linux.tar.zst .
+          cd ../linux-arm64/publish
+          tar -acf ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar.zst .
+          cd ../../linux-x64/publish
+          tar -acf ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-linux-x64.tar.zst .
+      - name: Package for Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd ShadowsocksUriGenerator/bin/Release/net5.0/publish
+          7za a -tzip -mx=9 -mfb=128 -md=32k ../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows.zip .
+          7za a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows.7z .
+          cd ../win-arm64/publish
+          7za a -tzip -mx=9 -mfb=128 -md=32k ../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-arm64.zip .
+          7za a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-arm64.7z .
+          cd ../../win-x64/publish
+          7za a -tzip -mx=9 -mfb=128 -md=32k ../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-x64.zip .
+          7za a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-x64.7z .
+      # Release
+      - name: Upload release assets
+        uses: svenstaro/upload-release-action@v2
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ShadowsocksUriGenerator/bin/Release/net5.0/*.tar.zst
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
+      - name: Upload release assets
+        uses: svenstaro/upload-release-action@v2
+        if: matrix.os == 'windows-latest'
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ShadowsocksUriGenerator/bin/Release/net5.0/ss-uri-gen-*
+          tag: ${{ github.ref }}
+          file_glob: true
+          prerelease: true
