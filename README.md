@@ -1,7 +1,7 @@
 # 🌐 `shadowsocks-uri-generator`
 
-![Build](https://github.com/database64128/shadowsocks-uri-generator/workflows/Build/badge.svg)
-![Release](https://github.com/database64128/shadowsocks-uri-generator/workflows/Release/badge.svg)
+[![Build](https://github.com/database64128/shadowsocks-uri-generator/workflows/Build/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ABuild)
+[![Release](https://github.com/database64128/shadowsocks-uri-generator/workflows/Release/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ARelease)
 
 A light-weight command line automation tool for multi-user `ss://` URL generation, [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89) online configuration delivery, and [Outline server](https://github.com/Jigsaw-Code/outline-server) deployment and management.
 
