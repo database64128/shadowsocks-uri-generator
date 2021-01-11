@@ -773,26 +773,28 @@ namespace ShadowsocksUriGenerator
                     PrintTableBorder(16, 110);
 
                     if (usernames == null)
-                        foreach (var user in users.UserDict)
+                        foreach (var userEntry in users.UserDict)
                         {
-                            Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
-                            if (settings.OnlineConfigDeliverByGroup)
-                                foreach (var group in user.Value.Credentials.Keys)
-                                    Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}/{group}.json",110}|");
+                            var username = userEntry.Key;
+                            var user = userEntry.Value;
+                            PrintUserLinks(username, user, settings);
                         }
                     else
                         foreach (var username in usernames)
                             if (users.UserDict.TryGetValue(username, out User? user))
-                            {
-                                Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
-                                if (settings.OnlineConfigDeliverByGroup)
-                                    foreach (var group in user.Credentials.Keys)
-                                        Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{group}.json",110}|");
-                            }
+                                PrintUserLinks(username, user, settings);
                             else
                                 Console.WriteLine($"User not found: {username}.");
 
                     PrintTableBorder(16, 110);
+
+                    static void PrintUserLinks(string username, User user, Settings settings)
+                    {
+                        Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                        if (settings.OnlineConfigDeliverByGroup)
+                            foreach (var group in user.Credentials.Keys)
+                                Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{Uri.EscapeDataString(group)}.json",110}|");
+                    }
                 });
 
             onlineConfigCleanCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));

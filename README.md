@@ -3,7 +3,7 @@
 [![Build](https://github.com/database64128/shadowsocks-uri-generator/workflows/Build/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ABuild)
 [![Release](https://github.com/database64128/shadowsocks-uri-generator/workflows/Release/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ARelease)
 <a href="https://aur.archlinux.org/packages/shadowsocks-uri-generator-git/">
-    <img alt="AUR git" src="https://img.shields.io/aur/version/shadowsocks-uri-generator-git?label=AUR git" />
+    <img alt="AUR git" src="https://img.shields.io/aur/version/shadowsocks-uri-generator-git?label=AUR%20git" />
 </a>
 
 A light-weight command line automation tool for multi-user `ss://` URL generation, [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89) online configuration delivery, and [Outline server](https://github.com/Jigsaw-Code/outline-server) deployment and management.

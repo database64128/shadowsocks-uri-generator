@@ -122,9 +122,18 @@ namespace ShadowsocksUriGenerator.Tests
             var settings = new Settings();
             var directory = Utilities.GetAbsolutePath(settings.OnlineConfigOutputDirectory);
             var nodes = new Nodes();
+            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
             var users = new Users();
             users.AddUsers(new string[] { "root", "http", "nobody", });
+            users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
+            users.AddCredentialToUser("http", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
+            var rootUser = users.UserDict["root"];
+            var httpUser = users.UserDict["http"];
+            var nobodyUser = users.UserDict["nobody"];
 
+            // Disable delivery by group
             settings.OnlineConfigDeliverByGroup = false;
             // Save
             var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings);
@@ -140,6 +149,36 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.True(Directory.Exists(directory));
             foreach (var user in users.UserDict.Values)
                 Assert.False(File.Exists($"{directory}/{user.Uuid}.json"));
+
+            // Delete working directory.
+            Directory.Delete(directory);
+
+            // Enable delivery by group
+            settings.OnlineConfigDeliverByGroup = true;
+            // Save
+            var genByGroupResult = await OnlineConfig.GenerateAndSave(users, nodes, settings);
+
+            Assert.Equal(0, genByGroupResult);
+            Assert.True(Directory.Exists(directory));
+            foreach (var user in users.UserDict.Values)
+                Assert.True(File.Exists($"{directory}/{user.Uuid}.json"));
+            Assert.True(Directory.Exists($"{directory}/{rootUser.Uuid}"));
+            Assert.True(File.Exists($"{directory}/{rootUser.Uuid}/MyGroup.json"));
+            Assert.False(File.Exists($"{directory}/{rootUser.Uuid}/MyGroupWithPlugin.json"));
+            Assert.True(Directory.Exists($"{directory}/{httpUser.Uuid}"));
+            Assert.False(File.Exists($"{directory}/{httpUser.Uuid}/MyGroup.json"));
+            Assert.True(File.Exists($"{directory}/{httpUser.Uuid}/MyGroupWithPlugin.json"));
+            Assert.False(Directory.Exists($"{directory}/{nobodyUser.Uuid}"));
+
+            // Clean
+            OnlineConfig.Remove(users, settings);
+
+            Assert.True(Directory.Exists(directory));
+            foreach (var user in users.UserDict.Values)
+                Assert.False(File.Exists($"{directory}/{user.Uuid}.json"));
+            Assert.False(Directory.Exists($"{directory}/{rootUser.Uuid}"));
+            Assert.False(Directory.Exists($"{directory}/{httpUser.Uuid}"));
+            Assert.False(Directory.Exists($"{directory}/{nobodyUser.Uuid}"));
 
             // Delete working directory.
             Directory.Delete(directory);
@@ -160,6 +199,7 @@ namespace ShadowsocksUriGenerator.Tests
             var users = new Users();
             users.AddUsers(new string[] { "root", "http", "nobody", });
 
+            settings.OnlineConfigDeliverByGroup = false;
             // Save
             var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings, selectedUsernames);
 
