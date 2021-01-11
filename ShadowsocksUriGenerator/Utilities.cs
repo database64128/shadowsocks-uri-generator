@@ -31,6 +31,22 @@ namespace ShadowsocksUriGenerator
             WriteIndented = true,
         };
 
+        public static readonly string configDirectory;
+
+        static Utilities()
+        {
+#if PACKAGED
+            // ~/.config on Linux
+            // ~/AppData/Roaming on Windows
+            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            configDirectory = $"{appDataPath}/shadowsocks-uri-generator";
+#else
+            // Use executable directory
+            // executable directory in .NET 5: https://stackoverflow.com/questions/58428375/cannot-get-original-executable-path-for-net-core-3-0-single-file-ppublishsin
+            configDirectory = AppContext.BaseDirectory;
+#endif
+        }
+
         /// <summary>
         /// Tries to parse a data limit string.
         /// </summary>
@@ -120,6 +136,10 @@ namespace ShadowsocksUriGenerator
         /// <returns>A data object loaded from the JSON file.</returns>
         public static async Task<T> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null) where T : class, new()
         {
+            // extend relative path
+            if (!Path.IsPathFullyQualified(filename))
+                filename = $"{configDirectory}/{filename}";
+
             if (!File.Exists(filename))
                 return new T();
 
@@ -159,8 +179,19 @@ namespace ShadowsocksUriGenerator
             FileStream? jsonFile = null;
             try
             {
+                // extend relative path
+                if (!Path.IsPathFullyQualified(filename))
+                    filename = $"{configDirectory}/{filename}";
+                // create directory
+                var directoryPath = Path.GetDirectoryName(filename) ?? throw new ArgumentException("Invalid path", nameof(filename));
+                Directory.CreateDirectory(directoryPath);
+                // save JSON
                 jsonFile = new FileStream(filename, FileMode.Create);
                 await JsonSerializer.SerializeAsync(jsonFile, jsonData, jsonSerializerOptions);
+            }
+            catch (ArgumentException)
+            {
+                Console.WriteLine($"Error: invalid path: {filename}.");
             }
             catch
             {

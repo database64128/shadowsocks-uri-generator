@@ -2,6 +2,9 @@
 
 [![Build](https://github.com/database64128/shadowsocks-uri-generator/workflows/Build/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ABuild)
 [![Release](https://github.com/database64128/shadowsocks-uri-generator/workflows/Release/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ARelease)
+<a href="https://aur.archlinux.org/packages/shadowsocks-uri-generator-git/">
+    <img alt="AUR git" src="https://img.shields.io/aur/version/shadowsocks-uri-generator-git?label=AUR git" />
+</a>
 
 A light-weight command line automation tool for multi-user `ss://` URL generation, [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89) online configuration delivery, and [Outline server](https://github.com/Jigsaw-Code/outline-server) deployment and management.
 
@@ -16,62 +19,85 @@ A light-weight command line automation tool for multi-user `ss://` URL generatio
 - Generate SIP008-compliant online configuration files.
 - Generate and print SIP008 delivery URL.
 
+## Build
+
+Prerequisites: .NET 5 SDK
+
+Note for packagers: The application by default uses executable directory as config directory. To use user's config directory, define the constant `PACKAGED` when building.
+
+```bash
+# Build with Release configuration
+$ dotnet build -c Release
+# Publish as framework-dependent
+$ dotnet publish ShadowsocksUriGenerator -c Release
+# Publish as self-contained for Linux x64
+$ dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-x64 --self-contained
+# Publish as self-contained for packaging on Linux x64
+$ dotnet publish ShadowsocksUriGenerator -c Release -p:DefineConstants=PACKAGED -p:PublishTrimmed=true -r linux-x64 --self-contained
+```
+
 ## Usage
 
 ```bash
 # See usage guide.
-$ ./ss-uri-gen --help
+$ ss-uri-gen --help
 
 # Add users.
-$ ./ss-uri-gen user add MyUserA MyUserB
+$ ss-uri-gen user add MyUserA MyUserB
 
 # Add groups.
-$ ./ss-uri-gen group add MyGroupA MyGroupB
+$ ss-uri-gen group add MyGroupA MyGroupB
 
 # Add a new node.
-$ ./ss-uri-gen node add MyGroupA MyNodeA 1.1.1.1 853
+$ ss-uri-gen node add MyGroupA MyNodeA 1.1.1.1 853
 
 # Add a new node with v2ray-plugin.
-$ ./ss-uri-gen node add MyGroupB MyNodeB 1.1.1.1 853 --plugin v2ray-plugin --plugin-opts "tls;host=cloudflare-dns.com"
+$ ss-uri-gen node add MyGroupB MyNodeB 1.1.1.1 853 --plugin v2ray-plugin --plugin-opts "tls;host=cloudflare-dns.com"
 
 # Join a group.
-$ ./ss-uri-gen user join MyUserB MyGroupB
+$ ss-uri-gen user join MyUserB MyGroupB
 
 # Add multiple users to a group.
-$ ./ss-uri-gen group add-user MyGroupA MyUserA MyUserB
+$ ss-uri-gen group add-user MyGroupA MyUserA MyUserB
 
 # Add a credential associating MyGroupA with MyUserA.
-$ ./ss-uri-gen user add-credential MyUserA MyGroupA --method aes-256-gcm --password MyPassword
+$ ss-uri-gen user add-credential MyUserA MyGroupA --method aes-256-gcm --password MyPassword
 
 # Add a credential in base64url.
-$ ./ss-uri-gen user add-credential MyUserB MyGroupA --userinfo-base64url eGNoYWNoYTIwLWlldGYtcG9seTEzMDU6TXlQYXNzd29yZA
+$ ss-uri-gen user add-credential MyUserB MyGroupA --userinfo-base64url eGNoYWNoYTIwLWlldGYtcG9seTEzMDU6TXlQYXNzd29yZA
 
 # Print a user's ss:// links.
-$ ./ss-uri-gen user get-ss-links MyUserA
+$ ss-uri-gen user get-ss-links MyUserA
+
+# Get a user's data usage metrics.
+$ ss-uri-gen user get-data-usage MyUserA
+
+# Get a group's data usage metrics.
+$ ss-uri-gen group get-data-usage MyGroupA
 
 # Generate SIP008-compliant online configuration files.
-$ ./ss-uri-gen online-config generate
+$ ss-uri-gen online-config generate
 
 # Print all users' SIP008 delivery URLs.
-$ ./ss-uri-gen online-config get-link
+$ ss-uri-gen online-config get-link
 
 # Associate a group with an Outline server.
-$ ./ss-uri-gen outline-server add MyGroupA '{"apiUrl":"https://localhost/example","certSha256":"EXAMPLE"}'
+$ ss-uri-gen outline-server add MyGroupA '{"apiUrl":"https://localhost/example","certSha256":"EXAMPLE"}'
 
 # Change Outline server settings.
-$ ./ss-uri-gen outline-server set MyGroupA --name MyOutlineA --hostname github.com --metrics true
+$ ss-uri-gen outline-server set MyGroupA --name MyOutlineA --hostname github.com --metrics true
 
 # Update Outline server information.
-$ ./ss-uri-gen outline-server update MyGroupA
+$ ss-uri-gen outline-server update MyGroupA
 
 # Deploy local configuration to Outline server.
-$ ./ss-uri-gen outline-server deploy MyGroupA
+$ ss-uri-gen outline-server deploy MyGroupA
 
 # Set default user for Outline server's access key id 0.
-$ ./ss-uri-gen settings set --outline-server-global-default-user MyUserA
+$ ss-uri-gen settings set --outline-server-global-default-user MyUserA
 
 # Settings: change the online configuration generation output directory to 'sip008'.
-$ ./ss-uri-gen settings set --online-config-output-directory sip008
+$ ss-uri-gen settings set --online-config-output-directory sip008
 ```
 
 ## License

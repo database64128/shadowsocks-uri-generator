@@ -114,21 +114,11 @@ namespace ShadowsocksUriGenerator
         /// <param name="onlineConfig">The generated user configuration object.</param>
         /// <param name="settings">The object storing all settings.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static async Task SaveOutputAsync(OnlineConfig onlineConfig, Settings settings)
-        {
-            try
-            {
-                Directory.CreateDirectory(settings.OnlineConfigOutputDirectory);
-                await Utilities.SaveJsonAsync(
-                    $"{settings.OnlineConfigOutputDirectory}/{onlineConfig.UserUuid}.json",
-                    onlineConfig,
-                    Utilities.snakeCaseJsonSerializerOptions);
-            }
-            catch
-            {
-                Console.WriteLine($"Error: failed to create {settings.OnlineConfigOutputDirectory}.");
-            }
-        }
+        public static Task SaveOutputAsync(OnlineConfig onlineConfig, Settings settings)
+            => Utilities.SaveJsonAsync(
+                $"{settings.OnlineConfigOutputDirectory}/{onlineConfig.UserUuid}.json",
+                onlineConfig,
+                Utilities.snakeCaseJsonSerializerOptions);
 
         /// <summary>
         /// Removes the generated JSON files for all users or the specified users.
