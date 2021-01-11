@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace ShadowsocksUriGenerator.Tests
@@ -36,14 +37,15 @@ namespace ShadowsocksUriGenerator.Tests
         [InlineData(new string[] { "A", }, "A", "A", -2)]
         [InlineData(new string[] { "A", "B", }, "B", "A", -2)]
         [InlineData(new string[] { "A", "B", }, "A", "B", -2)]
-        public void Rename_User_ReturnsResult(string[] usersToAdd, string oldName, string newName, int expectedResult)
+        public async Task Rename_User_ReturnsResult(string[] usersToAdd, string oldName, string newName, int expectedResult)
         {
             var users = new Users();
             users.AddUsers(usersToAdd);
+            var nodes = new Nodes();
             var count = users.UserDict.Count;
             var oldNameExists = users.UserDict.TryGetValue(oldName, out var user);
 
-            var result = users.RenameUser(oldName, newName);
+            var result = await users.RenameUser(oldName, newName, nodes);
 
             Assert.Equal(expectedResult, result);
             Assert.Equal(count, users.UserDict.Count);

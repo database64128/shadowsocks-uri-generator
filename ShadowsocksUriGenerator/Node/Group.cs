@@ -440,6 +440,38 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Renames a user and syncs with Outline server.
+        /// </summary>
+        /// <param name="oldName">The old username.</param>
+        /// <param name="newName">The new username.</param>
+        /// <returns>
+        /// 0 on success.
+        /// 1 when not an Outline user.
+        /// 2 when not on the Outline server.
+        /// -3 when an error occurred while sending the request.
+        /// </returns>
+        public async Task<int> RenameUser(string oldName, string newName)
+        {
+            if (OutlineApiKey == null || OutlineAccessKeys == null)
+                return 1;
+            if (_apiClient == null)
+                _apiClient = new(OutlineApiKey);
+
+            // find user id
+            var filteredUserIds = OutlineAccessKeys.Where(x => x.Name == oldName).Select(x => x.Id);
+            var userId = filteredUserIds.Any() ? filteredUserIds.First() : null;
+            if (userId == null)
+                return 2;
+
+            // send request
+            var response = await _apiClient.SetAccessKeyNameAsync(userId, newName);
+            if (response.IsSuccessStatusCode)
+                return 0;
+            else
+                return -3;
+        }
+
+        /// <summary>
         /// Rotates password for the specified user or all users in the group.
         /// </summary>
         /// <param name="username">Target user.</param>

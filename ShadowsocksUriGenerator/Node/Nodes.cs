@@ -350,6 +350,28 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Renames the user and syncs with Outline server in the group.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <param name="oldName">The old username.</param>
+        /// <param name="newName">The new username.</param>
+        /// <returns>
+        /// 0 on success.
+        /// 1 when not an Outline user.
+        /// 2 when not on the Outline server.
+        /// -1 when target group doesn't exist.
+        /// -2 when no associated Outline server.
+        /// -3 when an error occurred while sending the request.
+        /// </returns>
+        public Task<int> RenameUserInGroup(string group, string oldName, string newName)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.RenameUser(oldName, newName);
+            else
+                return Task.FromResult(-1);
+        }
+
+        /// <summary>
         /// Rotate the specified group's user password.
         /// </summary>
         /// <param name="group">Target group.</param>

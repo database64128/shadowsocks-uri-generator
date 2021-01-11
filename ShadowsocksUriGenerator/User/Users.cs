@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
@@ -68,15 +69,21 @@ namespace ShadowsocksUriGenerator
         /// 0 when success.
         /// -1 when old username is not found.
         /// -2 when new username already exists.
+        /// -3 when an error occurred while deploying the change to Outline server.
         /// </returns>
-        public int RenameUser(string oldName, string newName)
+        public async Task<int> RenameUser(string oldName, string newName, Nodes nodes)
         {
             if (UserDict.ContainsKey(newName))
                 return -2;
             if (!UserDict.Remove(oldName, out var user))
                 return -1;
             UserDict.Add(newName, user);
-            return 0;
+            var tasks = user.Credentials.Select(async x => await nodes.RenameUserInGroup(x.Key, oldName, newName));
+            var results = await Task.WhenAll(tasks);
+            if (results.Any(x => x < 0))
+                return -3;
+            else
+                return 0;
         }
 
         /// <summary>

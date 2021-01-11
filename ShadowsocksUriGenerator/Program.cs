@@ -178,11 +178,14 @@ namespace ShadowsocksUriGenerator
                 async (string oldName, string newName) =>
                 {
                     users = await loadUsersTask;
-                    var result = users.RenameUser(oldName, newName);
+                    nodes = await loadNodesTask;
+                    var result = await users.RenameUser(oldName, newName, nodes);
                     if (result == -1)
                         Console.WriteLine($"User not found: {oldName}");
                     else if (result == -2)
                         Console.WriteLine($"A user with the same name already exists: {newName}");
+                    else if (result == -3)
+                        Console.WriteLine("An error occurred while sending renaming requests to Outline server.");
                     await Users.SaveUsersAsync(users);
                 });
 
