@@ -148,6 +148,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="userUuids">The list of users whose online config file will be removed.</param>
         public static void Remove(string directory, params string[] userUuids)
         {
+            directory = Utilities.GetAbsolutePath(directory);
             if (Directory.Exists(directory))
                 foreach (var uuid in userUuids)
                     File.Delete($"{directory}/{uuid}.json");

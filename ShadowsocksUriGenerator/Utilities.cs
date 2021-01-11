@@ -128,6 +128,15 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Gets the fully qualified absolute path
+        /// that the original path points to.
+        /// </summary>
+        /// <param name="path">A relative or absolute path.</param>
+        /// <returns>A fully qualified path.</returns>
+        public static string GetAbsolutePath(string path)
+            => Path.IsPathFullyQualified(path) ? path : $"{configDirectory}/{path}";
+
+        /// <summary>
         /// Loads data from a JSON file.
         /// </summary>
         /// <typeparam name="T">Data object type.</typeparam>
@@ -137,8 +146,7 @@ namespace ShadowsocksUriGenerator
         public static async Task<T> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null) where T : class, new()
         {
             // extend relative path
-            if (!Path.IsPathFullyQualified(filename))
-                filename = $"{configDirectory}/{filename}";
+            filename = GetAbsolutePath(filename);
 
             if (!File.Exists(filename))
                 return new T();
@@ -180,8 +188,7 @@ namespace ShadowsocksUriGenerator
             try
             {
                 // extend relative path
-                if (!Path.IsPathFullyQualified(filename))
-                    filename = $"{configDirectory}/{filename}";
+                filename = GetAbsolutePath(filename);
                 // create directory
                 var directoryPath = Path.GetDirectoryName(filename) ?? throw new ArgumentException("Invalid path", nameof(filename));
                 Directory.CreateDirectory(directoryPath);
