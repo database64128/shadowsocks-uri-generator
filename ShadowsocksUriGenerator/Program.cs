@@ -771,10 +771,6 @@ namespace ShadowsocksUriGenerator
                     users = await loadUsersTask;
                     settings = await loadSettingsTask;
 
-                    PrintTableBorder(16, 110);
-                    Console.WriteLine($"|{"User",-16}|{"Online Configuration Delivery URL",110}|");
-                    PrintTableBorder(16, 110);
-
                     if (usernames == null)
                         foreach (var userEntry in users.UserDict)
                         {
@@ -789,14 +785,15 @@ namespace ShadowsocksUriGenerator
                             else
                                 Console.WriteLine($"User not found: {username}.");
 
-                    PrintTableBorder(16, 110);
-
                     static void PrintUserLinks(string username, User user, Settings settings)
                     {
-                        Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                        Console.WriteLine($"{"User",-8}{username,-32}");
+                        Console.WriteLine();
+                        Console.WriteLine($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json");
                         if (settings.OnlineConfigDeliverByGroup)
                             foreach (var group in user.Credentials.Keys)
-                                Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{Uri.EscapeDataString(group)}.json",110}|");
+                                Console.WriteLine($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{Uri.EscapeDataString(group)}.json");
+                        Console.WriteLine();
                     }
                 });
 
