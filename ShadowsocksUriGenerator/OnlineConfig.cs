@@ -50,15 +50,15 @@ namespace ShadowsocksUriGenerator
             if (usernames.Length == 0) // generate for all users
                 foreach (var userEntry in users.UserDict)
                 {
-                    var onlineConfig = Generate(userEntry, nodes, settings);
-                    await SaveOutputAsync(onlineConfig, settings);
+                    var onlineConfigDict = GenerateForUser(userEntry, nodes, settings);
+                    await SaveOutputAsync(onlineConfigDict, settings);
                 }
             else // generate only for the specified user
                 foreach (var username in usernames)
                     if (users.UserDict.TryGetValue(username, out User? user))
                     {
-                        var onlineConfig = Generate(new(username, user), nodes, settings);
-                        await SaveOutputAsync(onlineConfig, settings);
+                        var onlineConfigDict = GenerateForUser(new(username, user), nodes, settings);
+                        await SaveOutputAsync(onlineConfigDict, settings);
                     }
                     else
                         return 404;
@@ -71,12 +71,13 @@ namespace ShadowsocksUriGenerator
         /// <param name="userEntry">The specified user entry.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <returns>The object of the user's SIP008 configuration.</returns>
-        public static OnlineConfig Generate(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
+        public static Dictionary<string, OnlineConfig> GenerateForUser(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
         {
             var username = userEntry.Key;
             var user = userEntry.Value;
-            user.CalculateTotalDataUsage(username, nodes);
-            var onlineConfig = new OnlineConfig(username, user.Uuid, user.BytesUsed, user.BytesRemaining);
+            var dataUsageRecords = user.GetDataUsage(username, nodes);
+            var OnlineConfigDict = new Dictionary<string, OnlineConfig>();
+            var userOnlineConfig = new OnlineConfig(username, user.Uuid, user.BytesUsed, user.BytesRemaining);
             foreach (var credEntry in user.Credentials)
             {
                 if (credEntry.Value == null)
@@ -84,6 +85,10 @@ namespace ShadowsocksUriGenerator
                 
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
                 {
+                    // per-group delivery
+                    var filteredDataUsageRecords = dataUsageRecords.Where(x => x.group == credEntry.Key);
+                    var dataUsageRecord = filteredDataUsageRecords.Any() ? filteredDataUsageRecords.First() : new();
+                    var perGroupOnlineConfig = new OnlineConfig(username, user.Uuid, dataUsageRecord.bytesUsed, dataUsageRecord.bytesRemaining);
                     // add each node to the Servers list.
                     foreach (var node in group.NodeDict)
                     {
@@ -96,16 +101,27 @@ namespace ShadowsocksUriGenerator
                             credEntry.Value.Method,
                             node.Value.Plugin,
                             node.Value.PluginOpts);
-                        onlineConfig.Servers.Add(server);
+                        userOnlineConfig.Servers.Add(server);
+                        if (settings.OnlineConfigDeliverByGroup)
+                            perGroupOnlineConfig.Servers.Add(server);
+                    }
+                    // sort and add per-group online config to dictionary
+                    if (settings.OnlineConfigDeliverByGroup)
+                    {
+                        if (settings.OnlineConfigSortByName)
+                            perGroupOnlineConfig.Servers = perGroupOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
+                        OnlineConfigDict.Add($"{user.Uuid}/{credEntry.Key}", perGroupOnlineConfig);
                     }
                 }
                 else
                     continue; // ignoring is intentional, as groups may get removed.
             }
-            // Sort by server name if `OnlineConfigSortByName` is true.
+            // sort and add
             if (settings.OnlineConfigSortByName)
-                onlineConfig.Servers = onlineConfig.Servers.OrderBy(server => server.Name).ToList();
-            return onlineConfig;
+                userOnlineConfig.Servers = userOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
+            OnlineConfigDict.Add(user.Uuid, userOnlineConfig);
+
+            return OnlineConfigDict;
         }
 
         /// <summary>
@@ -114,11 +130,14 @@ namespace ShadowsocksUriGenerator
         /// <param name="onlineConfig">The generated user configuration object.</param>
         /// <param name="settings">The object storing all settings.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static Task SaveOutputAsync(OnlineConfig onlineConfig, Settings settings)
-            => Utilities.SaveJsonAsync(
-                $"{settings.OnlineConfigOutputDirectory}/{onlineConfig.UserUuid}.json",
-                onlineConfig,
-                Utilities.snakeCaseJsonSerializerOptions);
+        public static async Task SaveOutputAsync(Dictionary<string, OnlineConfig> onlineConfigDict, Settings settings)
+        {
+            foreach (var x in onlineConfigDict)
+                await Utilities.SaveJsonAsync(
+                    $"{settings.OnlineConfigOutputDirectory}/{x.Key}.json",
+                    x.Value,
+                    Utilities.snakeCaseJsonSerializerOptions);
+        }
 
         /// <summary>
         /// Removes the generated JSON files for all users or the specified users.
@@ -151,7 +170,12 @@ namespace ShadowsocksUriGenerator
             directory = Utilities.GetAbsolutePath(directory);
             if (Directory.Exists(directory))
                 foreach (var uuid in userUuids)
-                    File.Delete($"{directory}/{uuid}.json");
+                {
+                    var path = $"{directory}/{uuid}";
+                    if (Directory.Exists(path))
+                        Directory.Delete(path, true);
+                    File.Delete($"{path}.json");
+                }
         }
     }
 

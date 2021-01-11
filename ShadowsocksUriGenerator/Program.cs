@@ -774,11 +774,21 @@ namespace ShadowsocksUriGenerator
 
                     if (usernames == null)
                         foreach (var user in users.UserDict)
+                        {
                             Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}.json",110}|");
+                            if (settings.OnlineConfigDeliverByGroup)
+                                foreach (var group in user.Value.Credentials.Keys)
+                                    Console.WriteLine($"|{user.Key,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Value.Uuid}/{group}.json",110}|");
+                        }
                     else
                         foreach (var username in usernames)
                             if (users.UserDict.TryGetValue(username, out User? user))
+                            {
                                 Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json",110}|");
+                                if (settings.OnlineConfigDeliverByGroup)
+                                    foreach (var group in user.Credentials.Keys)
+                                        Console.WriteLine($"|{username,-16}|{$"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{group}.json",110}|");
+                            }
                             else
                                 Console.WriteLine($"User not found: {username}.");
 
@@ -1023,6 +1033,7 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"UserDataUsageDefaultSortBy",-42}|{settings.UserDataUsageDefaultSortBy,40}|");
                     Console.WriteLine($"|{"GroupDataUsageDefaultSortBy",-42}|{settings.GroupDataUsageDefaultSortBy,40}|");
                     Console.WriteLine($"|{"OnlineConfigSortByName",-42}|{settings.OnlineConfigSortByName,40}|");
+                    Console.WriteLine($"|{"OnlineConfigDeliverByGroup",-42}|{settings.OnlineConfigDeliverByGroup,40}|");
                     Console.WriteLine($"|{"OnlineConfigCleanOnUserRemoval",-42}|{settings.OnlineConfigCleanOnUserRemoval,40}|");
                     Console.WriteLine($"|{"OnlineConfigUpdateDataUsageOnGeneration",-42}|{settings.OnlineConfigUpdateDataUsageOnGeneration,40}|");
                     Console.WriteLine($"|{"OnlineConfigOutputDirectory",-42}|{settings.OnlineConfigOutputDirectory,40}|");
@@ -1037,6 +1048,7 @@ namespace ShadowsocksUriGenerator
             settingsSetCommand.AddOption(new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report."));
             settingsSetCommand.AddOption(new Option<SortBy?>("--group-data-usage-default-sort-by", "The default sort rule for group data usage report."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
+            settingsSetCommand.AddOption(new Option<bool?>("--online-config-deliver-by-group", "Whether online config should be delivered to each user by group. Turning this on will generate one online config JSON for each group associated with the user, in addition to the single JSON that contains all associated servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-update-data-usage-on-generation", "Whether data usage metrics are updated from configured sources when generating online config."));
             settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
@@ -1045,7 +1057,7 @@ namespace ShadowsocksUriGenerator
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
             settingsSetCommand.Handler = CommandHandler.Create(
-                async (SortBy? userDataUsageDefaultSortBy, SortBy? groupDataUsageDefaultSortBy, bool? onlineConfigSortByName, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string? outlineServerGlobalDefaultUser) =>
+                async (SortBy? userDataUsageDefaultSortBy, SortBy? groupDataUsageDefaultSortBy, bool? onlineConfigSortByName, bool? onlineConfigDeliverByGroup, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string? outlineServerGlobalDefaultUser) =>
                 {
                     settings = await loadSettingsTask;
                     if (userDataUsageDefaultSortBy is SortBy userSortBy)
@@ -1054,6 +1066,8 @@ namespace ShadowsocksUriGenerator
                         settings.GroupDataUsageDefaultSortBy = groupSortBy;
                     if (onlineConfigSortByName is bool sortByName)
                         settings.OnlineConfigSortByName = sortByName;
+                    if (onlineConfigDeliverByGroup is bool deliverByGroup)
+                        settings.OnlineConfigDeliverByGroup = deliverByGroup;
                     if (onlineConfigCleanOnUserRemoval is bool cleanOnUserRemoval)
                         settings.OnlineConfigCleanOnUserRemoval = cleanOnUserRemoval;
                     if (onlineConfigUpdateDataUsageOnGeneration is bool updateDataUsageOnGeneration)

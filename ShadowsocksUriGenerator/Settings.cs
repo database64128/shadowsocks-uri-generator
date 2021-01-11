@@ -33,6 +33,14 @@ namespace ShadowsocksUriGenerator
         public bool OnlineConfigSortByName { get; set; }
 
         /// <summary>
+        /// Gets or sets whether online config should be delivered
+        /// to each user by group. Turning this on will generate
+        /// one online config JSON for each group associated with the user,
+        /// in addition to the single JSON that contains all associated servers.
+        /// </summary>
+        public bool OnlineConfigDeliverByGroup { get; set; }
+
+        /// <summary>
         /// Gets or sets whether the user's online config file
         /// should be removed when the user is being removed.
         /// Defaults to true.
@@ -83,6 +91,7 @@ namespace ShadowsocksUriGenerator
             UserDataUsageDefaultSortBy = SortBy.DefaultAscending;
             GroupDataUsageDefaultSortBy = SortBy.DataUsedDescending;
             OnlineConfigSortByName = true;
+            OnlineConfigDeliverByGroup = false;
             OnlineConfigCleanOnUserRemoval = true;
             OnlineConfigUpdateDataUsageOnGeneration = true;
             OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
