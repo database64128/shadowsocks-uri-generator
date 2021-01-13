@@ -161,6 +161,8 @@ namespace ShadowsocksUriGenerator
                 {
                     foreach (var node in group.NodeDict)
                     {
+                        if (node.Value.Deactivated)
+                            continue;
                         var fragment = node.Key;
                         var host = node.Value.Host;
                         var port = node.Value.Port;

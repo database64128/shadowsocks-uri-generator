@@ -130,5 +130,44 @@ namespace ShadowsocksUriGenerator.Tests
                 Assert.Equal(node, nodeDict[currentName]);
             }
         }
+
+        [Fact]
+        public void Activate_Deactivate_Nodes_OnlineConfig_SSLinks()
+        {
+            var settings = new Settings();
+            var nodes = new Nodes();
+            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
+            var users = new Users();
+            users.AddUsers(new string[] { "root" });
+            users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
+            users.AddCredentialToUser("root", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
+            var user = users.UserDict.First();
+
+            // Initial status: all activated
+            var userOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            var userSsLinks = user.Value.GetSSUris(nodes);
+
+            Assert.Equal(2, userOnlineConfigDict.First().Value.Servers.Count);
+            Assert.Equal(2, userSsLinks.Count);
+
+            // Deactivate first node
+            nodes.Groups["MyGroup"].NodeDict["MyNode"].Deactivated = true;
+            userOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            userSsLinks = user.Value.GetSSUris(nodes);
+
+            Assert.Single(userOnlineConfigDict.First().Value.Servers);
+            Assert.Single(userSsLinks);
+
+            // Reactivate first node and deactivate second node
+            nodes.Groups["MyGroup"].NodeDict["MyNode"].Deactivated = false;
+            nodes.Groups["MyGroupWithPlugin"].NodeDict["MyNodeWithPlugin"].Deactivated = true;
+            userOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            userSsLinks = user.Value.GetSSUris(nodes);
+
+            Assert.Single(userOnlineConfigDict.First().Value.Servers);
+            Assert.Single(userSsLinks);
+        }
     }
 }

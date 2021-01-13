@@ -167,6 +167,44 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Activates the node in the group.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <param name="node">Node name.</param>
+        /// <returns>
+        /// 0 if successfully activated the node.
+        /// 1 if already activated.
+        /// -1 if node not found.
+        /// -2 if group not found.
+        /// </returns>
+        public int ActivateNodeInGroup(string group, string node)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.ActivateNode(node);
+            else
+                return -2;
+        }
+
+        /// <summary>
+        /// Deactivates the node in the group.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <param name="node">Node name.</param>
+        /// <returns>
+        /// 0 if successfully deactivated the node.
+        /// 1 if already deactivated.
+        /// -1 if node not found.
+        /// -2 if group not found.
+        /// </returns>
+        public int DeactivateNodeInGroup(string group, string node)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+                return targetGroup.DeactivateNode(node);
+            else
+                return -2;
+        }
+
+        /// <summary>
         /// Gets all data usage records of the group.
         /// </summary>
         /// <param name="group">Target group.</param>

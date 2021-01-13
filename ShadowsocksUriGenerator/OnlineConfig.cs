@@ -92,6 +92,8 @@ namespace ShadowsocksUriGenerator
                     // add each node to the Servers list.
                     foreach (var node in group.NodeDict)
                     {
+                        if (node.Value.Deactivated)
+                            continue;
                         var server = new Server(
                             node.Key,
                             node.Value.Uuid,

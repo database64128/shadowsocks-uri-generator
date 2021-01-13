@@ -18,6 +18,13 @@ namespace ShadowsocksUriGenerator
         public string? PluginOpts { get; set; }
 
         /// <summary>
+        /// Gets or sets whether the node is deactivated.
+        /// Defaults to false, or activated.
+        /// When set to true, the node is excluded from delivery.
+        /// </summary>
+        public bool Deactivated { get; set; }
+
+        /// <summary>
         /// Parameterless constructor for System.Text.Json
         /// </summary>
         public Node()

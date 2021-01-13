@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
@@ -49,7 +50,9 @@ namespace ShadowsocksUriGenerator
             };
 
             var nodeAddCommand = new Command("add", "Add a node to a group.");
-            var nodeRenameCommand = new Command("rename", "Renames an existing node with a new name.");
+            var nodeRenameCommand = new Command("rename", "Rename an existing node with a new name.");
+            var nodeActivateCommand = new Command("activate", "Activate a deactivated node to include it in delivery.");
+            var nodeDeactivateCommand = new Command("deactivate", "Deactivate a node to exclude it from delivery.");
             var nodeRemoveCommand = new Command("remove", "Remove nodes from a group.");
             var nodeListCommand = new Command("list", "List nodes from the specified group or all groups.");
 
@@ -57,6 +60,8 @@ namespace ShadowsocksUriGenerator
             {
                 nodeAddCommand,
                 nodeRenameCommand,
+                nodeActivateCommand,
+                nodeDeactivateCommand,
                 nodeRemoveCommand,
                 nodeListCommand,
             };
@@ -290,25 +295,26 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
 
-                    PrintTableBorder(32, 16, 36, 24, 5, 12, 32);
-                    Console.WriteLine($"|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",24}|{"Port",5}|{"Plugin",12}|{"Plugin Options",32}|");
-                    PrintTableBorder(32, 16, 36, 24, 5, 12, 32);
+                    PrintTableBorder(7, 32, 16, 36, 24, 5, 12, 32);
+                    Console.WriteLine($"|{"Status",7}|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",24}|{"Port",5}|{"Plugin",12}|{"Plugin Options",32}|");
+                    PrintTableBorder(7, 32, 16, 36, 24, 5, 12, 32);
 
                     if (string.IsNullOrEmpty(group))
-                    {
                         foreach (var groupEntry in nodes.Groups)
                             foreach (var node in groupEntry.Value.NodeDict)
-                                Console.WriteLine($"|{node.Key,-32}|{groupEntry.Key,-16}|{node.Value.Uuid,36}|{node.Value.Host,24}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,32}|");
-                    }
+                                PrintNodeInfo(node, groupEntry.Key);
                     else if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
-                    {
                         foreach (var node in targetGroup.NodeDict)
-                            Console.WriteLine($"|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,24}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,32}|");
-                    }
+                            PrintNodeInfo(node, group);
                     else
                         Console.WriteLine($"Group not found: {group}.");
 
-                    PrintTableBorder(32, 16, 36, 24, 5, 12, 32);
+                    PrintTableBorder(7, 32, 16, 36, 24, 5, 12, 32);
+
+                    static void PrintNodeInfo(KeyValuePair<string, Node> node, string group)
+                    {
+                        Console.WriteLine($"|{(node.Value.Deactivated ? "🛑" : "✔"),7}|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,24}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,32}|");
+                    }
                 });
 
             groupListCommand.AddAlias("ls");
@@ -576,15 +582,82 @@ namespace ShadowsocksUriGenerator
                         foreach (var username in usernames)
                         {
                             var result = users.SetDataLimitToUser(dataLimitInBytes, username, groups);
-                            if (result == -1)
-                                Console.WriteLine($"User not found: {username}.");
-                            else if (result == -2)
-                                Console.WriteLine($"An error occurred while setting for {username}: some groups were not found.");
+                            switch (result)
+                            {
+                                case -1:
+                                    Console.WriteLine($"User not found: {username}.");
+                                    break;
+                                case -2:
+                                    Console.WriteLine($"An error occurred while setting for {username}: some groups were not found.");
+                                    break;
+                            }
                         }
                     else
                         Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
 
                     await Users.SaveUsersAsync(users);
+                });
+
+            nodeActivateCommand.AddAlias("enable");
+            nodeActivateCommand.AddAlias("unhide");
+            nodeActivateCommand.AddArgument(new Argument<string>("group", "Target group."));
+            nodeActivateCommand.AddArgument(new Argument<string[]>("nodenames", "Nodes to activate."));
+            nodeActivateCommand.Handler = CommandHandler.Create(
+                async (string group, string[] nodenames) =>
+                {
+                    nodes = await loadNodesTask;
+
+                    foreach (var nodename in nodenames)
+                    {
+                        switch (nodes.ActivateNodeInGroup(group, nodename))
+                        {
+                            case 0:
+                                Console.WriteLine($"Successfully activated {nodename} in {group}.");
+                                break;
+                            case 1:
+                                Console.WriteLine($"{nodename} in {group} is already activated.");
+                                break;
+                            case -1:
+                                Console.WriteLine($"Error: {nodename} is not found in {group}.");
+                                break;
+                            case -2:
+                                Console.WriteLine($"Error: {group} is not found.");
+                                break;
+                        }
+                    }
+
+                    await Nodes.SaveNodesAsync(nodes);
+                });
+
+            nodeDeactivateCommand.AddAlias("disable");
+            nodeDeactivateCommand.AddAlias("hide");
+            nodeDeactivateCommand.AddArgument(new Argument<string>("group", "Target group."));
+            nodeDeactivateCommand.AddArgument(new Argument<string[]>("nodenames", "Nodes to deactivate."));
+            nodeDeactivateCommand.Handler = CommandHandler.Create(
+                async (string group, string[] nodenames) =>
+                {
+                    nodes = await loadNodesTask;
+
+                    foreach (var nodename in nodenames)
+                    {
+                        switch (nodes.DeactivateNodeInGroup(group, nodename))
+                        {
+                            case 0:
+                                Console.WriteLine($"Successfully deactivated {nodename} in {group}.");
+                                break;
+                            case 1:
+                                Console.WriteLine($"{nodename} in {group} is already deactivated.");
+                                break;
+                            case -1:
+                                Console.WriteLine($"Error: {nodename} is not found in {group}.");
+                                break;
+                            case -2:
+                                Console.WriteLine($"Error: {group} is not found.");
+                                break;
+                        }
+                    }
+
+                    await Nodes.SaveNodesAsync(nodes);
                 });
 
             groupAddUserCommand.AddArgument(new Argument<string>("group", "Target group."));

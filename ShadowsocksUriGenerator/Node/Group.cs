@@ -146,6 +146,56 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Activates the specified node.
+        /// </summary>
+        /// <param name="nodeName">Name of the node.</param>
+        /// <returns>
+        /// 0 if successfully activated the node.
+        /// 1 if already activated.
+        /// -1 if node not found.
+        /// </returns>
+        public int ActivateNode(string nodeName)
+        {
+            if (NodeDict.TryGetValue(nodeName, out var node))
+            {
+                if (!node.Deactivated)
+                    return 1;
+                else
+                {
+                    node.Deactivated = false;
+                    return 0;
+                }
+            }
+            else
+                return -1;
+        }
+
+        /// <summary>
+        /// Deactivates the specified node.
+        /// </summary>
+        /// <param name="nodeName">Name of the node.</param>
+        /// <returns>
+        /// 0 if successfully deactivated the node.
+        /// 1 if already deactivated.
+        /// -1 if node not found.
+        /// </returns>
+        public int DeactivateNode(string nodeName)
+        {
+            if (NodeDict.TryGetValue(nodeName, out var node))
+            {
+                if (node.Deactivated)
+                    return 1;
+                else
+                {
+                    node.Deactivated = true;
+                    return 0;
+                }
+            }
+            else
+                return -1;
+        }
+
+        /// <summary>
         /// Calculates the group's total data usage
         /// with statistics from Outline server.
         /// </summary>
