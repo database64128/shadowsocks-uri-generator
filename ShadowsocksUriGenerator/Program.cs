@@ -121,6 +121,8 @@ namespace ShadowsocksUriGenerator
                 settingsSetCommand,
             };
 
+            var interactiveCommand = new Command("interactive", "Enter interactive mode (REPL). Exit with 'exit' or 'quit'.");
+
             var rootCommand = new RootCommand("A light-weight command line automation tool for multi-user ss:// URL generation, SIP008 online configuration delivery, and Outline server deployment and management.")
             {
                 userCommand,
@@ -129,6 +131,7 @@ namespace ShadowsocksUriGenerator
                 onlineConfigCommand,
                 outlineServerCommand,
                 settingsCommand,
+                interactiveCommand,
             };
 
             userAddCommand.AddArgument(new Argument<string[]>("usernames", "A list of usernames to add."));
@@ -1085,6 +1088,21 @@ namespace ShadowsocksUriGenerator
                     if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                         settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
                     await Settings.SaveSettingsAsync(settings);
+                });
+
+            interactiveCommand.Handler = CommandHandler.Create(
+                async () =>
+                {
+                    while (true)
+                    {
+                        Console.Write("> ");
+                        var inputLine = Console.ReadLine();
+                        if (inputLine == null)
+                            continue;
+                        if (inputLine == "exit" || inputLine == "quit")
+                            break;
+                        await rootCommand.InvokeAsync(inputLine);
+                    }
                 });
 
             Console.OutputEncoding = Encoding.UTF8;
