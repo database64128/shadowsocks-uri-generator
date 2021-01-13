@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -247,10 +248,10 @@ namespace ShadowsocksUriGenerator
         /// -2 when the API key is not a valid JSON string.
         /// -3 when applying default user failed.
         /// </returns>
-        public Task<int> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser)
+        public Task<int> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser);
+                return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser, cancellationToken);
             else
                 return Task.FromResult(-1);
         }
@@ -304,10 +305,10 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// Null if the group can't be found
         /// or no associated Outline server.</returns>
-        public Task<List<HttpStatusCode>?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser)
+        public Task<List<HttpStatusCode>?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.SetOutlineServer(name, hostname, port, metrics, defaultUser);
+                return targetGroup.SetOutlineServer(name, hostname, port, metrics, defaultUser, cancellationToken);
             else
                 return Task.FromResult<List<HttpStatusCode>?>(null);
         }
@@ -334,9 +335,9 @@ namespace ShadowsocksUriGenerator
         /// information, access keys, and data usage.
         /// </summary>
         /// <returns>A task representing the update process.</returns>
-        public Task UpdateOutlineServerForAllGroups(Users users, bool updateLocalCredentials)
+        public Task UpdateOutlineServerForAllGroups(Users users, bool updateLocalCredentials, CancellationToken cancellationToken = default)
         {
-            var tasks = Groups.Select(async x => await x.Value.UpdateOutlineServer(x.Key, users, updateLocalCredentials));
+            var tasks = Groups.Select(async x => await x.Value.UpdateOutlineServer(x.Key, users, updateLocalCredentials, cancellationToken));
             return Task.WhenAll(tasks);
         }
 
@@ -350,10 +351,10 @@ namespace ShadowsocksUriGenerator
         /// -1 when target group doesn't exist.
         /// -2 when no associated Outline server.
         /// </returns>
-        public Task<int> UpdateGroupOutlineServer(string group, Users users, bool updateLocalCredentials)
+        public Task<int> UpdateGroupOutlineServer(string group, Users users, bool updateLocalCredentials, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.UpdateOutlineServer(group, users, updateLocalCredentials);
+                return targetGroup.UpdateOutlineServer(group, users, updateLocalCredentials, cancellationToken);
             else
                 return Task.FromResult(-1);
         }
@@ -368,10 +369,10 @@ namespace ShadowsocksUriGenerator
         /// -1 when target group doesn't exist.
         /// -2 when no associated Outline server.
         /// </returns>
-        public Task<int> DeployGroupOutlineServer(string group, Users users)
+        public Task<int> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.DeployToOutlineServer(group, users);
+                return targetGroup.DeployToOutlineServer(group, users, cancellationToken);
             else
                 return Task.FromResult(-1);
         }
@@ -381,9 +382,9 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="users">The object which contains all users' information.</param>
         /// <returns>The task that represents the completion of all deployments.</returns>
-        public Task DeployAllOutlineServers(Users users)
+        public Task DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
         {
-            var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users));
+            var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users, cancellationToken));
             return Task.WhenAll(tasks);
         }
 
@@ -420,10 +421,10 @@ namespace ShadowsocksUriGenerator
         /// -1 when target group doesn't exist.
         /// -2 when no associated Outline server.
         /// </returns>
-        public Task<int> RotateGroupPassword(string group, Users users, params string[]? usernames)
+        public Task<int> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[]? usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.RotatePassword(group, users, usernames);
+                return targetGroup.RotatePassword(group, users, cancellationToken, usernames);
             else
                 return Task.FromResult(-1);
         }

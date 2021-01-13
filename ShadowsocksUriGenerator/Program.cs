@@ -4,6 +4,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -891,7 +892,7 @@ namespace ShadowsocksUriGenerator
             outlineServerAddCommand.AddArgument(new Argument<string>("group", "Specify a group to add the Outline server to."));
             outlineServerAddCommand.AddArgument(new Argument<string>("apiKey", "The Outline server API key."));
             outlineServerAddCommand.Handler = CommandHandler.Create(
-                async (string group, string apiKey) =>
+                async (string group, string apiKey, CancellationToken cancellationToken) =>
                 {
                     nodes = await loadNodesTask;
                     settings = await loadSettingsTask;
@@ -904,12 +905,18 @@ namespace ShadowsocksUriGenerator
                     try
                     {
                         if (settings.OutlineServerApplyDefaultUserOnAssociation)
-                            result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser);
+                            result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser, cancellationToken);
                         else
-                            result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null);
+                            result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null, cancellationToken);
                     }
-                    catch
+                    catch (OperationCanceledException ex)
                     {
+                        Console.WriteLine(ex.Message);
+                        result = -3;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
                         result = -3;
                     }
 
@@ -962,13 +969,13 @@ namespace ShadowsocksUriGenerator
             outlineServerSetCommand.AddOption(new Option<bool?>("--metrics", "Enable or disable telemetry on the Outline server."));
             outlineServerSetCommand.AddOption(new Option<string?>("--default-user", "The default user for Outline server's default access key (id: 0)."));
             outlineServerSetCommand.Handler = CommandHandler.Create(
-                async (string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser) =>
+                async (string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken) =>
                 {
                     nodes = await loadNodesTask;
 
                     try
                     {
-                        var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser);
+                        var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
                         if (statusCodes != null)
                         {
                             foreach (var statusCode in statusCodes)
@@ -977,6 +984,10 @@ namespace ShadowsocksUriGenerator
                         }
                         else
                             Console.WriteLine("Group not found or no associated Outline server.");
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine(ex.Message);
                     }
                     catch (Exception ex)
                     {
@@ -999,7 +1010,7 @@ namespace ShadowsocksUriGenerator
             outlineServerUpdateCommand.AddArgument(new Argument<string[]?>("groups", "Specify groups to update for."));
             outlineServerUpdateCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user credential storage from retrieved access key list."));
             outlineServerUpdateCommand.Handler = CommandHandler.Create(
-                async (string[]? groups, bool noSync) =>
+                async (string[]? groups, bool noSync, CancellationToken cancellationToken) =>
                 {
                     nodes = await loadNodesTask;
                     users = await loadUsersTask;
@@ -1007,11 +1018,11 @@ namespace ShadowsocksUriGenerator
                     try
                     {
                         if (groups == null)
-                            await nodes.UpdateOutlineServerForAllGroups(users, !noSync);
+                            await nodes.UpdateOutlineServerForAllGroups(users, !noSync, cancellationToken);
                         else
                             foreach (var group in groups)
                             {
-                                var result = await nodes.UpdateGroupOutlineServer(group, users, !noSync);
+                                var result = await nodes.UpdateGroupOutlineServer(group, users, !noSync, cancellationToken);
                                 if (result == 0)
                                 {
                                 }
@@ -1020,6 +1031,10 @@ namespace ShadowsocksUriGenerator
                                 else if (result == -2)
                                     Console.WriteLine($"Group not associated with an Outline server: {group}");
                             }
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine(ex.Message);
                     }
                     catch (Exception ex)
                     {
@@ -1032,7 +1047,7 @@ namespace ShadowsocksUriGenerator
 
             outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "The associated group."));
             outlineServerDeployCommand.Handler = CommandHandler.Create(
-                async (string[]? groups) =>
+                async (string[]? groups, CancellationToken cancellationToken) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
@@ -1040,10 +1055,10 @@ namespace ShadowsocksUriGenerator
                     try
                     {
                         if (groups == null)
-                            await nodes.DeployAllOutlineServers(users);
+                            await nodes.DeployAllOutlineServers(users, cancellationToken);
                         else
                         {
-                            var tasks = groups.Select(async x => await nodes.DeployGroupOutlineServer(x, users));
+                            var tasks = groups.Select(async x => await nodes.DeployGroupOutlineServer(x, users, cancellationToken));
                             var results = await Task.WhenAll(tasks);
                             foreach (var result in results)
                                 if (result == 0)
@@ -1053,6 +1068,10 @@ namespace ShadowsocksUriGenerator
                                 else if (result == -2)
                                     Console.WriteLine("No associated Outline server.");
                         }
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine(ex.Message);
                     }
                     catch (Exception ex)
                     {
@@ -1066,7 +1085,7 @@ namespace ShadowsocksUriGenerator
             outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--usernames", "Target users."));
             outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--groups", "Target groups."));
             outlineServerRotatePasswordCommand.Handler = CommandHandler.Create(
-                async (string[]? usernames, string[]? groups) =>
+                async (string[]? usernames, string[]? groups, CancellationToken cancellationToken) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
@@ -1075,7 +1094,7 @@ namespace ShadowsocksUriGenerator
                     {
                         if (groups != null)
                         {
-                            var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, usernames));
+                            var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
                             await Task.WhenAll(tasks);
                         }
                         else if (usernames != null)
@@ -1083,11 +1102,15 @@ namespace ShadowsocksUriGenerator
                             var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
                                                         .SelectMany(x => users.UserDict[x].Credentials.Keys)
                                                         .Distinct();
-                            var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, usernames));
+                            var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
                             await Task.WhenAll(tasks);
                         }
                         else
                             Console.WriteLine("Please provide either a username or a group, or both.");
+                    }
+                    catch (OperationCanceledException ex)
+                    {
+                        Console.WriteLine(ex.Message);
                     }
                     catch (Exception ex)
                     {

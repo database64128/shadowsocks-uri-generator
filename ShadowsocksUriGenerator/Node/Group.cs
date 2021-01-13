@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -262,7 +263,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="apiKey">The Outline server API key.</param>
         /// <param name="globalDefaultUser">The global default user setting.</param>
         /// <returns>0 for success. -2 for invalid JSON string. -3 when applying default user failed.</returns>
-        public async Task<int> AssociateOutlineServer(string apiKey, string? globalDefaultUser)
+        public async Task<int> AssociateOutlineServer(string apiKey, string? globalDefaultUser, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -279,7 +280,7 @@ namespace ShadowsocksUriGenerator
 
             if (!string.IsNullOrEmpty(globalDefaultUser))
             {
-                var result = await SetOutlineDefaultUser(globalDefaultUser);
+                var result = await SetOutlineDefaultUser(globalDefaultUser, cancellationToken);
                 if (!result.IsSuccessStatusCode)
                     return -3;
             }
@@ -292,7 +293,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <returns>The task that represents the asynchronous operation.</returns>
-        public Task<HttpResponseMessage> SetOutlineDefaultUser(string defaultUser)
+        public Task<HttpResponseMessage> SetOutlineDefaultUser(string defaultUser, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null)
                 throw new InvalidOperationException("Outline API key is not found.");
@@ -300,7 +301,7 @@ namespace ShadowsocksUriGenerator
                 _apiClient = new(OutlineApiKey);
 
             OutlineDefaultUser = defaultUser;
-            return _apiClient.SetAccessKeyNameAsync("0", defaultUser);
+            return _apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken);
         }
 
         /// <summary>
@@ -312,7 +313,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="metrics">Enable telemetry.</param>
         /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <returns>The task that represents the operation. Null if no associated Outline server.</returns>
-        public async Task<List<HttpStatusCode>?> SetOutlineServer(string? name, string? hostname, int? port, bool? metrics, string? defaultUser)
+        public async Task<List<HttpStatusCode>?> SetOutlineServer(string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null)
                 return null;
@@ -323,15 +324,15 @@ namespace ShadowsocksUriGenerator
             var statusCodes = new List<HttpStatusCode>();
 
             if (!string.IsNullOrEmpty(name))
-                tasks.Add(_apiClient.SetServerNameAsync(name));
+                tasks.Add(_apiClient.SetServerNameAsync(name, cancellationToken));
             if (!string.IsNullOrEmpty(hostname))
-                tasks.Add(_apiClient.SetServerHostnameAsync(hostname));
+                tasks.Add(_apiClient.SetServerHostnameAsync(hostname, cancellationToken));
             if (port is int portForNewAccessKeys)
-                tasks.Add(_apiClient.SetAccessKeysPortAsync(portForNewAccessKeys));
+                tasks.Add(_apiClient.SetAccessKeysPortAsync(portForNewAccessKeys, cancellationToken));
             if (metrics is bool enableMetrics)
-                tasks.Add(_apiClient.SetServerMetricsAsync(enableMetrics));
+                tasks.Add(_apiClient.SetServerMetricsAsync(enableMetrics, cancellationToken));
             if (!string.IsNullOrEmpty(defaultUser))
-                tasks.Add(SetOutlineDefaultUser(defaultUser));
+                tasks.Add(SetOutlineDefaultUser(defaultUser, cancellationToken));
 
             while (tasks.Count > 0)
             {
@@ -370,16 +371,16 @@ namespace ShadowsocksUriGenerator
         /// Whether to update user credential dictionary.
         /// </param>
         /// <returns>0 on success. -2 when no associated Outline server.</returns>
-        public async Task<int> UpdateOutlineServer(string group, Users users, bool updateLocalCredentials)
+        public async Task<int> UpdateOutlineServer(string group, Users users, bool updateLocalCredentials, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null)
                 return -2;
             if (_apiClient == null)
                 _apiClient = new(OutlineApiKey);
 
-            var serverInfoTask = _apiClient.GetServerInfoAsync();
-            var accessKeysTask = _apiClient.GetAccessKeysAsync();
-            var dataUsageTask = _apiClient.GetDataUsageAsync();
+            var serverInfoTask = _apiClient.GetServerInfoAsync(cancellationToken);
+            var accessKeysTask = _apiClient.GetAccessKeysAsync(cancellationToken);
+            var dataUsageTask = _apiClient.GetDataUsageAsync(cancellationToken);
             var tasks = new List<Task>()
             {
                 serverInfoTask,
@@ -453,12 +454,12 @@ namespace ShadowsocksUriGenerator
         /// Deploys local user configurations to the Outline server.
         /// </summary>
         /// <returns>0 on success. -2 when no associated Outline server.</returns>
-        public async Task<int> DeployToOutlineServer(string group, Users users)
+        public async Task<int> DeployToOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null)
                 return -2;
             if (OutlineAccessKeys == null)
-                await UpdateOutlineServer(group, users, true);
+                await UpdateOutlineServer(group, users, true, cancellationToken);
             if (OutlineAccessKeys == null)
                 OutlineAccessKeys = new();
 
@@ -474,10 +475,10 @@ namespace ShadowsocksUriGenerator
 
             // Add
             foreach (var username in usersToCreate)
-                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes, users.UserDict[username].Credentials, group));
+                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes, users.UserDict[username].Credentials, group, cancellationToken));
 
             // Remove
-            tasks.Add(RemoveUserFromOutlineServer(usersToRemove, users, group));
+            tasks.Add(RemoveUserFromOutlineServer(usersToRemove, users, group, cancellationToken));
 
             while (tasks.Count > 0)
             {
@@ -500,7 +501,7 @@ namespace ShadowsocksUriGenerator
         /// 2 when not on the Outline server.
         /// -3 when an error occurred while sending the request.
         /// </returns>
-        public async Task<int> RenameUser(string oldName, string newName)
+        public async Task<int> RenameUser(string oldName, string newName, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null || OutlineAccessKeys == null)
                 return 1;
@@ -514,7 +515,7 @@ namespace ShadowsocksUriGenerator
                 return 2;
 
             // send request
-            var response = await _apiClient.SetAccessKeyNameAsync(userId, newName);
+            var response = await _apiClient.SetAccessKeyNameAsync(userId, newName, cancellationToken);
             if (response.IsSuccessStatusCode)
                 return 0;
             else
@@ -526,12 +527,12 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="username">Target user.</param>
         /// <returns>0 on success. -2 when no associated Outline server.</returns>
-        public async Task<int> RotatePassword(string group, Users users, params string[]? usernames)
+        public async Task<int> RotatePassword(string group, Users users, CancellationToken cancellationToken = default, params string[]? usernames)
         {
             if (OutlineApiKey == null)
                 return -2;
             if (OutlineAccessKeys == null)
-                await UpdateOutlineServer(group, users, true);
+                await UpdateOutlineServer(group, users, true, cancellationToken);
             if (OutlineAccessKeys == null)
                 OutlineAccessKeys = new();
             if (_apiClient == null)
@@ -547,7 +548,7 @@ namespace ShadowsocksUriGenerator
 
             // Add
             foreach (var username in targetUsers)
-                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes, users.UserDict[username].Credentials, group));
+                tasks.Add(AddUserToOutlineServer(username, users.UserDict[username].DataLimitInBytes, users.UserDict[username].Credentials, group, cancellationToken));
 
             while (tasks.Count > 0)
             {
@@ -566,7 +567,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="username">Target username.</param>
         /// <param name="userDataLimit">The user's data limit.</param>
         /// <returns>The HTTP status codes from API operations.</returns>
-        private async Task<HttpStatusCode[]> AddUserToOutlineServer(string username, ulong userDataLimit, Dictionary<string, Credential?> credentials, string group)
+        private async Task<HttpStatusCode[]> AddUserToOutlineServer(string username, ulong userDataLimit, Dictionary<string, Credential?> credentials, string group, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null)
                 throw new InvalidOperationException("Outline API key is not found.");
@@ -578,13 +579,13 @@ namespace ShadowsocksUriGenerator
             var statusCodes = new List<HttpStatusCode>();
 
             // Create
-            var response = await _apiClient.CreateAccessKeyAsync();
-            var accessKey = await HttpContentJsonExtensions.ReadFromJsonAsync<AccessKey>(response.Content, Outline.Utilities.commonJsonDeserializerOptions);
+            var response = await _apiClient.CreateAccessKeyAsync(cancellationToken);
+            var accessKey = await HttpContentJsonExtensions.ReadFromJsonAsync<AccessKey>(response.Content, Outline.Utilities.commonJsonDeserializerOptions, cancellationToken);
             if (accessKey == null)
                 throw new Exception("An error occurred while creating the user.");
 
             // Set username
-            var setNameResponge = await _apiClient.SetAccessKeyNameAsync(accessKey.Id, username);
+            var setNameResponge = await _apiClient.SetAccessKeyNameAsync(accessKey.Id, username, cancellationToken);
             statusCodes.Add(setNameResponge.StatusCode);
 
             // Set data limit
@@ -593,7 +594,7 @@ namespace ShadowsocksUriGenerator
                 dataLimit = userDataLimit;
             if (dataLimit != 0)
             {
-                var setLimitResponse = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, userDataLimit);
+                var setLimitResponse = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, userDataLimit, cancellationToken);
                 statusCodes.Add(setLimitResponse.StatusCode);
             }
 
@@ -617,7 +618,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="usernames">Target user.</param>
         /// <returns>The HTTP status codes from API operations.</returns>
-        private Task<HttpStatusCode[]> RemoveUserFromOutlineServer(IEnumerable<string> usernames, Users users, string group)
+        private Task<HttpStatusCode[]> RemoveUserFromOutlineServer(IEnumerable<string> usernames, Users users, string group, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey == null || OutlineAccessKeys == null)
                 throw new InvalidOperationException("Outline API key is not found.");
@@ -628,7 +629,7 @@ namespace ShadowsocksUriGenerator
             var userIDs = OutlineAccessKeys.Where(x => usernames.Contains(x.Name)).Select(x => x.Id);
 
             // Remove
-            var tasks = userIDs.Select(async x => (await _apiClient.DeleteAccessKeyAsync(x)).StatusCode);
+            var tasks = userIDs.Select(async x => (await _apiClient.DeleteAccessKeyAsync(x, cancellationToken)).StatusCode);
             var result = Task.WhenAll(tasks);
 
             // Remove from access key list
