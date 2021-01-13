@@ -45,7 +45,6 @@ jobs:
       # Get version
       - name: Get version
         id: get_version
-        shell: bash
         run: echo "::set-output name=VERSION::$(echo $GITHUB_REF | cut -d / -f 3)"
       # Package
       - name: Package for Linux

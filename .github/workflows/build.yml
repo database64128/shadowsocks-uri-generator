@@ -43,10 +43,10 @@ jobs:
         run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
       - name: Publish self-contained for Windows ARM64
         if: matrix.os == 'windows-latest'
-        run: dotnet publish ShadowsocksUriGenerator -c Release $env:MSBUILD_PROPS -r win-arm64 --self-contained
+        run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
       - name: Publish self-contained for Windows x64
         if: matrix.os == 'windows-latest'
-        run: dotnet publish ShadowsocksUriGenerator -c Release $env:MSBUILD_PROPS -r win-x64 --self-contained
+        run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r win-x64 --self-contained
       # Upload
       - name: Upload artifacts for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
