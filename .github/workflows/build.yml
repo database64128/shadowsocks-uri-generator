@@ -18,13 +18,12 @@ jobs:
         os: [ubuntu-20.04, windows-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: 5.0.x
       - name: Restore dependencies
         run: dotnet restore
       - name: Build
@@ -32,20 +31,22 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
       # Publish
+      - name: Define MSBuild properties
+        run: echo "MSBUILD_PROPS=-p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:TrimMode=link -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:InvariantGlobalization=true" >> $GITHUB_ENV
       - name: Publish framework-dependent
         run: dotnet publish ShadowsocksUriGenerator -c Release --no-restore
       - name: Publish self-contained for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
-        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-arm64 --self-contained
+        run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
       - name: Publish self-contained for Linux x64
         if: matrix.os == 'ubuntu-20.04'
-        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-x64 --self-contained
+        run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
       - name: Publish self-contained for Windows ARM64
         if: matrix.os == 'windows-latest'
-        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r win-arm64 --self-contained
+        run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
       - name: Publish self-contained for Windows x64
         if: matrix.os == 'windows-latest'
-        run: dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r win-x64 --self-contained
+        run: dotnet publish ShadowsocksUriGenerator -c Release $MSBUILD_PROPS -r win-x64 --self-contained
       # Upload
       - name: Upload artifacts for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
