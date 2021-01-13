@@ -42,7 +42,7 @@ namespace ShadowsocksUriGenerator
             configDirectory = $"{appDataPath}/shadowsocks-uri-generator";
 #else
             // Use executable directory
-            // executable directory in .NET 5: https://stackoverflow.com/questions/58428375/cannot-get-original-executable-path-for-net-core-3-0-single-file-ppublishsin
+            // Executable directory for single-file deployments in .NET 5: https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
             configDirectory = AppContext.BaseDirectory;
 #endif
         }

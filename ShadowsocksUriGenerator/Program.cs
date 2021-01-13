@@ -909,10 +909,10 @@ namespace ShadowsocksUriGenerator
                         else
                             result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null, cancellationToken);
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                     {
                         Console.WriteLine(ex.Message);
-                        result = -3;
+                        result = -4;
                     }
                     catch (Exception ex)
                     {
@@ -985,7 +985,7 @@ namespace ShadowsocksUriGenerator
                         else
                             Console.WriteLine("Group not found or no associated Outline server.");
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                     {
                         Console.WriteLine(ex.Message);
                     }
@@ -1032,7 +1032,7 @@ namespace ShadowsocksUriGenerator
                                     Console.WriteLine($"Group not associated with an Outline server: {group}");
                             }
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                     {
                         Console.WriteLine(ex.Message);
                     }
@@ -1069,7 +1069,7 @@ namespace ShadowsocksUriGenerator
                                     Console.WriteLine("No associated Outline server.");
                         }
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                     {
                         Console.WriteLine(ex.Message);
                     }
@@ -1108,7 +1108,7 @@ namespace ShadowsocksUriGenerator
                         else
                             Console.WriteLine("Please provide either a username or a group, or both.");
                     }
-                    catch (OperationCanceledException ex)
+                    catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                     {
                         Console.WriteLine(ex.Message);
                     }
