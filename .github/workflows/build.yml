@@ -18,6 +18,9 @@ jobs:
         os: [ubuntu-20.04, windows-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v2
@@ -28,12 +31,8 @@ jobs:
       - name: Test
         run: dotnet test --no-build --verbosity normal
       # Publish
-      - name: Define MSBuild properties on Linux
-        if: matrix.os == 'ubuntu-20.04'
+      - name: Define MSBuild properties
         run: echo "MSBUILD_PROPS=-p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:TrimMode=link -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:InvariantGlobalization=true" >> $GITHUB_ENV
-      - name: Define MSBuild properties on Windows
-        if: matrix.os == 'windows-latest'
-        run: echo "MSBUILD_PROPS='-p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:TrimMode=link -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:InvariantGlobalization=true'" >> $env:GITHUB_ENV
       - name: Publish framework-dependent
         run: dotnet publish ShadowsocksUriGenerator -c Release --no-restore
       - name: Publish self-contained for Linux ARM64
