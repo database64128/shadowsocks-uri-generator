@@ -31,9 +31,28 @@ $ dotnet build -c Release
 # Publish as framework-dependent
 $ dotnet publish ShadowsocksUriGenerator -c Release
 # Publish as self-contained for Linux x64
-$ dotnet publish ShadowsocksUriGenerator -c Release -p:PublishTrimmed=true -r linux-x64 --self-contained
+$ dotnet publish ShadowsocksUriGenerator -c Release \
+    -p:PublishReadyToRun=true \
+    -p:PublishSingleFile=true \
+    -p:PublishTrimmed=true \
+    -p:TrimMode=link \
+    -p:DebuggerSupport=false \
+    -p:EnableUnsafeBinaryFormatterSerialization=false \
+    -p:EnableUnsafeUTF7Encoding=false \
+    -p:InvariantGlobalization=true \
+    -r linux-x64 --self-contained
 # Publish as self-contained for packaging on Linux x64
-$ dotnet publish ShadowsocksUriGenerator -c Release -p:DefineConstants=PACKAGED -p:PublishTrimmed=true -r linux-x64 --self-contained
+$ dotnet publish ShadowsocksUriGenerator -c Release \
+    -p:DefineConstants=PACKAGED \
+    -p:PublishReadyToRun=true \
+    -p:PublishSingleFile=true \
+    -p:PublishTrimmed=true \
+    -p:TrimMode=link \
+    -p:DebuggerSupport=false \
+    -p:EnableUnsafeBinaryFormatterSerialization=false \
+    -p:EnableUnsafeUTF7Encoding=false \
+    -p:InvariantGlobalization=true \
+    -r linux-x64 --self-contained
 ```
 
 ## Usage
@@ -41,6 +60,9 @@ $ dotnet publish ShadowsocksUriGenerator -c Release -p:DefineConstants=PACKAGED 
 ```bash
 # See usage guide.
 $ ss-uri-gen --help
+
+# Enter interactive mode (REPL).
+$ ss-uri-gen interactive
 
 # Add users.
 $ ss-uri-gen user add MyUserA MyUserB
@@ -53,6 +75,9 @@ $ ss-uri-gen node add MyGroupA MyNodeA 1.1.1.1 853
 
 # Add a new node with v2ray-plugin.
 $ ss-uri-gen node add MyGroupB MyNodeB 1.1.1.1 853 --plugin v2ray-plugin --plugin-opts "tls;host=cloudflare-dns.com"
+
+# Deactivate a node to exclude it from delivery.
+$ ss-uri-gen node deactivate MyGroupB MyNodeB
 
 # Join a group.
 $ ss-uri-gen user join MyUserB MyGroupB
