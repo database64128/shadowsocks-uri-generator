@@ -32,7 +32,7 @@ jobs:
         run: dotnet test --no-build --verbosity normal
       # Publish
       - name: Define MSBuild properties
-        run: echo "MSBUILD_PROPS=-p:PublishReadyToRun=true -p:PublishSingleFile=true -p:PublishTrimmed=true -p:TrimMode=link -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:InvariantGlobalization=true" >> $GITHUB_ENV
+        run: echo "MSBUILD_PROPS=-p:PublishSingleFile=true -p:PublishTrimmed=true -p:TrimMode=link -p:DebuggerSupport=false -p:EnableUnsafeBinaryFormatterSerialization=false -p:EnableUnsafeUTF7Encoding=false -p:InvariantGlobalization=true" >> $GITHUB_ENV
       - name: Publish framework-dependent
         run: dotnet publish ShadowsocksUriGenerator -c Release --no-restore
       - name: Publish self-contained for Linux ARM64

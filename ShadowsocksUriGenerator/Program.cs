@@ -129,6 +129,8 @@ namespace ShadowsocksUriGenerator
 
             var interactiveCommand = new Command("interactive", "Enter interactive mode (REPL). Exit with 'exit' or 'quit'.");
 
+            var serviceCommand = new Command("service", "Run as a service to execute scheduled tasks.");
+
             var rootCommand = new RootCommand("A light-weight command line automation tool for multi-user ss:// URL generation, SIP008 online configuration delivery, and Outline server deployment and management.")
             {
                 userCommand,
@@ -138,8 +140,20 @@ namespace ShadowsocksUriGenerator
                 outlineServerCommand,
                 settingsCommand,
                 interactiveCommand,
+                serviceCommand,
             };
 
+            userCommand.AddAlias("u");
+            nodeCommand.AddAlias("n");
+            groupCommand.AddAlias("g");
+            onlineConfigCommand.AddAlias("oc");
+            onlineConfigCommand.AddAlias("online");
+            outlineServerCommand.AddAlias("os");
+            outlineServerCommand.AddAlias("outline");
+            settingsCommand.AddAlias("s");
+            interactiveCommand.AddAlias("i");
+
+            userAddCommand.AddAlias("a");
             userAddCommand.AddArgument(new Argument<string[]>("usernames", "A list of usernames to add."));
             userAddCommand.Handler = CommandHandler.Create(
                 async (string[] usernames) =>
@@ -152,6 +166,7 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"{username}");
                 });
 
+            nodeAddCommand.AddAlias("a");
             nodeAddCommand.AddArgument(new Argument<string>("group", "The group that the new node belongs to."));
             nodeAddCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             nodeAddCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
@@ -169,6 +184,7 @@ namespace ShadowsocksUriGenerator
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
+            groupAddCommand.AddAlias("a");
             groupAddCommand.AddArgument(new Argument<string[]>("groups", "A list of group names to add."));
             groupAddCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
@@ -234,6 +250,8 @@ namespace ShadowsocksUriGenerator
                 });
 
             userRemoveCommand.AddAlias("rm");
+            userRemoveCommand.AddAlias("del");
+            userRemoveCommand.AddAlias("delete");
             userRemoveCommand.AddArgument(new Argument<string[]>("usernames", "A list of users to remove."));
             userRemoveCommand.Handler = CommandHandler.Create(
                 async (string[] usernames) =>
@@ -249,6 +267,8 @@ namespace ShadowsocksUriGenerator
                 });
 
             nodeRemoveCommand.AddAlias("rm");
+            nodeRemoveCommand.AddAlias("del");
+            nodeRemoveCommand.AddAlias("delete");
             nodeRemoveCommand.AddArgument(new Argument<string>("group", "The group that the target node belongs to."));
             nodeRemoveCommand.AddArgument(new Argument<string[]>("nodenames", "A list of node names to remove."));
             nodeRemoveCommand.Handler = CommandHandler.Create(
@@ -261,6 +281,8 @@ namespace ShadowsocksUriGenerator
                 });
 
             groupRemoveCommand.AddAlias("rm");
+            groupRemoveCommand.AddAlias("del");
+            groupRemoveCommand.AddAlias("delete");
             groupRemoveCommand.AddArgument(new Argument<string[]>("groups", "A list of groups to remove."));
             groupRemoveCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
@@ -273,6 +295,7 @@ namespace ShadowsocksUriGenerator
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
+            userListCommand.AddAlias("l");
             userListCommand.AddAlias("ls");
             userListCommand.Handler = CommandHandler.Create(
                 async () =>
@@ -289,6 +312,7 @@ namespace ShadowsocksUriGenerator
                     PrintTableBorder(16, 36, 21);
                 });
 
+            nodeListCommand.AddAlias("l");
             nodeListCommand.AddAlias("ls");
             nodeListCommand.AddArgument(new Argument<string?>("group", getDefaultValue: () => null, "Target group. Leave empty for all groups."));
             nodeListCommand.Handler = CommandHandler.Create(
@@ -318,6 +342,7 @@ namespace ShadowsocksUriGenerator
                     }
                 });
 
+            groupListCommand.AddAlias("l");
             groupListCommand.AddAlias("ls");
             groupListCommand.Handler = CommandHandler.Create(
                 async () =>
@@ -394,6 +419,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            userAddCredentialCommand.AddAlias("ac");
             userAddCredentialCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
             userAddCredentialCommand.AddArgument(new Argument<string>("group", "The group that the credential is for."));
             userAddCredentialCommand.AddOption(new Option<string?>("--method", "The encryption method. MUST be combined with --password."));
@@ -445,6 +471,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            userRemoveCredentialCommand.AddAlias("rc");
             userRemoveCredentialCommand.AddArgument(new Argument<string>("username", "Target user."));
             userRemoveCredentialCommand.AddArgument(new Argument<string[]>("groups", "A list of groups the credentials are for."));
             userRemoveCredentialCommand.Handler = CommandHandler.Create(
@@ -464,6 +491,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            userListCredentialsCommand.AddAlias("lc");
             userListCredentialsCommand.Handler = CommandHandler.Create(
                 async () =>
                 {
@@ -499,6 +527,7 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"{uri.AbsoluteUri}");
                 });
 
+            userGetDataUsageCommand.AddAlias("data");
             userGetDataUsageCommand.AddArgument(new Argument<string>("username", "Target user."));
             userGetDataUsageCommand.AddOption(new Option<SortBy?>("--sort-by", "Sort rule used for the data usage records."));
             userGetDataUsageCommand.Handler = CommandHandler.Create(
@@ -570,6 +599,7 @@ namespace ShadowsocksUriGenerator
                     PrintTableBorder(32, 11, 16);
                 });
 
+            userSetDataLimitCommand.AddAlias("limit");
             userSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
             userSetDataLimitCommand.AddArgument(new Argument<string[]>("usernames", "Target users."));
             userSetDataLimitCommand.AddOption(new Option<string[]?>("--groups", "Only set the data limit to these groups."));
@@ -661,6 +691,7 @@ namespace ShadowsocksUriGenerator
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
+            groupAddUserCommand.AddAlias("au");
             groupAddUserCommand.AddArgument(new Argument<string>("group", "Target group."));
             groupAddUserCommand.AddArgument(new Argument<string[]>("usernames", "Users to add."));
             groupAddUserCommand.Handler = CommandHandler.Create(
@@ -699,6 +730,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            groupRemoveUserCommand.AddAlias("ru");
             groupRemoveUserCommand.AddArgument(new Argument<string>("group", "Target group."));
             groupRemoveUserCommand.AddArgument(new Argument<string[]>("usernames", "Users to remove."));
             groupRemoveUserCommand.Handler = CommandHandler.Create(
@@ -726,6 +758,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            groupGetDataUsageCommand.AddAlias("data");
             groupGetDataUsageCommand.AddArgument(new Argument<string>("group", "Target group."));
             groupGetDataUsageCommand.AddOption(new Option<SortBy?>("--sort-by", "Sort rule used for the data usage records."));
             groupGetDataUsageCommand.Handler = CommandHandler.Create(
@@ -797,6 +830,7 @@ namespace ShadowsocksUriGenerator
                     PrintTableBorder(32, 11, 16);
                 });
 
+            groupSetDataLimitCommand.AddAlias("limit");
             groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
             groupSetDataLimitCommand.AddArgument(new Argument<string[]>("groups", "Target groups."));
             groupSetDataLimitCommand.AddOption(new Option<bool>("--global", "Set the global data limit of the group."));
@@ -823,6 +857,7 @@ namespace ShadowsocksUriGenerator
                     await Users.SaveUsersAsync(users);
                 });
 
+            onlineConfigGenerateCommand.AddAlias("g");
             onlineConfigGenerateCommand.AddAlias("gen");
             onlineConfigGenerateCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to generate for. Leave empty for all users."));
             onlineConfigGenerateCommand.Handler = CommandHandler.Create(
@@ -840,6 +875,7 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine($"One or more specified users are not found.");
                 });
 
+            onlineConfigGetLinkCommand.AddAlias("l");
             onlineConfigGetLinkCommand.AddAlias("link");
             onlineConfigGetLinkCommand.AddArgument(new Argument<string[]?>("usernames", "Target users. Leave empty for all users."));
             onlineConfigGetLinkCommand.Handler = CommandHandler.Create(
@@ -874,6 +910,8 @@ namespace ShadowsocksUriGenerator
                     }
                 });
 
+            onlineConfigCleanCommand.AddAlias("c");
+            onlineConfigCleanCommand.AddAlias("clear");
             onlineConfigCleanCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));
             onlineConfigCleanCommand.AddOption(new Option<bool>("--all", "clean for all users."));
             onlineConfigCleanCommand.Handler = CommandHandler.Create(
@@ -889,6 +927,7 @@ namespace ShadowsocksUriGenerator
                         Console.WriteLine("Invalid arguments or options. Either specify usernames, or use '--all' to target all users.");
                 });
 
+            outlineServerAddCommand.AddAlias("a");
             outlineServerAddCommand.AddArgument(new Argument<string>("group", "Specify a group to add the Outline server to."));
             outlineServerAddCommand.AddArgument(new Argument<string>("apiKey", "The Outline server API key."));
             outlineServerAddCommand.Handler = CommandHandler.Create(
@@ -991,12 +1030,14 @@ namespace ShadowsocksUriGenerator
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"An error occurred while applying settings to Outline servers.\n{ex.Message}");
+                        Console.WriteLine($"An error occurred while applying settings to Outline servers.");
+                        Console.WriteLine(ex.Message);
                     }
 
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
+            outlineServerRemoveCommand.AddAlias("rm");
             outlineServerRemoveCommand.AddArgument(new Argument<string>("group", "The associated group."));
             outlineServerRemoveCommand.Handler = CommandHandler.Create(
                 async (string group) =>
@@ -1007,6 +1048,7 @@ namespace ShadowsocksUriGenerator
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
+            outlineServerUpdateCommand.AddAlias("pull");
             outlineServerUpdateCommand.AddArgument(new Argument<string[]?>("groups", "Specify groups to update for."));
             outlineServerUpdateCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user credential storage from retrieved access key list."));
             outlineServerUpdateCommand.Handler = CommandHandler.Create(
@@ -1038,7 +1080,8 @@ namespace ShadowsocksUriGenerator
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"An error occurred while updating from Outline servers.\n{ex.Message}");
+                        Console.WriteLine($"An error occurred while updating from Outline servers.");
+                        Console.WriteLine(ex.Message);
                     }
 
                     await Users.SaveUsersAsync(users);
@@ -1075,13 +1118,15 @@ namespace ShadowsocksUriGenerator
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"An error occurred while deploying Outline servers.\n{ex.Message}");
+                        Console.WriteLine($"An error occurred while deploying Outline servers.");
+                        Console.WriteLine(ex.Message);
                     }
 
                     await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
+            outlineServerRotatePasswordCommand.AddAlias("rotate");
             outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--usernames", "Target users."));
             outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--groups", "Target groups."));
             outlineServerRotatePasswordCommand.Handler = CommandHandler.Create(
@@ -1114,7 +1159,8 @@ namespace ShadowsocksUriGenerator
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"An error occurred while connecting to Outline servers.\n{ex.Message}");
+                        Console.WriteLine($"An error occurred while connecting to Outline servers.");
+                        Console.WriteLine(ex.Message);
                     }
 
                     await Users.SaveUsersAsync(users);
@@ -1192,12 +1238,84 @@ namespace ShadowsocksUriGenerator
                     while (true)
                     {
                         Console.Write("> ");
-                        var inputLine = Console.ReadLine();
+                        var inputLine = Console.ReadLine()?.Trim();
+
+                        // Verify input
                         if (inputLine == null)
                             continue;
-                        if (inputLine == "exit" || inputLine == "quit")
+                        if (inputLine is "exit" or "quit")
                             break;
+                        if (inputLine is "i" or "interactive")
+                        {
+                            Console.WriteLine("🛑 I see what you're trying to do!");
+                            continue;
+                        }
+
+                        // Reload JSON before each run
+                        loadUsersTask = Users.LoadUsersAsync();
+                        loadNodesTask = Nodes.LoadNodesAsync();
+                        loadSettingsTask = Settings.LoadSettingsAsync();
+
                         await rootCommand.InvokeAsync(inputLine);
+                    }
+                });
+
+            serviceCommand.AddOption(new Option<int>("--interval", () => 3600, "The interval between each scheduled run in seconds."));
+            serviceCommand.AddOption(new Option<bool>("--pull-outline-server", "Pull from Outline servers for updates of server information, access keys, data usage."));
+            serviceCommand.AddOption(new Option<bool>("--deploy-outline-server", "Deploy local configurations to Outline servers."));
+            serviceCommand.AddOption(new Option<bool>("--generate-online-config", "Generate online config."));
+            serviceCommand.AddOption(new Option<bool>("--regenerate-online-config", "Clean and regenerate online config."));
+            serviceCommand.Handler = CommandHandler.Create(
+                async (int interval, bool pullOutlineServer, bool deployOutlineServer, bool generateOnlineConfig, bool regenerateOnlineConfig, CancellationToken cancellationToken) =>
+                {
+                    if (interval < 60 || interval > int.MaxValue / 1000)
+                    {
+                        Console.WriteLine($"Interval can't be lower than 60 seconds or greater than {int.MaxValue / 1000} seconds.");
+                        return;
+                    }
+
+                    try
+                    {
+                        while (true)
+                        {
+                            if (pullOutlineServer)
+                            {
+                                await outlineServerUpdateCommand.InvokeAsync(Array.Empty<string>());
+                                Console.WriteLine("Pulled from Outline servers.");
+                            }
+                            if (deployOutlineServer)
+                            {
+                                await outlineServerDeployCommand.InvokeAsync(Array.Empty<string>());
+                                Console.WriteLine("Deployed to Outline servers.");
+                            }
+                            if (generateOnlineConfig)
+                            {
+                                await onlineConfigGenerateCommand.InvokeAsync(Array.Empty<string>());
+                                Console.WriteLine("Generated online config.");
+                            }
+                            if (regenerateOnlineConfig)
+                            {
+                                await onlineConfigCleanCommand.InvokeAsync("--all");
+                                Console.WriteLine("Cleaned online config.");
+                                await onlineConfigGenerateCommand.InvokeAsync(Array.Empty<string>());
+                                Console.WriteLine("Generated online config.");
+                            }
+
+                            await Task.Delay(interval * 1000, cancellationToken);
+
+                            // Reload JSON before each run
+                            loadUsersTask = Users.LoadUsersAsync();
+                            loadNodesTask = Nodes.LoadNodesAsync();
+                            loadSettingsTask = Settings.LoadSettingsAsync();
+                        }
+                    }
+                    catch (TaskCanceledException)
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred while executing one of the scheduled tasks.");
+                        Console.WriteLine(ex.Message);
                     }
                 });
 
