@@ -1,7 +1,8 @@
 {
   "profiles": {
     "ShadowsocksUriGenerator": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "i"
     }
   }
 }

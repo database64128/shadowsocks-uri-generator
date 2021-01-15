@@ -1257,6 +1257,10 @@ namespace ShadowsocksUriGenerator
                         loadSettingsTask = Settings.LoadSettingsAsync();
 
                         await rootCommand.InvokeAsync(inputLine);
+
+                        // Dispose nodes
+                        nodes = await loadNodesTask;
+                        nodes.Dispose();
                     }
                 });
 
@@ -1300,6 +1304,10 @@ namespace ShadowsocksUriGenerator
                                 await onlineConfigGenerateCommand.InvokeAsync(Array.Empty<string>());
                                 Console.WriteLine("Generated online config.");
                             }
+
+                            // Dispose nodes
+                            nodes = await loadNodesTask;
+                            nodes.Dispose();
 
                             await Task.Delay(interval * 1000, cancellationToken);
 

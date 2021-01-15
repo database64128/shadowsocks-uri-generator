@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Outline;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -11,8 +12,10 @@ namespace ShadowsocksUriGenerator
     /// <summary>
     /// The class for storing node information in Nodes.json
     /// </summary>
-    public class Nodes
+    public class Nodes : IDisposable
     {
+        private bool disposedValue;
+
         /// <summary>
         /// Gets the default configuration version
         /// used by this version of the app.
@@ -479,6 +482,25 @@ namespace ShadowsocksUriGenerator
                 default:
                     break;
             }
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing)
+                {
+                    foreach (var group in Groups.Values)
+                        group.Dispose();
+                }
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
