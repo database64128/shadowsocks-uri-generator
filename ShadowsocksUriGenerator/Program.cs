@@ -73,6 +73,7 @@ namespace ShadowsocksUriGenerator
             var groupListCommand = new Command("list", "List all groups.");
             var groupAddUserCommand = new Command("add-user", "Add users to the group.");
             var groupRemoveUserCommand = new Command("remove-user", "Remove users from the group.");
+            var groupListUsersCommand = new Command("list-users", "List users in the group.");
             var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
             var groupSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
 
@@ -84,6 +85,7 @@ namespace ShadowsocksUriGenerator
                 groupListCommand,
                 groupAddUserCommand,
                 groupRemoveUserCommand,
+                groupListUsersCommand,
                 groupGetDataUsageCommand,
                 groupSetDataLimitCommand,
             };
@@ -302,14 +304,14 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
-                    PrintTableBorder(16, 36, 21);
-                    Console.WriteLine($"|{"User",-16}|{"UUID",36}|{"Number of Credentials",21}|");
-                    PrintTableBorder(16, 36, 21);
+                    PrintTableBorder(16, 36, 18);
+                    Console.WriteLine($"|{"User",-16}|{"UUID",36}|{"Associated Groups",18}|");
+                    PrintTableBorder(16, 36, 18);
 
                     foreach (var user in users.UserDict)
-                        Console.WriteLine($"|{user.Key,-16}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,21}|");
+                        Console.WriteLine($"|{user.Key,-16}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,18}|");
 
-                    PrintTableBorder(16, 36, 21);
+                    PrintTableBorder(16, 36, 18);
                 });
 
             nodeListCommand.AddAlias("l");
@@ -757,6 +759,32 @@ namespace ShadowsocksUriGenerator
 
                     await Users.SaveUsersAsync(users);
                 });
+
+            groupListUsersCommand.AddAlias("lu");
+            groupListUsersCommand.AddArgument(new Argument<string>("group", "Target group."));
+            groupListUsersCommand.Handler = CommandHandler.Create(
+                async (string group) =>
+                {
+                    users = await loadUsersTask;
+
+                    Console.WriteLine($"{"Group",-16}{group,-32}");
+                    Console.WriteLine();
+
+                    PrintTableBorder(16, 24, 32);
+                    Console.WriteLine($"|{"User",-16}|{"Method",-24}|{"Password",-32}|");
+                    PrintTableBorder(16, 24, 32);
+
+                    foreach (var user in users.UserDict)
+                    {
+                        if (user.Value.Credentials.TryGetValue(group, out var cred))
+                        {
+                            Console.WriteLine($"|{user.Key,-16}|{cred?.Method,-24}|{cred?.Password,-32}|");
+                        }
+                    }
+
+                    PrintTableBorder(16, 24, 32);
+                }
+            );
 
             groupGetDataUsageCommand.AddAlias("data");
             groupGetDataUsageCommand.AddArgument(new Argument<string>("group", "Target group."));
