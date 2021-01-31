@@ -137,18 +137,6 @@ namespace ShadowsocksUriGenerator
             return 0;
         }
 
-        /// <summary>
-        /// Removes credentials from the user's credential dictionary.
-        /// </summary>
-        /// <param name="groups">
-        /// The list of group entries to be removed from the user's credential dictionary.
-        /// </param>
-        public void RemoveCredentials(IEnumerable<string> groups)
-        {
-            foreach (var group in groups)
-                RemoveCredential(group);
-        }
-
         public List<Uri> GetSSUris(Nodes nodes)
         {
             List<Uri> uris = new();

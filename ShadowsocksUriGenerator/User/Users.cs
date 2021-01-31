@@ -168,6 +168,17 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Removes all users from the specified groups.
+        /// </summary>
+        /// <param name="groups">Target groups.</param>
+        public void RemoveAllUsersFromGroups(IEnumerable<string> groups)
+        {
+            foreach (var userEntry in UserDict)
+                foreach (var group in groups)
+                    userEntry.Value.RemoveFromGroup(group);
+        }
+
+        /// <summary>
         /// Removes group credential from user.
         /// </summary>
         /// <param name="user">Target user.</param>
@@ -188,7 +199,8 @@ namespace ShadowsocksUriGenerator
         public void RemoveCredentialsFromAllUsers(IEnumerable<string> groups)
         {
             foreach (var userEntry in UserDict)
-                userEntry.Value.RemoveCredentials(groups);
+                foreach (var group in groups)
+                    userEntry.Value.RemoveCredential(group);
         }
 
         /// <summary>

@@ -88,7 +88,7 @@ namespace ShadowsocksUriGenerator
         /// Removes groups from the group dictionary.
         /// </summary>
         /// <param name="groups">The list of groups to be removed.</param>
-        public void RemoveGroups(string[] groups)
+        public void RemoveGroups(IEnumerable<string> groups)
         {
             foreach (var group in groups)
                 Groups.Remove(group);

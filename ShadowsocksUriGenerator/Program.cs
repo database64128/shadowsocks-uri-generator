@@ -289,7 +289,7 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    users.RemoveCredentialsFromAllUsers(groups);
+                    users.RemoveAllUsersFromGroups(groups);
                     nodes.RemoveGroups(groups);
                     await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
@@ -1038,13 +1038,22 @@ namespace ShadowsocksUriGenerator
                 });
 
             outlineServerRemoveCommand.AddAlias("rm");
-            outlineServerRemoveCommand.AddArgument(new Argument<string>("group", "The associated group."));
+            outlineServerRemoveCommand.AddArgument(new Argument<string[]>("groups", "Specify groups to dissociate."));
+            outlineServerRemoveCommand.AddOption(new Option<bool>("--remove-creds", "Remove credentials from all associated users."));
             outlineServerRemoveCommand.Handler = CommandHandler.Create(
-                async (string group) =>
+                async (string[] groups, bool removeCreds) =>
                 {
+                    users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    if (nodes.RemoveOutlineServerFromGroup(group) != 0)
-                        Console.WriteLine($"Group not found: {group}");
+
+                    foreach (var group in groups)
+                        if (nodes.RemoveOutlineServerFromGroup(group) != 0)
+                            Console.WriteLine($"Group not found: {group}");
+
+                    if (removeCreds)
+                        users.RemoveCredentialsFromAllUsers(groups);
+
+                    await Users.SaveUsersAsync(users);
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
