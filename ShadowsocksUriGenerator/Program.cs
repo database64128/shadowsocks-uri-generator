@@ -1311,7 +1311,7 @@ namespace ShadowsocksUriGenerator
                 {
                     if (interval < 60 || interval > int.MaxValue / 1000)
                     {
-                        Console.WriteLine($"Interval can't be lower than 60 seconds or greater than {int.MaxValue / 1000} seconds.");
+                        Console.WriteLine($"Interval can't be shorter than 60 seconds or longer than {int.MaxValue / 1000} seconds.");
                         return;
                     }
 
