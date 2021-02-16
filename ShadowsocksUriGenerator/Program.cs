@@ -304,14 +304,17 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
-                    PrintTableBorder(16, 36, 18);
-                    Console.WriteLine($"|{"User",-16}|{"UUID",36}|{"Associated Groups",18}|");
-                    PrintTableBorder(16, 36, 18);
+                    var maxNameLength = users.UserDict.Select(x => x.Key.Length).Max();
+                    var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
+
+                    PrintTableBorder(nameFieldWidth, 36, 18);
+                    Console.WriteLine($"|{"User".PadRight(nameFieldWidth)}|{"UUID",36}|{"Associated Groups",18}|");
+                    PrintTableBorder(nameFieldWidth, 36, 18);
 
                     foreach (var user in users.UserDict)
-                        Console.WriteLine($"|{user.Key,-16}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,18}|");
+                        Console.WriteLine($"|{user.Key.PadRight(nameFieldWidth)}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,18}|");
 
-                    PrintTableBorder(16, 36, 18);
+                    PrintTableBorder(nameFieldWidth, 36, 18);
                 });
 
             nodeListCommand.AddAlias("l");
@@ -322,9 +325,20 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
 
-                    PrintTableBorder(7, 32, 16, 36, 24, 5, 12, 32);
-                    Console.WriteLine($"|{"Status",7}|{"Node",-32}|{"Group",-16}|{"UUID",36}|{"Host",24}|{"Port",5}|{"Plugin",12}|{"Plugin Options",32}|");
-                    PrintTableBorder(7, 32, 16, 36, 24, 5, 12, 32);
+                    var maxNodeNameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Keys).Select(x => x.Length).Max();
+                    var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length).Max();
+                    var maxHostnameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values).Select(x => x.Host.Length).Max();
+                    var maxPluginLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values).Select(x => x.Plugin?.Length ?? 0).Max();
+                    var maxPluginOptsLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values).Select(x => x.PluginOpts?.Length ?? 0).Max();
+                    var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
+                    var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+                    var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
+                    var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength + 2 : 8;
+                    var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength + 2 : 16;
+
+                    PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                    Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
+                    PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
                     if (string.IsNullOrEmpty(group))
                         foreach (var groupEntry in nodes.Groups)
@@ -336,11 +350,11 @@ namespace ShadowsocksUriGenerator
                     else
                         Console.WriteLine($"Group not found: {group}.");
 
-                    PrintTableBorder(7, 32, 16, 36, 24, 5, 12, 32);
+                    PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
-                    static void PrintNodeInfo(KeyValuePair<string, Node> node, string group)
+                    void PrintNodeInfo(KeyValuePair<string, Node> node, string group)
                     {
-                        Console.WriteLine($"|{(node.Value.Deactivated ? "🛑" : "✔"),7}|{node.Key,-32}|{group,-16}|{node.Value.Uuid,36}|{node.Value.Host,24}|{node.Value.Port,5}|{node.Value.Plugin,12}|{node.Value.PluginOpts,32}|");
+                        Console.WriteLine($"|{(node.Value.Deactivated ? "🛑" : "✔"),7}|{node.Key.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Value.Uuid,36}|{node.Value.Host.PadLeft(hostnameFieldWidth)}|{node.Value.Port,5}|{(node.Value.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{(node.Value.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
                     }
                 });
 
@@ -351,16 +365,21 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
 
-                    PrintTableBorder(16, 16, 16);
-                    Console.WriteLine($"|{"Group",-16}|{"Number of Nodes",16}|{"Outline Server",16}|");
-                    PrintTableBorder(16, 16, 16);
+                    var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length).Max();
+                    var maxOutlineServerNameLength = nodes.Groups.Select(x => x.Value.OutlineServerInfo?.Name.Length ?? 0).Max();
+                    var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+                    var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
+
+                    PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                    Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
+                    PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
 
                     foreach (var group in nodes.Groups)
                     {
-                        Console.WriteLine($"|{group.Key,-16}|{group.Value.NodeDict.Count,16}|{group.Value.OutlineServerInfo?.Name ?? "No",16}|");
+                        Console.WriteLine($"|{group.Key.PadRight(groupNameFieldWidth)}|{group.Value.NodeDict.Count,16}|{(group.Value.OutlineServerInfo?.Name ?? "No").PadLeft(outlineServerNameFieldWidth)}|");
                     }
 
-                    PrintTableBorder(16, 16, 16);
+                    PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
                 });
 
             userJoinGroupCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
@@ -499,22 +518,29 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
-                    PrintTableBorder(16, 16, 24, 32);
-                    Console.WriteLine($"|{"User",-16}|{"Group",-16}|{"Method",-24}|{"Password",-32}|");
-                    PrintTableBorder(16, 16, 24, 32);
+                    var maxUsernameLength = users.UserDict.Select(x => x.Key.Length).Max();
+                    var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Credentials.Keys).Select(x => x.Length).Max();
+                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values).Select(x => x?.Password.Length ?? 0).Max();
+                    var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
+                    var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+                    var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
+
+                    PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
+                    Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
+                    PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
 
                     foreach (var user in users.UserDict)
                     {
                         foreach (var credEntry in user.Value.Credentials)
                         {
                             if (credEntry.Value == null)
-                                Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{string.Empty,-24}|{string.Empty,-32}|");
+                                Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{credEntry.Key.PadRight(groupNameFieldWidth)}|{string.Empty,-24}|{string.Empty.PadRight(passwordFieldWidth)}|");
                             else
-                                Console.WriteLine($"|{user.Key,-16}|{credEntry.Key,-16}|{credEntry.Value.Method,-24}|{credEntry.Value.Password,-32}|");
+                                Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{credEntry.Key.PadRight(groupNameFieldWidth)}|{credEntry.Value.Method,-24}|{credEntry.Value.Password.PadRight(passwordFieldWidth)}|");
                         }
                     }
 
-                    PrintTableBorder(16, 16, 24, 32);
+                    PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
                 });
 
             userGetSSLinksCommand.AddAlias("ss");
@@ -540,6 +566,8 @@ namespace ShadowsocksUriGenerator
                     settings = await loadSettingsTask;
 
                     var records = users.GetUserDataUsage(username, nodes);
+                    var maxNameLength = records.Select(x => x.group.Length).Max();
+                    var nameFieldWidth = maxNameLength > 5 ? maxNameLength + 2 : 7;
 
                     var sortByInEffect = settings.UserDataUsageDefaultSortBy;
                     if (sortBy is SortBy currentRunSortBy)
@@ -583,22 +611,22 @@ namespace ShadowsocksUriGenerator
 
                     Console.WriteLine();
 
-                    PrintTableBorder(32, 11, 16);
+                    PrintTableBorder(nameFieldWidth, 11, 16);
 
-                    Console.WriteLine($"|{"Group",-32}|{"Data Used",11}|{"Data Remaining",16}|");
+                    Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    PrintTableBorder(32, 11, 16);
+                    PrintTableBorder(nameFieldWidth, 11, 16);
 
                     foreach (var (group, bytesUsed, bytesRemaining) in records)
                     {
-                        Console.Write($"|{group,-32}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        Console.Write($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
                         if (bytesRemaining != 0UL)
                             Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
                         else
                             Console.WriteLine($"{string.Empty,16}|");
                     }
 
-                    PrintTableBorder(32, 11, 16);
+                    PrintTableBorder(nameFieldWidth, 11, 16);
                 });
 
             userSetDataLimitCommand.AddAlias("limit");
@@ -767,22 +795,27 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
+                    var maxUsernameLength = users.UserDict.Select(x => x.Key.Length).Max();
+                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values).Select(x => x?.Password.Length ?? 0).Max();
+                    var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
+                    var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
+
                     Console.WriteLine($"{"Group",-16}{group,-32}");
                     Console.WriteLine();
 
-                    PrintTableBorder(16, 24, 32);
-                    Console.WriteLine($"|{"User",-16}|{"Method",-24}|{"Password",-32}|");
-                    PrintTableBorder(16, 24, 32);
+                    PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+                    Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
+                    PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
 
                     foreach (var user in users.UserDict)
                     {
                         if (user.Value.Credentials.TryGetValue(group, out var cred))
                         {
-                            Console.WriteLine($"|{user.Key,-16}|{cred?.Method,-24}|{cred?.Password,-32}|");
+                            Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{cred?.Method,-24}|{(cred?.Password ?? string.Empty).PadRight(passwordFieldWidth)}|");
                         }
                     }
 
-                    PrintTableBorder(16, 24, 32);
+                    PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
                 }
             );
 
@@ -797,6 +830,8 @@ namespace ShadowsocksUriGenerator
                     settings = await loadSettingsTask;
 
                     var records = nodes.GetGroupDataUsage(group);
+                    var maxNameLength = records.Select(x => x.username.Length).Max();
+                    var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
                     var sortByInEffect = settings.GroupDataUsageDefaultSortBy;
                     if (sortBy is SortBy currentRunSortBy)
@@ -840,22 +875,22 @@ namespace ShadowsocksUriGenerator
 
                     Console.WriteLine();
 
-                    PrintTableBorder(32, 11, 16);
+                    PrintTableBorder(nameFieldWidth, 11, 16);
 
-                    Console.WriteLine($"|{"User",-32}|{"Data Used",11}|{"Data Remaining",16}|");
+                    Console.WriteLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    PrintTableBorder(32, 11, 16);
+                    PrintTableBorder(nameFieldWidth, 11, 16);
 
                     foreach (var (username, bytesUsed, bytesRemaining) in records)
                     {
-                        Console.Write($"|{username,-32}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        Console.Write($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
                         if (bytesRemaining != 0UL)
                             Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
                         else
                             Console.WriteLine($"{string.Empty,16}|");
                     }
 
-                    PrintTableBorder(32, 11, 16);
+                    PrintTableBorder(nameFieldWidth, 11, 16);
                 });
 
             groupSetDataLimitCommand.AddAlias("limit");
