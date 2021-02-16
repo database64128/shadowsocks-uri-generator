@@ -311,14 +311,14 @@ namespace ShadowsocksUriGenerator
                     var maxNameLength = users.UserDict.Select(x => x.Key.Length).Max();
                     var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
-                    PrintTableBorder(nameFieldWidth, 36, 18);
+                    Utilities.PrintTableBorder(nameFieldWidth, 36, 18);
                     Console.WriteLine($"|{"User".PadRight(nameFieldWidth)}|{"UUID",36}|{"Associated Groups",18}|");
-                    PrintTableBorder(nameFieldWidth, 36, 18);
+                    Utilities.PrintTableBorder(nameFieldWidth, 36, 18);
 
                     foreach (var user in users.UserDict)
                         Console.WriteLine($"|{user.Key.PadRight(nameFieldWidth)}|{user.Value.Uuid,36}|{user.Value.Credentials.Count,18}|");
 
-                    PrintTableBorder(nameFieldWidth, 36, 18);
+                    Utilities.PrintTableBorder(nameFieldWidth, 36, 18);
                 });
 
             nodeListCommand.AddAlias("l");
@@ -340,9 +340,9 @@ namespace ShadowsocksUriGenerator
                     var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength + 2 : 8;
                     var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength + 2 : 16;
 
-                    PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                    Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
                     Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
-                    PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                    Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
                     if (string.IsNullOrEmpty(group))
                         foreach (var groupEntry in nodes.Groups)
@@ -354,7 +354,7 @@ namespace ShadowsocksUriGenerator
                     else
                         Console.WriteLine($"Group not found: {group}.");
 
-                    PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                    Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
                     void PrintNodeInfo(KeyValuePair<string, Node> node, string group)
                     {
@@ -374,16 +374,16 @@ namespace ShadowsocksUriGenerator
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
                     var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
 
-                    PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                    Utilities.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
                     Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
-                    PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                    Utilities.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
 
                     foreach (var group in nodes.Groups)
                     {
                         Console.WriteLine($"|{group.Key.PadRight(groupNameFieldWidth)}|{group.Value.NodeDict.Count,16}|{(group.Value.OutlineServerInfo?.Name ?? "No").PadLeft(outlineServerNameFieldWidth)}|");
                     }
 
-                    PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                    Utilities.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
                 });
 
             userJoinGroupCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
@@ -529,9 +529,9 @@ namespace ShadowsocksUriGenerator
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
                     var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
 
-                    PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
+                    Utilities.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
                     Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
-                    PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
+                    Utilities.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
 
                     foreach (var user in users.UserDict)
                     {
@@ -544,7 +544,7 @@ namespace ShadowsocksUriGenerator
                         }
                     }
 
-                    PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
+                    Utilities.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
                 });
 
             userGetSSLinksCommand.AddAlias("ss");
@@ -615,11 +615,11 @@ namespace ShadowsocksUriGenerator
 
                     Console.WriteLine();
 
-                    PrintTableBorder(nameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(nameFieldWidth, 11, 16);
 
                     Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    PrintTableBorder(nameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(nameFieldWidth, 11, 16);
 
                     foreach (var (group, bytesUsed, bytesRemaining) in records)
                     {
@@ -630,7 +630,7 @@ namespace ShadowsocksUriGenerator
                             Console.WriteLine($"{string.Empty,16}|");
                     }
 
-                    PrintTableBorder(nameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(nameFieldWidth, 11, 16);
                 });
 
             userSetDataLimitCommand.AddAlias("limit");
@@ -807,9 +807,9 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"{"Group",-16}{group,-32}");
                     Console.WriteLine();
 
-                    PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+                    Utilities.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
                     Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
-                    PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+                    Utilities.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
 
                     foreach (var user in users.UserDict)
                     {
@@ -819,7 +819,7 @@ namespace ShadowsocksUriGenerator
                         }
                     }
 
-                    PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+                    Utilities.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
                 }
             );
 
@@ -879,11 +879,11 @@ namespace ShadowsocksUriGenerator
 
                     Console.WriteLine();
 
-                    PrintTableBorder(nameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(nameFieldWidth, 11, 16);
 
                     Console.WriteLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    PrintTableBorder(nameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(nameFieldWidth, 11, 16);
 
                     foreach (var (username, bytesUsed, bytesRemaining) in records)
                     {
@@ -894,7 +894,7 @@ namespace ShadowsocksUriGenerator
                             Console.WriteLine($"{string.Empty,16}|");
                     }
 
-                    PrintTableBorder(nameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(nameFieldWidth, 11, 16);
                 });
 
             groupSetDataLimitCommand.AddAlias("limit");
@@ -1335,9 +1335,9 @@ namespace ShadowsocksUriGenerator
 
                     // by group
                     Console.WriteLine("Data usage by group");
-                    PrintTableBorder(groupNameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(groupNameFieldWidth, 11, 16);
                     Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                    PrintTableBorder(groupNameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(groupNameFieldWidth, 11, 16);
                     foreach (var (group, bytesUsed, bytesRemaining) in recordsByGroup)
                     {
                         Console.Write($"|{group.PadRight(groupNameFieldWidth)}|");
@@ -1350,14 +1350,14 @@ namespace ShadowsocksUriGenerator
                         else
                             Console.WriteLine($"{string.Empty,16}|");
                     }
-                    PrintTableBorder(groupNameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(groupNameFieldWidth, 11, 16);
                     Console.WriteLine();
 
                     // by user
                     Console.WriteLine("Data usage by user");
-                    PrintTableBorder(usernameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(usernameFieldWidth, 11, 16);
                     Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                    PrintTableBorder(usernameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(usernameFieldWidth, 11, 16);
                     foreach (var (username, bytesUsed, bytesRemaining) in recordsByUser)
                     {
                         Console.Write($"|{username.PadRight(usernameFieldWidth)}|");
@@ -1370,7 +1370,7 @@ namespace ShadowsocksUriGenerator
                         else
                             Console.WriteLine($"{string.Empty,16}|");
                     }
-                    PrintTableBorder(usernameFieldWidth, 11, 16);
+                    Utilities.PrintTableBorder(usernameFieldWidth, 11, 16);
                 });
 
             settingsGetCommand.Handler = CommandHandler.Create(
@@ -1378,9 +1378,9 @@ namespace ShadowsocksUriGenerator
                 {
                     settings = await loadSettingsTask;
 
-                    PrintTableBorder(42, 40);
+                    Utilities.PrintTableBorder(42, 40);
                     Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
-                    PrintTableBorder(42, 40);
+                    Utilities.PrintTableBorder(42, 40);
 
                     Console.WriteLine($"|{"Version",-42}|{settings.Version,40}|");
                     Console.WriteLine($"|{"UserDataUsageDefaultSortBy",-42}|{settings.UserDataUsageDefaultSortBy,40}|");
@@ -1395,7 +1395,7 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
                     Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
 
-                    PrintTableBorder(42, 40);
+                    Utilities.PrintTableBorder(42, 40);
                 });
 
             settingsSetCommand.AddOption(new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report."));
@@ -1404,15 +1404,16 @@ namespace ShadowsocksUriGenerator
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-deliver-by-group", "Whether online config should be delivered to each user by group. Turning this on will generate one online config JSON for each group associated with the user, in addition to the single JSON that contains all associated servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-update-data-usage-on-generation", "Whether data usage metrics are updated from configured sources when generating online config."));
-            settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
-            settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<string?>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<string?>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-deploy-on-change", "Whether changes made to local databases trigger deployments to linked Outline servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
             settingsSetCommand.Handler = CommandHandler.Create(
-                async (SortBy? userDataUsageDefaultSortBy, SortBy? groupDataUsageDefaultSortBy, bool? onlineConfigSortByName, bool? onlineConfigDeliverByGroup, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string onlineConfigOutputDirectory, string onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string? outlineServerGlobalDefaultUser) =>
+                async (SortBy? userDataUsageDefaultSortBy, SortBy? groupDataUsageDefaultSortBy, bool? onlineConfigSortByName, bool? onlineConfigDeliverByGroup, bool? onlineConfigCleanOnUserRemoval, bool? onlineConfigUpdateDataUsageOnGeneration, string? onlineConfigOutputDirectory, string? onlineConfigDeliveryRootUri, bool? outlineServerDeployOnChange, bool? outlineServerApplyDefaultUserOnAssociation, string? outlineServerGlobalDefaultUser) =>
                 {
                     settings = await loadSettingsTask;
+
                     if (userDataUsageDefaultSortBy is SortBy userSortBy)
                         settings.UserDataUsageDefaultSortBy = userSortBy;
                     if (groupDataUsageDefaultSortBy is SortBy groupSortBy)
@@ -1433,8 +1434,9 @@ namespace ShadowsocksUriGenerator
                         settings.OutlineServerDeployOnChange = deployOnChange;
                     if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
                         settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
-                    if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
+                    if (outlineServerGlobalDefaultUser != null)
                         settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
+
                     await Settings.SaveSettingsAsync(settings);
                 });
 
@@ -1535,17 +1537,6 @@ namespace ShadowsocksUriGenerator
 
             Console.OutputEncoding = Encoding.UTF8;
             return rootCommand.InvokeAsync(args);
-        }
-
-        public static void PrintTableBorder(params int[] columnWidths)
-        {
-            foreach (var columnWidth in columnWidths)
-            {
-                Console.Write('+');
-                for (var i = 0; i < columnWidth; i++)
-                    Console.Write('-');
-            }
-            Console.Write("+\n");
         }
     }
 }

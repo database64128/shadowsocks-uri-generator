@@ -210,5 +210,16 @@ namespace ShadowsocksUriGenerator
                     await jsonFile.DisposeAsync();
             }
         }
+
+        public static void PrintTableBorder(params int[] columnWidths)
+        {
+            foreach (var columnWidth in columnWidths)
+            {
+                Console.Write('+');
+                for (var i = 0; i < columnWidth; i++)
+                    Console.Write('-');
+            }
+            Console.Write("+\n");
+        }
     }
 }
