@@ -245,6 +245,23 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Gets data usage records that contains
+        /// each user's total data usage.
+        /// </summary>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        /// <returns>A list of data usage records as tuples.</returns>
+        public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsageByUser(Nodes nodes)
+        {
+            List<(string username, ulong bytesUsed, ulong bytesRemaining)> records = new();
+            foreach (var userEntry in UserDict)
+            {
+                userEntry.Value.CalculateTotalDataUsage(userEntry.Key, nodes);
+                records.Add((userEntry.Key, userEntry.Value.BytesUsed, userEntry.Value.BytesRemaining));
+            }
+            return records;
+        }
+
+        /// <summary>
         /// Sets the data limit to the specified user.
         /// </summary>
         /// <param name="dataLimit">The data limit in bytes.</param>

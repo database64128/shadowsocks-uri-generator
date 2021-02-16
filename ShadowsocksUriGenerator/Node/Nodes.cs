@@ -222,6 +222,19 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Gets data usage records that contains
+        /// each group's total data usage.
+        /// </summary>
+        /// <returns>A list of data usage records as tuples.</returns>
+        public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetDataUsageByGroup()
+        {
+            List<(string group, ulong bytesUsed, ulong bytesRemaining)> records = new();
+            foreach (var groupEntry in Groups)
+                records.Add((groupEntry.Key, groupEntry.Value.BytesUsed, groupEntry.Value.BytesRemaining));
+            return records;
+        }
+
+        /// <summary>
         /// Sets the data limit for the specified group.
         /// </summary>
         /// <param name="dataLimit">The data limit in bytes.</param>
