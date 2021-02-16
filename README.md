@@ -18,6 +18,8 @@ A light-weight command line automation tool for multi-user `ss://` URL generatio
 - Support [SIP003](https://shadowsocks.org/en/spec/Plugin.html) plugins.
 - Generate SIP008-compliant online configuration files.
 - Generate and print SIP008 delivery URL.
+- Run as a service to execute scheduled tasks.
+- Easy user interactions via [Telegram bots](https://core.telegram.org/bots).
 
 ## Build
 
@@ -63,6 +65,9 @@ $ ss-uri-gen --help
 
 # Enter interactive mode (REPL).
 $ ss-uri-gen interactive
+
+# Run as a service to execute scheduled tasks.
+$ ss-uri-gen service --interval 3600 --pull-outline-server --generate-online-config
 
 # Add users.
 $ ss-uri-gen user add MyUserA MyUserB
@@ -123,6 +128,12 @@ $ ss-uri-gen settings set --outline-server-global-default-user MyUserA
 
 # Settings: change the online configuration generation output directory to 'sip008'.
 $ ss-uri-gen settings set --online-config-output-directory sip008
+
+# Telegram bot: set bot token.
+$ ss-uri-gen-chatbot-telegram config set --bot-token "1234567:4TT8bAc8GHUspu3ERYn-KGcvsvGB9u_n4ddy"
+
+# Telegram bot: run as a service.
+$ ss-uri-gen-chatbot-telegram
 ```
 
 ## License

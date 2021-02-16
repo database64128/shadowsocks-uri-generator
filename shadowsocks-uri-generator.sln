@@ -5,7 +5,11 @@ VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator", "ShadowsocksUriGenerator\ShadowsocksUriGenerator.csproj", "{DE625CF7-725A-4459-90A7-47B46D3A3F95}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Tests", "ShadowsocksUriGenerator.Tests\ShadowsocksUriGenerator.Tests.csproj", "{5FF283B5-1F60-4CEF-A878-9E2461F3B1FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.Tests", "ShadowsocksUriGenerator.Tests\ShadowsocksUriGenerator.Tests.csproj", "{5FF283B5-1F60-4CEF-A878-9E2461F3B1FB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Chatbot.Telegram", "ShadowsocksUriGenerator.Chatbot.Telegram\ShadowsocksUriGenerator.Chatbot.Telegram.csproj", "{CAEE0D80-233B-41EA-8482-9B504AE0FED1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Chatbot.Telegram.Tests", "ShadowsocksUriGenerator.Chatbot.Telegram.Tests\ShadowsocksUriGenerator.Chatbot.Telegram.Tests.csproj", "{E23E109C-BF07-4A58-8311-38DA2D485AFA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{5FF283B5-1F60-4CEF-A878-9E2461F3B1FB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5FF283B5-1F60-4CEF-A878-9E2461F3B1FB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5FF283B5-1F60-4CEF-A878-9E2461F3B1FB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAEE0D80-233B-41EA-8482-9B504AE0FED1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAEE0D80-233B-41EA-8482-9B504AE0FED1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAEE0D80-233B-41EA-8482-9B504AE0FED1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAEE0D80-233B-41EA-8482-9B504AE0FED1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E23E109C-BF07-4A58-8311-38DA2D485AFA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E23E109C-BF07-4A58-8311-38DA2D485AFA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E23E109C-BF07-4A58-8311-38DA2D485AFA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E23E109C-BF07-4A58-8311-38DA2D485AFA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
