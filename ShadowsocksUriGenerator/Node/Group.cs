@@ -203,12 +203,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         public void CalculateTotalDataUsage()
         {
-            var bytesUsedByUser = OutlineDataUsage?.BytesTransferredByUserId.Values;
-            if (bytesUsedByUser != null && bytesUsedByUser.Count > 0)
-                BytesUsed = bytesUsedByUser.Aggregate((x, y) => x + y);
-            else
-                BytesUsed = 0UL;
-
+            BytesUsed = OutlineDataUsage?.BytesTransferredByUserId.Values.Aggregate(0UL, (x, y) => x + y) ?? 0UL;
             if (DataLimitInBytes > 0UL)
                 BytesRemaining = DataLimitInBytes - BytesUsed;
         }

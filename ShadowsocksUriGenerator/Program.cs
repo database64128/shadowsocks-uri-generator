@@ -308,7 +308,9 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
-                    var maxNameLength = users.UserDict.Select(x => x.Key.Length).Max();
+                    var maxNameLength = users.UserDict.Select(x => x.Key.Length)
+                                                      .DefaultIfEmpty()
+                                                      .Max();
                     var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
                     Utilities.PrintTableBorder(nameFieldWidth, 36, 18);
@@ -329,11 +331,25 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
 
-                    var maxNodeNameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Keys).Select(x => x.Length).Max();
-                    var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length).Max();
-                    var maxHostnameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values).Select(x => x.Host.Length).Max();
-                    var maxPluginLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values).Select(x => x.Plugin?.Length ?? 0).Max();
-                    var maxPluginOptsLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values).Select(x => x.PluginOpts?.Length ?? 0).Max();
+                    var maxNodeNameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Keys)
+                                                        .Select(x => x.Length)
+                                                        .DefaultIfEmpty()
+                                                        .Max();
+                    var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
+                                                         .DefaultIfEmpty()
+                                                         .Max();
+                    var maxHostnameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values)
+                                                        .Select(x => x.Host.Length)
+                                                        .DefaultIfEmpty()
+                                                        .Max();
+                    var maxPluginLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values)
+                                                      .Select(x => x.Plugin?.Length ?? 0)
+                                                      .DefaultIfEmpty()
+                                                      .Max();
+                    var maxPluginOptsLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values)
+                                                          .Select(x => x.PluginOpts?.Length ?? 0)
+                                                          .DefaultIfEmpty()
+                                                          .Max();
                     var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
                     var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
@@ -369,8 +385,12 @@ namespace ShadowsocksUriGenerator
                 {
                     nodes = await loadNodesTask;
 
-                    var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length).Max();
-                    var maxOutlineServerNameLength = nodes.Groups.Select(x => x.Value.OutlineServerInfo?.Name.Length ?? 0).Max();
+                    var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
+                                                         .DefaultIfEmpty()
+                                                         .Max();
+                    var maxOutlineServerNameLength = nodes.Groups.Select(x => x.Value.OutlineServerInfo?.Name.Length ?? 0)
+                                                                 .DefaultIfEmpty()
+                                                                 .Max();
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
                     var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
 
@@ -522,9 +542,17 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
-                    var maxUsernameLength = users.UserDict.Select(x => x.Key.Length).Max();
-                    var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Credentials.Keys).Select(x => x.Length).Max();
-                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values).Select(x => x?.Password.Length ?? 0).Max();
+                    var maxUsernameLength = users.UserDict.Select(x => x.Key.Length)
+                                                          .DefaultIfEmpty()
+                                                          .Max();
+                    var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Credentials.Keys)
+                                                           .Select(x => x.Length)
+                                                           .DefaultIfEmpty()
+                                                           .Max();
+                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values)
+                                                          .Select(x => x?.Password.Length ?? 0)
+                                                          .DefaultIfEmpty()
+                                                          .Max();
                     var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
                     var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
@@ -570,7 +598,9 @@ namespace ShadowsocksUriGenerator
                     settings = await loadSettingsTask;
 
                     var records = users.GetUserDataUsage(username, nodes);
-                    var maxNameLength = records.Select(x => x.group.Length).Max();
+                    var maxNameLength = records.Select(x => x.group.Length)
+                                               .DefaultIfEmpty()
+                                               .Max();
                     var nameFieldWidth = maxNameLength > 5 ? maxNameLength + 2 : 7;
 
                     var sortByInEffect = settings.UserDataUsageDefaultSortBy;
@@ -799,8 +829,13 @@ namespace ShadowsocksUriGenerator
                 {
                     users = await loadUsersTask;
 
-                    var maxUsernameLength = users.UserDict.Select(x => x.Key.Length).Max();
-                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values).Select(x => x?.Password.Length ?? 0).Max();
+                    var maxUsernameLength = users.UserDict.Select(x => x.Key.Length)
+                                                          .DefaultIfEmpty()
+                                                          .Max();
+                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values)
+                                                          .Select(x => x?.Password.Length ?? 0)
+                                                          .DefaultIfEmpty()
+                                                          .Max();
                     var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
                     var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
 
@@ -834,7 +869,9 @@ namespace ShadowsocksUriGenerator
                     settings = await loadSettingsTask;
 
                     var records = nodes.GetGroupDataUsage(group);
-                    var maxNameLength = records.Select(x => x.username.Length).Max();
+                    var maxNameLength = records.Select(x => x.username.Length)
+                                               .DefaultIfEmpty()
+                                               .Max();
                     var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
                     var sortByInEffect = settings.GroupDataUsageDefaultSortBy;
@@ -1253,15 +1290,19 @@ namespace ShadowsocksUriGenerator
                     settings = await loadSettingsTask;
 
                     // collect data
-                    var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate((x, y) => x + y);
-                    var totalBytesRemaining = nodes.Groups.Select(x => x.Value.BytesRemaining).Aggregate((x, y) => x + y);
+                    var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);
+                    var totalBytesRemaining = nodes.Groups.Select(x => x.Value.BytesRemaining).Aggregate(0UL, (x, y) => x + y);
                     var recordsByGroup = nodes.GetDataUsageByGroup();
                     var recordsByUser = users.GetDataUsageByUser(nodes);
 
                     // calculate column width
-                    var maxGroupNameLength = recordsByGroup.Select(x => x.group.Length).Max();
+                    var maxGroupNameLength = recordsByGroup.Select(x => x.group.Length)
+                                                           .DefaultIfEmpty()
+                                                           .Max();
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-                    var maxUsernameLength = recordsByUser.Select(x => x.username.Length).Max();
+                    var maxUsernameLength = recordsByUser.Select(x => x.username.Length)
+                                                         .DefaultIfEmpty()
+                                                         .Max();
                     var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
 
                     // sort
