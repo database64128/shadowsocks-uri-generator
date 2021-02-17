@@ -120,19 +120,19 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 {
                     if (string.Equals(userUuid, argument, StringComparison.OrdinalIgnoreCase))
                     {
-                        reply = $@"You are already linked to *{matchedUser.Value.Key}*\.";
+                        reply = $@"You are already linked to `{matchedUser.Value.Key}`\.";
                         Console.WriteLine(" Response: already linked.");
                     }
                     else
                     {
-                        reply = $@"You are already linked to another user with UUID {userUuid}\.";
+                        reply = $@"You are already linked to another user with UUID `{userUuid}`\.";
                         Console.WriteLine(" Response: already linked to another user.");
                     }
                 }
                 else
                 {
                     botConfig.ChatAssociations.Add(message.From.Id, matchedUser.Value.Value.Uuid);
-                    reply = $@"Successfully linked your Telegram account to *{matchedUser.Value.Key}*\.";
+                    reply = $@"Successfully linked your Telegram account to `{matchedUser.Value.Key}`\.";
                     Console.WriteLine(" Response: success.");
                     await BotConfig.SaveBotConfigAsync(botConfig);
                 }
@@ -157,7 +157,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else if (botConfig.ChatAssociations.Remove(message.From.Id, out var userUuid))
             {
-                reply = $@"Successfully unlinked your Telegram account from {userUuid}\.";
+                reply = $@"Successfully unlinked your Telegram account from `{userUuid}`\.";
                 Console.WriteLine(" Response: success.");
                 await BotConfig.SaveBotConfigAsync(botConfig);
             }
