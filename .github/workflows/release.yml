@@ -119,7 +119,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ShadowsocksUriGenerator*/bin/Release/net5.0/ss-uri-gen-*
+          file: ShadowsocksUriGenerator*/bin/Release/net5.0/ss-uri-gen-*-windows*.*
           tag: ${{ github.ref }}
           file_glob: true
           prerelease: true
