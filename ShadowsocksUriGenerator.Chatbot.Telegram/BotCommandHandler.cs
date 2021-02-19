@@ -53,7 +53,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             // Trim quotes and spaces from argument
             if (argument != null)
             {
-                argument = argument.TrimEnd();
+                argument = argument.Trim();
                 argument = argument.Trim('\'', '"');
             }
 
