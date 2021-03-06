@@ -9,14 +9,14 @@ namespace ShadowsocksUriGenerator
 {
     public static class Utilities
     {
-        public static readonly JsonSerializerOptions commonJsonSerializerOptions = new JsonSerializerOptions()
+        public static readonly JsonSerializerOptions commonJsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             WriteIndented = true,
         };
 
-        public static readonly JsonSerializerOptions snakeCaseJsonSerializerOptions = new JsonSerializerOptions()
+        public static readonly JsonSerializerOptions snakeCaseJsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -24,7 +24,7 @@ namespace ShadowsocksUriGenerator
             WriteIndented = true,
         };
 
-        public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new JsonSerializerOptions()
+        public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new()
         {
             AllowTrailingCommas = true,
             ReadCommentHandling = JsonCommentHandling.Skip,

@@ -14,7 +14,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 {
     public static class BotCommandHandler
     {
-        public static Task Handle(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static Task Handle(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             var text = message.Text;
 
@@ -77,16 +77,16 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             };
         }
 
-        public static async Task HandleStartCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleStartCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.WriteLine($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             var reply = @"🧑‍✈️ Good evening\! Thank you for choosing QDA\.
 
 ✈️ To get your boarding pass, please use `/link <UUID>` to link your Telegram account to your user\.";
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleLinkCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken)
+        public static async Task HandleLinkCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -137,10 +137,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     await BotConfig.SaveBotConfigAsync(botConfig);
                 }
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleUnlinkCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleUnlinkCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -166,10 +166,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You are not linked to any user\.";
                 Console.WriteLine(" Response: not linked");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleListUsersCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleListUsersCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -208,10 +208,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleListNodesCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken)
+        public static async Task HandleListNodesCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -269,10 +269,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleListGroupsCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleListGroupsCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -312,10 +312,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleListGroupMembersCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken)
+        public static async Task HandleListGroupMembersCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -358,10 +358,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleGetUserDataUsageCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken)
+        public static async Task HandleGetUserDataUsageCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply = @"An error occurred\."; // the initial value is only used when there's an error in the logic
@@ -432,10 +432,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleGetGroupDataUsageCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken)
+        public static async Task HandleGetGroupDataUsageCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -518,10 +518,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleGetSsLinksCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleGetSsLinksCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -560,10 +560,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleGetSip008LinksCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleGetSip008LinksCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -598,10 +598,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2, true);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, true, cancellationToken);
         }
 
-        public static async Task HandleGetCredentialsCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleGetCredentialsCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -659,10 +659,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleReportCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken)
+        public static async Task HandleReportCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -756,15 +756,15 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
-            await ReplyToMessage(botClient, message, reply, cancellationToken, ParseMode.MarkdownV2);
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
         private static Task ReplyToMessage(
             ITelegramBotClient botClient,
             Message message, string reply,
-            CancellationToken cancellationToken,
             ParseMode parseMode = ParseMode.MarkdownV2,
-            bool disableWebPagePreview = false)
+            bool disableWebPagePreview = false,
+            CancellationToken cancellationToken = default)
         {
             if (reply.Length <= 4096)
                 return botClient.SendTextMessageAsync(

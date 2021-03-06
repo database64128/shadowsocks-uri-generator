@@ -118,7 +118,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             return rootCommand.InvokeAsync(args);
         }
 
-        public static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+        public static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -131,7 +131,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
         }
 
-        public static Task HandleErrorAsync(ITelegramBotClient botClient, Exception ex, CancellationToken cancellationToken)
+        public static Task HandleErrorAsync(ITelegramBotClient botClient, Exception ex, CancellationToken cancellationToken = default)
         {
             var errorMessage = ex switch
             {
