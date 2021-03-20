@@ -168,6 +168,22 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Removes the user from all groups.
+        /// </summary>
+        /// <param name="user">Target user.</param>
+        /// <returns>0 for success. -2 when user is not found.</returns>
+        public int RemoveUserFromAllGroups(string user)
+        {
+            if (UserDict.TryGetValue(user, out var targetUser))
+            {
+                targetUser.Credentials.Clear();
+                return 0;
+            }
+            else
+                return -2;
+        }
+
+        /// <summary>
         /// Removes all users from the specified groups.
         /// </summary>
         /// <param name="groups">Target groups.</param>
@@ -193,6 +209,23 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Removes the user's all associated credentials.
+        /// </summary>
+        /// <param name="user">Target user.</param>
+        /// <returns>0 for success. -2 when the user is not found.</returns>
+        public int RemoveAllCredentialsFromUser(string user)
+        {
+            if (UserDict.TryGetValue(user, out var targetUser))
+            {
+                foreach (var credEntry in targetUser.Credentials)
+                    targetUser.Credentials[credEntry.Key] = null;
+                return 0;
+            }
+            else
+                return -2;
+        }
+
+        /// <summary>
         /// Removes credentials associated with the specified groups from all users.
         /// </summary>
         /// <param name="groups">A list of groups.</param>
@@ -211,10 +244,10 @@ namespace ShadowsocksUriGenerator
         /// A list of the user's associated Shadowsocks URIs.
         /// Empty list if target user not found or no associated nodes.
         /// </returns>
-        public List<Uri> GetUserSSUris(string username, Nodes nodes)
+        public List<Uri> GetUserSSUris(string username, Nodes nodes, params string[] groups)
         {
             if (UserDict.TryGetValue(username, out var user))
-                return user.GetSSUris(nodes);
+                return user.GetSSUris(nodes, groups);
             else
                 return new();
         }

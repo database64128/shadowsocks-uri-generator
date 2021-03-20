@@ -190,6 +190,25 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Activates all nodes in the group.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -2 if group is not found.
+        /// </returns>
+        public int ActivateAllNodesInGroup(string group)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+            {
+                targetGroup.ActivateAllNodes();
+                return 0;
+            }
+            else
+                return -2;
+        }
+
+        /// <summary>
         /// Deactivates the node in the group.
         /// </summary>
         /// <param name="group">Group name.</param>
@@ -204,6 +223,25 @@ namespace ShadowsocksUriGenerator
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.DeactivateNode(node);
+            else
+                return -2;
+        }
+
+        /// <summary>
+        /// Deactivates all nodes in the group.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <returns>
+        /// 0 when success.
+        /// -2 if group is not found.
+        /// </returns>
+        public int DeactivateAllNodesInGroup(string group)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+            {
+                targetGroup.DeactivateAllNodes();
+                return 0;
+            }
             else
                 return -2;
         }

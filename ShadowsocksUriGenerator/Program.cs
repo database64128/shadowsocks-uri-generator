@@ -148,6 +148,16 @@ namespace ShadowsocksUriGenerator
                 serviceCommand,
             };
 
+            var usernamesArgument = new Argument<string[]>("usernames", "One or more usernames.");
+            var nodenamesArgument = new Argument<string[]>("nodenames", "One or more node names.");
+            var groupsArgument = new Argument<string[]>("groups", "One or more group names.");
+            usernamesArgument.Arity = ArgumentArity.OneOrMore;
+            nodenamesArgument.Arity = ArgumentArity.OneOrMore;
+            groupsArgument.Arity = ArgumentArity.OneOrMore;
+
+            var namesOnlyOption = new Option<bool>(new string[] { "-s", "--short", "--names-only" }, "Display names only, without a table.");
+            var onePerLineOption = new Option<bool>(new string[] { "-1", "--one-per-line" }, "Display one name per line.");
+
             userCommand.AddAlias("u");
             nodeCommand.AddAlias("n");
             groupCommand.AddAlias("g");
@@ -160,7 +170,7 @@ namespace ShadowsocksUriGenerator
             interactiveCommand.AddAlias("i");
 
             userAddCommand.AddAlias("a");
-            userAddCommand.AddArgument(new Argument<string[]>("usernames", "A list of usernames to add."));
+            userAddCommand.AddArgument(usernamesArgument);
             userAddCommand.Handler = CommandHandler.Create(
                 async (string[] usernames) =>
                 {
@@ -191,7 +201,7 @@ namespace ShadowsocksUriGenerator
                 });
 
             groupAddCommand.AddAlias("a");
-            groupAddCommand.AddArgument(new Argument<string[]>("groups", "A list of group names to add."));
+            groupAddCommand.AddArgument(groupsArgument);
             groupAddCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
                 {
@@ -258,7 +268,7 @@ namespace ShadowsocksUriGenerator
             userRemoveCommand.AddAlias("rm");
             userRemoveCommand.AddAlias("del");
             userRemoveCommand.AddAlias("delete");
-            userRemoveCommand.AddArgument(new Argument<string[]>("usernames", "A list of users to remove."));
+            userRemoveCommand.AddArgument(usernamesArgument);
             userRemoveCommand.Handler = CommandHandler.Create(
                 async (string[] usernames) =>
                 {
@@ -275,8 +285,8 @@ namespace ShadowsocksUriGenerator
             nodeRemoveCommand.AddAlias("rm");
             nodeRemoveCommand.AddAlias("del");
             nodeRemoveCommand.AddAlias("delete");
-            nodeRemoveCommand.AddArgument(new Argument<string>("group", "The group that the target node belongs to."));
-            nodeRemoveCommand.AddArgument(new Argument<string[]>("nodenames", "A list of node names to remove."));
+            nodeRemoveCommand.AddArgument(new Argument<string>("group", "Group to delete nodes from."));
+            nodeRemoveCommand.AddArgument(nodenamesArgument);
             nodeRemoveCommand.Handler = CommandHandler.Create(
                 async (string group, string[] nodenames) =>
                 {
@@ -289,7 +299,7 @@ namespace ShadowsocksUriGenerator
             groupRemoveCommand.AddAlias("rm");
             groupRemoveCommand.AddAlias("del");
             groupRemoveCommand.AddAlias("delete");
-            groupRemoveCommand.AddArgument(new Argument<string[]>("groups", "A list of groups to remove."));
+            groupRemoveCommand.AddArgument(groupsArgument);
             groupRemoveCommand.Handler = CommandHandler.Create(
                 async (string[] groups) =>
                 {
@@ -303,10 +313,19 @@ namespace ShadowsocksUriGenerator
 
             userListCommand.AddAlias("l");
             userListCommand.AddAlias("ls");
+            userListCommand.AddOption(namesOnlyOption);
+            userListCommand.AddOption(onePerLineOption);
             userListCommand.Handler = CommandHandler.Create(
-                async () =>
+                async (bool namesOnly, bool onePerLine) =>
                 {
                     users = await loadUsersTask;
+
+                    if (namesOnly)
+                    {
+                        var usernames = users.UserDict.Keys.ToList();
+                        Utilities.PrintNameList(usernames, onePerLine);
+                        return;
+                    }
 
                     var maxNameLength = users.UserDict.Select(x => x.Key.Length)
                                                       .DefaultIfEmpty()
@@ -325,11 +344,29 @@ namespace ShadowsocksUriGenerator
 
             nodeListCommand.AddAlias("l");
             nodeListCommand.AddAlias("ls");
-            nodeListCommand.AddArgument(new Argument<string?>("group", getDefaultValue: () => null, "Target group. Leave empty for all groups."));
+            nodeListCommand.AddArgument(new Argument<string[]?>("groups", "Only show nodes from these groups. Leave empty for all groups."));
+            nodeListCommand.AddOption(namesOnlyOption);
+            nodeListCommand.AddOption(onePerLineOption);
             nodeListCommand.Handler = CommandHandler.Create(
-                async (string? group) =>
+                async (string[]? groups, bool namesOnly, bool onePerLine) =>
                 {
                     nodes = await loadNodesTask;
+
+                    if (namesOnly)
+                    {
+                        foreach (var groupEntry in nodes.Groups)
+                        {
+                            if (groups != null && !groups.Contains(groupEntry.Key))
+                                continue;
+
+                            Console.WriteLine($"Group: {groupEntry.Key}");
+                            var keys = groupEntry.Value.NodeDict.Keys.ToList();
+                            Utilities.PrintNameList(keys, onePerLine);
+                            Console.WriteLine();
+                        }
+
+                        return;
+                    }
 
                     var maxNodeNameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Keys)
                                                         .Select(x => x.Length)
@@ -360,15 +397,14 @@ namespace ShadowsocksUriGenerator
                     Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
                     Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
-                    if (string.IsNullOrEmpty(group))
-                        foreach (var groupEntry in nodes.Groups)
-                            foreach (var node in groupEntry.Value.NodeDict)
-                                PrintNodeInfo(node, groupEntry.Key);
-                    else if (nodes.Groups.TryGetValue(group, out Group? targetGroup))
-                        foreach (var node in targetGroup.NodeDict)
-                            PrintNodeInfo(node, group);
-                    else
-                        Console.WriteLine($"Group not found: {group}.");
+                    foreach (var groupEntry in nodes.Groups)
+                    {
+                        if (groups != null && !groups.Contains(groupEntry.Key))
+                            continue;
+
+                        foreach (var node in groupEntry.Value.NodeDict)
+                            PrintNodeInfo(node, groupEntry.Key);
+                    }
 
                     Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
@@ -380,10 +416,19 @@ namespace ShadowsocksUriGenerator
 
             groupListCommand.AddAlias("l");
             groupListCommand.AddAlias("ls");
+            groupListCommand.AddOption(namesOnlyOption);
+            groupListCommand.AddOption(onePerLineOption);
             groupListCommand.Handler = CommandHandler.Create(
-                async () =>
+                async (bool namesOnly, bool onePerLine) =>
                 {
                     nodes = await loadNodesTask;
+
+                    if (namesOnly)
+                    {
+                        var names = nodes.Groups.Keys.ToList();
+                        Utilities.PrintNameList(names, onePerLine);
+                        return;
+                    }
 
                     var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
                                                          .DefaultIfEmpty()
@@ -406,17 +451,21 @@ namespace ShadowsocksUriGenerator
                     Utilities.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
                 });
 
-            userJoinGroupCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
-            userJoinGroupCommand.AddArgument(new Argument<string[]>("groups", "The group that the credential is for."));
+            userJoinGroupCommand.AddArgument(new Argument<string>("username", "Target user."));
+            userJoinGroupCommand.AddArgument(new Argument<string[]>("groups", "Groups to join."));
+            userJoinGroupCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Join all groups."));
             userJoinGroupCommand.Handler = CommandHandler.Create(
-                async (string username, string[] groups) =>
+                async (string username, string[] groups, bool allGroups) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
 
+                    if (allGroups)
+                        groups = nodes.Groups.Keys.ToArray();
+
                     foreach (var group in groups)
                     {
-                        if (!nodes.Groups.ContainsKey(group))
+                        if (!allGroups && !nodes.Groups.ContainsKey(group)) // check group existence when group is specified by user.
                         {
                             Console.WriteLine($"Group not found: {group}");
                             continue;
@@ -430,7 +479,7 @@ namespace ShadowsocksUriGenerator
                                 Console.WriteLine($"Successfully added {username} to {group}.");
                                 break;
                             case 1:
-                                Console.WriteLine($"The user is already in the group.");
+                                Console.WriteLine($"The user is already in group {group}.");
                                 break;
                             case -1:
                                 Console.WriteLine("User not found.");
@@ -445,11 +494,20 @@ namespace ShadowsocksUriGenerator
                 });
 
             userLeaveGroupCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userLeaveGroupCommand.AddArgument(new Argument<string[]>("groups", "A list of groups the credentials are for."));
+            userLeaveGroupCommand.AddArgument(new Argument<string[]>("groups", "Groups to leave."));
+            userLeaveGroupCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Leave all groups."));
             userLeaveGroupCommand.Handler = CommandHandler.Create(
-                async (string username, string[] groups) =>
+                async (string username, string[] groups, bool allGroups) =>
                 {
                     users = await loadUsersTask;
+
+                    if (allGroups)
+                    {
+                        var result = users.RemoveUserFromAllGroups(username);
+
+                        if (result == -2)
+                            Console.WriteLine($"User not found: {username}");
+                    }
 
                     foreach (var group in groups)
                     {
@@ -518,11 +576,19 @@ namespace ShadowsocksUriGenerator
 
             userRemoveCredentialCommand.AddAlias("rc");
             userRemoveCredentialCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userRemoveCredentialCommand.AddArgument(new Argument<string[]>("groups", "A list of groups the credentials are for."));
+            userRemoveCredentialCommand.AddArgument(new Argument<string[]>("groups", "Credentials to these groups will be removed."));
+            userRemoveCredentialCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Remove credentials to all groups."));
             userRemoveCredentialCommand.Handler = CommandHandler.Create(
-                async (string username, string[] groups) =>
+                async (string username, string[] groups, bool allGroups) =>
                 {
                     users = await loadUsersTask;
+
+                    if (allGroups)
+                    {
+                        var result = users.RemoveAllCredentialsFromUser(username);
+                        if (result == -2)
+                            Console.WriteLine($"User not found: {username}");
+                    }
 
                     foreach (var group in groups)
                     {
@@ -537,8 +603,10 @@ namespace ShadowsocksUriGenerator
                 });
 
             userListCredentialsCommand.AddAlias("lc");
+            userListCredentialsCommand.AddOption(new Option<string[]>("--usernames", "Show credentials of these users."));
+            userListCredentialsCommand.AddOption(new Option<string[]>("--groups", "Show credentials to these groups."));
             userListCredentialsCommand.Handler = CommandHandler.Create(
-                async () =>
+                async (string[] usernames, string[] groups) =>
                 {
                     users = await loadUsersTask;
 
@@ -563,8 +631,14 @@ namespace ShadowsocksUriGenerator
 
                     foreach (var user in users.UserDict)
                     {
+                        if (usernames.Length > 0 && !usernames.Contains(user.Key))
+                            continue;
+
                         foreach (var credEntry in user.Value.Credentials)
                         {
+                            if (groups.Length > 0 && !groups.Contains(credEntry.Key))
+                                continue;
+                            
                             if (credEntry.Value == null)
                                 Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{credEntry.Key.PadRight(groupNameFieldWidth)}|{string.Empty,-24}|{string.Empty.PadRight(passwordFieldWidth)}|");
                             else
@@ -577,12 +651,13 @@ namespace ShadowsocksUriGenerator
 
             userGetSSLinksCommand.AddAlias("ss");
             userGetSSLinksCommand.AddArgument(new Argument<string>("username", "Target user."));
+            userGetSSLinksCommand.AddOption(new Option<string[]>("--groups", "Get links for these groups."));
             userGetSSLinksCommand.Handler = CommandHandler.Create(
-                async (string username) =>
+                async (string username, string[] groups) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
-                    var uris = users.GetUserSSUris(username, nodes);
+                    var uris = users.GetUserSSUris(username, nodes, groups);
                     foreach (var uri in uris)
                         Console.WriteLine($"{uri.AbsoluteUri}");
                 });
@@ -697,14 +772,32 @@ namespace ShadowsocksUriGenerator
             nodeActivateCommand.AddAlias("unhide");
             nodeActivateCommand.AddArgument(new Argument<string>("group", "Target group."));
             nodeActivateCommand.AddArgument(new Argument<string[]>("nodenames", "Nodes to activate."));
+            nodeActivateCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Activate all nodes in target group."));
             nodeActivateCommand.Handler = CommandHandler.Create(
-                async (string group, string[] nodenames) =>
+                async (string group, string[] nodenames, bool allNodes) =>
                 {
                     nodes = await loadNodesTask;
 
+                    if (allNodes)
+                    {
+                        var result = nodes.ActivateAllNodesInGroup(group);
+
+                        switch (result)
+                        {
+                            case 0:
+                                Console.WriteLine($"Successfully activated all nodes in {group}");
+                                break;
+                            case -2:
+                                Console.WriteLine($"Error: {group} is not found.");
+                                break;
+                        }
+                    }
+
                     foreach (var nodename in nodenames)
                     {
-                        switch (nodes.ActivateNodeInGroup(group, nodename))
+                        var result = nodes.ActivateNodeInGroup(group, nodename);
+
+                        switch (result)
                         {
                             case 0:
                                 Console.WriteLine($"Successfully activated {nodename} in {group}.");
@@ -728,14 +821,32 @@ namespace ShadowsocksUriGenerator
             nodeDeactivateCommand.AddAlias("hide");
             nodeDeactivateCommand.AddArgument(new Argument<string>("group", "Target group."));
             nodeDeactivateCommand.AddArgument(new Argument<string[]>("nodenames", "Nodes to deactivate."));
+            nodeDeactivateCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Deactivate all nodes in target group."));
             nodeDeactivateCommand.Handler = CommandHandler.Create(
-                async (string group, string[] nodenames) =>
+                async (string group, string[] nodenames, bool allNodes) =>
                 {
                     nodes = await loadNodesTask;
 
+                    if (allNodes)
+                    {
+                        var result = nodes.DeactivateAllNodesInGroup(group);
+
+                        switch (result)
+                        {
+                            case 0:
+                                Console.WriteLine($"Successfully deactivated all nodes in {group}");
+                                break;
+                            case -2:
+                                Console.WriteLine($"Error: {group} is not found.");
+                                break;
+                        }
+                    }
+
                     foreach (var nodename in nodenames)
                     {
-                        switch (nodes.DeactivateNodeInGroup(group, nodename))
+                        var result = nodes.DeactivateNodeInGroup(group, nodename);
+
+                        switch (result)
                         {
                             case 0:
                                 Console.WriteLine($"Successfully deactivated {nodename} in {group}.");
@@ -758,8 +869,9 @@ namespace ShadowsocksUriGenerator
             groupAddUserCommand.AddAlias("au");
             groupAddUserCommand.AddArgument(new Argument<string>("group", "Target group."));
             groupAddUserCommand.AddArgument(new Argument<string[]>("usernames", "Users to add."));
+            groupAddUserCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Add all users to target group."));
             groupAddUserCommand.Handler = CommandHandler.Create(
-                async (string group, string[] usernames) =>
+                async (string group, string[] usernames, bool allUsers) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
@@ -768,6 +880,21 @@ namespace ShadowsocksUriGenerator
                     {
                         Console.WriteLine($"Group not found: {group}");
                         return;
+                    }
+
+                    if (allUsers)
+                    {
+                        foreach (var userEntry in users.UserDict)
+                        {
+                            var username = userEntry.Key;
+                            var user = userEntry.Value;
+
+                            var result = user.AddToGroup(group);
+                            if (result)
+                                Console.WriteLine($"Successfully added {username} to {group}.");
+                            else
+                                Console.WriteLine($"User {username} is already in group {group}.");
+                        }
                     }
 
                     foreach (var username in usernames)
@@ -780,10 +907,10 @@ namespace ShadowsocksUriGenerator
                                 Console.WriteLine($"Successfully added {username} to {group}.");
                                 break;
                             case 1:
-                                Console.WriteLine($"The user is already in the group.");
+                                Console.WriteLine($"User {username} is already in group {group}.");
                                 break;
                             case -1:
-                                Console.WriteLine("User not found.");
+                                Console.WriteLine("User not found: {username}.");
                                 break;
                             default:
                                 Console.WriteLine($"Unknown error: {result}.");
@@ -796,9 +923,10 @@ namespace ShadowsocksUriGenerator
 
             groupRemoveUserCommand.AddAlias("ru");
             groupRemoveUserCommand.AddArgument(new Argument<string>("group", "Target group."));
-            groupRemoveUserCommand.AddArgument(new Argument<string[]>("usernames", "Users to remove."));
+            groupRemoveUserCommand.AddArgument(new Argument<string[]>("usernames", "Members to remove."));
+            groupRemoveUserCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Remove all members of target group."));
             groupRemoveUserCommand.Handler = CommandHandler.Create(
-                async (string group, string[] usernames) =>
+                async (string group, string[] usernames, bool allUsers) =>
                 {
                     users = await loadUsersTask;
                     nodes = await loadNodesTask;
@@ -807,6 +935,12 @@ namespace ShadowsocksUriGenerator
                     {
                         Console.WriteLine($"Group not found: {group}");
                         return;
+                    }
+
+                    if (allUsers)
+                    {
+                        foreach (var userEntry in users.UserDict)
+                            userEntry.Value.RemoveFromGroup(group);
                     }
 
                     foreach (var username in usernames)
@@ -936,7 +1070,7 @@ namespace ShadowsocksUriGenerator
 
             groupSetDataLimitCommand.AddAlias("limit");
             groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
-            groupSetDataLimitCommand.AddArgument(new Argument<string[]>("groups", "Target groups."));
+            groupSetDataLimitCommand.AddArgument(groupsArgument);
             groupSetDataLimitCommand.AddOption(new Option<bool>("--global", "Set the global data limit of the group."));
             groupSetDataLimitCommand.AddOption(new Option<bool>("--per-user", "Set the same data limit for each user."));
             groupSetDataLimitCommand.AddOption(new Option<string[]?>("--usernames", "Only set the data limit to these users."));
@@ -981,6 +1115,9 @@ namespace ShadowsocksUriGenerator
 
             onlineConfigGetLinkCommand.AddAlias("l");
             onlineConfigGetLinkCommand.AddAlias("link");
+            onlineConfigGetLinkCommand.AddAlias("links");
+            onlineConfigGetLinkCommand.AddAlias("url");
+            onlineConfigGetLinkCommand.AddAlias("urls");
             onlineConfigGetLinkCommand.AddArgument(new Argument<string[]?>("usernames", "Target users. Leave empty for all users."));
             onlineConfigGetLinkCommand.Handler = CommandHandler.Create(
                 async (string[]? usernames) =>
@@ -1017,7 +1154,7 @@ namespace ShadowsocksUriGenerator
             onlineConfigCleanCommand.AddAlias("c");
             onlineConfigCleanCommand.AddAlias("clear");
             onlineConfigCleanCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));
-            onlineConfigCleanCommand.AddOption(new Option<bool>("--all", "clean for all users."));
+            onlineConfigCleanCommand.AddOption(new Option<bool>("--all", "Clean for all users."));
             onlineConfigCleanCommand.Handler = CommandHandler.Create(
                 async (string[]? usernames, bool all) =>
                 {
@@ -1142,7 +1279,7 @@ namespace ShadowsocksUriGenerator
                 });
 
             outlineServerRemoveCommand.AddAlias("rm");
-            outlineServerRemoveCommand.AddArgument(new Argument<string[]>("groups", "Specify groups to dissociate."));
+            outlineServerRemoveCommand.AddArgument(groupsArgument);
             outlineServerRemoveCommand.AddOption(new Option<bool>("--remove-creds", "Remove credentials from all associated users."));
             outlineServerRemoveCommand.Handler = CommandHandler.Create(
                 async (string[] groups, bool removeCreds) =>
@@ -1201,7 +1338,7 @@ namespace ShadowsocksUriGenerator
                     await Nodes.SaveNodesAsync(nodes);
                 });
 
-            outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "The associated group."));
+            outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "Groups to deploy for."));
             outlineServerDeployCommand.Handler = CommandHandler.Create(
                 async (string[]? groups, CancellationToken cancellationToken) =>
                 {

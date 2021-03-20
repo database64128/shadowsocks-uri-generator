@@ -69,9 +69,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 "list_group_members" => HandleListGroupMembersCommand(botClient, message, argument, cancellationToken),
                 "get_user_data_usage" => HandleGetUserDataUsageCommand(botClient, message, argument, cancellationToken),
                 "get_group_data_usage" => HandleGetGroupDataUsageCommand(botClient, message, argument, cancellationToken),
-                "get_ss_links" => HandleGetSsLinksCommand(botClient, message, cancellationToken),
+                "get_ss_links" => HandleGetSsLinksCommand(botClient, message, argument, cancellationToken),
                 "get_sip008_links" => HandleGetSip008LinksCommand(botClient, message, cancellationToken),
-                "get_credentials" => HandleGetCredentialsCommand(botClient, message, cancellationToken),
+                "get_credentials" => HandleGetCredentialsCommand(botClient, message, argument, cancellationToken),
                 "report" => HandleReportCommand(botClient, message, cancellationToken),
                 _ => Task.CompletedTask, // unrecognized command, ignoring
             };
@@ -521,7 +521,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
-        public static async Task HandleGetSsLinksCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
+        public static async Task HandleGetSsLinksCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -536,7 +536,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             {
                 var username = userEntry.Value.Key;
                 var nodes = await Nodes.LoadNodesAsync();
-                var uris = users.GetUserSSUris(username, nodes);
+                var uris = string.IsNullOrEmpty(argument) ? users.GetUserSSUris(username, nodes) : users.GetUserSSUris(username, nodes, argument);
                 if (uris.Count > 0)
                 {
                     var replyBuilder = new StringBuilder();
@@ -601,7 +601,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, true, cancellationToken);
         }
 
-        public static async Task HandleGetCredentialsCommand(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
+        public static async Task HandleGetCredentialsCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
@@ -636,6 +636,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
                     foreach (var credEntry in userEntry.Value.Value.Credentials)
                     {
+                        if (!string.IsNullOrEmpty(argument) && argument != credEntry.Key)
+                            continue;
+
                         if (credEntry.Value == null)
                             replyBuilder.AppendLine($"|{credEntry.Key.PadRight(groupNameFieldWidth)}|{string.Empty,-24}|{string.Empty.PadRight(passwordFieldWidth)}|");
                         else

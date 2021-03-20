@@ -137,12 +137,15 @@ namespace ShadowsocksUriGenerator
             return 0;
         }
 
-        public List<Uri> GetSSUris(Nodes nodes)
+        public List<Uri> GetSSUris(Nodes nodes, params string[] groups)
         {
             List<Uri> uris = new();
             foreach (var credEntry in Credentials)
             {
-                if (credEntry.Value == null)
+                // Skip if either
+                // - User is in group but has no credential.
+                // - Only retrieve ss URIs from specific groups, not including this group.
+                if (credEntry.Value == null || groups.Length > 0 && !groups.Contains(credEntry.Key))
                     continue;
                 var userinfoBase64url = credEntry.Value.UserinfoBase64url;
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group

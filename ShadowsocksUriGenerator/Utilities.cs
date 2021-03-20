@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -220,6 +222,31 @@ namespace ShadowsocksUriGenerator
                     Console.Write('-');
             }
             Console.Write("+\n");
+        }
+
+        public static void PrintNameList(List<string> names, bool onePerLine = false)
+        {
+            Console.WriteLine($"Total {names.Count}");
+            if (onePerLine)
+            {
+                foreach (var name in names)
+                    Console.WriteLine(name);
+            }
+            else
+            {
+                var stringBuilder = new StringBuilder();
+                foreach (var name in names)
+                    if (name.Contains(' '))
+                        stringBuilder.Append($"\"{name}\" ");
+                    else
+                        stringBuilder.Append($"{name} ");
+                stringBuilder.Remove(stringBuilder.Length - 1, 1);
+                if (names.Count > 0)
+                    stringBuilder.AppendLine();
+
+                var output = stringBuilder.ToString();
+                Console.Write(output);
+            }
         }
     }
 }

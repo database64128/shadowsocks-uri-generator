@@ -173,6 +173,15 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Activates all nodes in this group.
+        /// </summary>
+        public void ActivateAllNodes()
+        {
+            foreach (var nodeEntry in NodeDict)
+                nodeEntry.Value.Deactivated = false;
+        }
+
+        /// <summary>
         /// Deactivates the specified node.
         /// </summary>
         /// <param name="nodeName">Name of the node.</param>
@@ -195,6 +204,15 @@ namespace ShadowsocksUriGenerator
             }
             else
                 return -1;
+        }
+
+        /// <summary>
+        /// Deactivates all nodes in this group.
+        /// </summary>
+        public void DeactivateAllNodes()
+        {
+            foreach (var nodeEntry in NodeDict)
+                nodeEntry.Value.Deactivated = true;
         }
 
         /// <summary>
