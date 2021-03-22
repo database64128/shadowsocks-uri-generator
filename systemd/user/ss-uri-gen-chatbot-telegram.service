@@ -1,0 +1,10 @@
+[Unit]
+Description=Shadowsocks URI Generator Telegram bot service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ss-uri-gen-chatbot-telegram
+
+[Install]
+WantedBy=multi-user.target default.target
