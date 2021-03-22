@@ -12,6 +12,9 @@
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>
     <RepositoryType>Public</RepositoryType>
     <AssemblyName>ss-uri-gen-chatbot-telegram</AssemblyName>
+    <ApplicationIcon>ss-uri-gen-chatbot-telegram.ico</ApplicationIcon>
+    <PackageIcon>ss-uri-gen-chatbot-telegram.png</PackageIcon>
+    <Version>3.6.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

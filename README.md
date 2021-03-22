@@ -33,8 +33,10 @@ Note for packagers: The application by default uses executable directory as conf
 ```bash
 # Build with Release configuration
 $ dotnet build -c Release
+
 # Publish as framework-dependent
 $ dotnet publish ShadowsocksUriGenerator -c Release
+
 # Publish as self-contained for Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:PublishReadyToRun=true \
@@ -46,6 +48,7 @@ $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:EnableUnsafeUTF7Encoding=false \
     -p:InvariantGlobalization=true \
     -r linux-x64 --self-contained
+
 # Publish as self-contained for packaging on Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:DefineConstants=PACKAGED \
@@ -142,7 +145,9 @@ $ ss-uri-gen-chatbot-telegram
 ## License
 
 - This project is licensed under [GPLv3](LICENSE).
-
+- The icons are from [Material Design Icons](https://materialdesignicons.com/) and are licensed under the [Pictogrammers Free License](https://dev.materialdesignicons.com/license).
+- [`System.CommandLine`](https://github.com/dotnet/command-line-api) is licensed under the MIT license.
 - [`JsonSnakeCaseNamingPolicy`](https://github.com/dotnet/corefx/pull/40003) is licensed under the MIT license.
+- [`Telegram.Bot`](https://github.com/TelegramBots/Telegram.Bot) and [`Telegram.Bot.Extensions.Polling`](https://github.com/TelegramBots/Telegram.Bot.Extensions.Polling) are licensed under the MIT license.
 
 © 2021 database64128
