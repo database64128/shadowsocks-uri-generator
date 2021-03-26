@@ -42,22 +42,22 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Adds users to UserDict.
+        /// Adds a new user to UserDict.
         /// </summary>
-        /// <param name="users">The list of users to be added to <see cref="UserDict"/>.</param>
-        /// <returns>A List of users successfully added to <see cref="UserDict"/>.</returns>
-        public List<string> AddUsers(string[] users)
+        /// <param name="username">The new user to be added to <see cref="UserDict"/>.</param>
+        /// <returns>
+        /// 0 for success.
+        /// 1 when a user with the same username already exists.
+        /// </returns>
+        public int AddUser(string username)
         {
-            List<string> addedUsers = new();
-
-            foreach (var user in users)
-                if (!UserDict.ContainsKey(user))
-                {
-                    UserDict.Add(user, new());
-                    addedUsers.Add(user);
-                }
-
-            return addedUsers;
+            if (!UserDict.ContainsKey(username))
+            {
+                UserDict.Add(username, new());
+                return 0;
+            }
+            else
+                return 1;
         }
 
         /// <summary>
@@ -87,14 +87,14 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Removes users from <see cref="UserDict"/>.
+        /// Removes the user from <see cref="UserDict"/>.
         /// </summary>
-        /// <param name="users">The list of users to be removed from <see cref="UserDict"/>.</param>
-        public void RemoveUsers(string[] users)
-        {
-            foreach (var user in users)
-                UserDict.Remove(user);
-        }
+        /// <param name="user">The user to be removed from <see cref="UserDict"/>.</param>
+        /// <returns>
+        /// <see cref="true"/> if the user is successfully found and removed.
+        /// Otherwise, <see cref="false"/>.
+        /// </returns>
+        public bool RemoveUser(string username) => UserDict.Remove(username);
 
         /// <summary>
         /// Adds the user to the specified group.
@@ -242,14 +242,14 @@ namespace ShadowsocksUriGenerator
         /// <param name="username">Target username.</param>
         /// <returns>
         /// A list of the user's associated Shadowsocks URIs.
-        /// Empty list if target user not found or no associated nodes.
+        /// Null if target user doesn't exist.
         /// </returns>
-        public List<Uri> GetUserSSUris(string username, Nodes nodes, params string[] groups)
+        public List<Uri>? GetUserSSUris(string username, Nodes nodes, params string[] groups)
         {
             if (UserDict.TryGetValue(username, out var user))
                 return user.GetSSUris(nodes, groups);
             else
-                return new();
+                return null;
         }
 
         /// <summary>
@@ -265,21 +265,26 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Gets all users' data usage records.
+        /// Collects the user's data usage records from all groups
+        /// and returns a list of data usage tuples.
         /// </summary>
+        /// <param name="username">Target user.</param>
         /// <param name="nodes">The <see cref="Nodes"/> object.</param>
-        /// <returns>A list of data usage records as tuples.</returns>
-        public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetUserDataUsage(string username, Nodes nodes)
+        /// <returns>
+        /// A list of data usage records as tuples.
+        /// Null if the user doesn't exist.
+        /// </returns>
+        public List<(string group, ulong bytesUsed, ulong bytesRemaining)>? GetUserDataUsage(string username, Nodes nodes)
         {
             if (UserDict.TryGetValue(username, out var user))
                 return user.GetDataUsage(username, nodes);
             else
-                return new();
+                return null;
         }
 
         /// <summary>
-        /// Gets data usage records that contains
-        /// each user's total data usage.
+        /// Calculates total data usage for all users
+        /// and returns a list of total data usage tuples of all users.
         /// </summary>
         /// <param name="nodes">The <see cref="Nodes"/> object.</param>
         /// <returns>A list of data usage records as tuples.</returns>

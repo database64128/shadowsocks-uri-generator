@@ -9,7 +9,7 @@
     <img alt="AUR badge for ss-uri-gen-chatbot-telegram-git" src="https://img.shields.io/aur/version/ss-uri-gen-chatbot-telegram-git?label=AUR%20git" />
 </a>
 
-A light-weight command line automation tool for multi-user `ss://` URL generation, [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89) online configuration delivery, and [Outline server](https://github.com/Jigsaw-Code/outline-server) deployment and management.
+A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of [Outline servers](https://github.com/Jigsaw-Code/outline-server). Deliver configurations to users with [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89).
 
 ## Features
 

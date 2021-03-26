@@ -9,23 +9,30 @@ namespace ShadowsocksUriGenerator.Tests
         [Theory]
         [InlineData(
             new string[] { "A", "B", "C", "D", "E", "F", "G", },
-            new string[] { "A", "B", "C", "D", "E", "F", "G", },
+            new int[] { 0, 0, 0, 0, 0, 0, 0, },
             new string[] { "A", "C" },
+            new bool[] { true, true, },
             new string[] { "B", "D", "E", "F", "G", })]
         [InlineData(
             new string[] { "A", "B", "C", "A", "B", "F", "G", },
-            new string[] { "A", "B", "C", "F", "G", },
+            new int[] { 0, 0, 0, 1, 1, 0, 0, },
             new string[] { "A", "H" },
+            new bool[] { true, false, },
             new string[] { "B", "C", "F", "G", })]
-        public void Add_Remove_Users(string[] usersToAdd, string[] expectedAddedUsers, string[] usersToRemove, string[] expectedRemainingUsers)
+        public void Add_Remove_Users(string[] usersToAdd, int[] expectedAddResults, string[] usersToRemove, bool[] expectedRemovalResults, string[] expectedRemainingUsers)
         {
             var users = new Users();
 
-            var addedUsers = users.AddUsers(usersToAdd).ToArray();
-            users.RemoveUsers(usersToRemove);
+            var addResults = new int[usersToAdd.Length];
+            for (var i = 0; i < usersToAdd.Length; i++)
+                addResults[i] = users.AddUser(usersToAdd[i]);
+            var removalResults = new bool[usersToRemove.Length];
+            for (var i = 0; i < usersToRemove.Length; i++)
+                removalResults[i] = users.RemoveUser(usersToRemove[i]);
             var remainingUsers = users.UserDict.Select(x => x.Key).ToArray();
 
-            Assert.Equal(expectedAddedUsers, addedUsers);
+            Assert.Equal(expectedAddResults, addResults);
+            Assert.Equal(expectedRemovalResults, removalResults);
             Assert.Equal(expectedRemainingUsers, remainingUsers);
         }
 
@@ -40,8 +47,9 @@ namespace ShadowsocksUriGenerator.Tests
         public async Task Rename_User_ReturnsResult(string[] usersToAdd, string oldName, string newName, int expectedResult)
         {
             var users = new Users();
-            users.AddUsers(usersToAdd);
-            var nodes = new Nodes();
+            foreach (var username in usersToAdd)
+                users.AddUser(username);
+            using var nodes = new Nodes();
             var count = users.UserDict.Count;
             var oldNameExists = users.UserDict.TryGetValue(oldName, out var user);
 
@@ -83,12 +91,14 @@ namespace ShadowsocksUriGenerator.Tests
         [Fact]
         public void Add_Update_Remove_Group_ReturnsResult()
         {
-            var nodes = new Nodes();
-            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            using var nodes = new Nodes();
+            nodes.AddGroup("MyGroup");
+            nodes.AddGroup("MyGroupWithPlugin");
             nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
             nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
             var users = new Users();
-            users.AddUsers(new string[] { "root", "http" });
+            users.AddUser("root");
+            users.AddUser("http");
             Assert.True(users.UserDict.ContainsKey("root"));
             Assert.True(users.UserDict.ContainsKey("http"));
 
@@ -142,12 +152,14 @@ namespace ShadowsocksUriGenerator.Tests
         [Fact]
         public void Add_Remove_Credential_ReturnsResult()
         {
-            var nodes = new Nodes();
-            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            using var nodes = new Nodes();
+            nodes.AddGroup("MyGroup");
+            nodes.AddGroup("MyGroupWithPlugin");
             nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
             nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
             var users = new Users();
-            users.AddUsers(new string[] { "root", "http" });
+            users.AddUser("root");
+            users.AddUser("http");
             Assert.True(users.UserDict.ContainsKey("root"));
             Assert.True(users.UserDict.ContainsKey("http"));
 

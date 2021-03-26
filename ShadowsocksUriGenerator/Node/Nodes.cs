@@ -46,22 +46,22 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Adds new node groups to the group dictionary.
+        /// Adds a new node group to the group dictionary.
         /// </summary>
-        /// <param name="groups">The list of groups to be added.</param>
-        /// <returns>A List of groups successfully added.</returns>
-        public List<string> AddGroups(string[] groups)
+        /// <param name="group">The group to add.</param>
+        /// <returns>
+        /// 0 for success.
+        /// 1 when a group with the same name already exists.
+        /// </returns>
+        public int AddGroup(string group)
         {
-            List<string> addedGroups = new();
-
-            foreach (var group in groups)
-                if (!Groups.ContainsKey(group))
-                {
-                    Groups.Add(group, new Group());
-                    addedGroups.Add(group);
-                }
-
-            return addedGroups;
+            if (!Groups.ContainsKey(group))
+            {
+                Groups.Add(group, new());
+                return 0;
+            }
+            else
+                return 1;
         }
 
         /// <summary>
@@ -85,14 +85,14 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Removes groups from the group dictionary.
+        /// Removes the group from storage.
         /// </summary>
-        /// <param name="groups">The list of groups to be removed.</param>
-        public void RemoveGroups(IEnumerable<string> groups)
-        {
-            foreach (var group in groups)
-                Groups.Remove(group);
-        }
+        /// <param name="group">The group to be removed.</param>
+        /// <returns>
+        /// <see cref="true"/> if the group is successfully found and removed.
+        /// Otherwise, <see cref="false"/>.
+        /// </returns>
+        public bool RemoveGroup(string group) => Groups.Remove(group);
 
         /// <summary>
         /// Adds a node to a node group.
@@ -103,13 +103,18 @@ namespace ShadowsocksUriGenerator
         /// <param name="portString">Node's port string to be parsed.</param>
         /// <param name="plugin">Optional. Plugin binary name.</param>
         /// <param name="pluginOpts">Optional. Plugin options.</param>
-        /// <returns>0 for success. -1 for non-existing group, duplicated node, invalid port string.</returns>
+        /// <returns>
+        /// 0 if success.
+        /// -1 if a node with the same name already exists.
+        /// -2 if the group doesn't exist.
+        /// -3 if the port number is invalid.
+        /// </returns>
         public int AddNodeToGroup(string group, string node, string host, string portString, string? plugin = null, string? pluginOpts = null)
         {
             if (int.TryParse(portString, out int port))
                 return AddNodeToGroup(group, node, host, port, plugin, pluginOpts);
             else
-                return -1;
+                return -3;
         }
 
 
@@ -122,7 +127,11 @@ namespace ShadowsocksUriGenerator
         /// <param name="port">Node's port number.</param>
         /// <param name="plugin">Optional. Plugin binary name.</param>
         /// <param name="pluginOpts">Optional. Plugin options.</param>
-        /// <returns>0 for success. -1 for non-existing group, duplicated node, bad port range.</returns>
+        /// <returns>
+        /// 0 if success.
+        /// -1 if a node with the same name already exists.
+        /// -2 if the group doesn't exist.
+        /// </returns>
         public int AddNodeToGroup(string group, string node, string host, int port, string? plugin = null, string? pluginOpts = null)
         {
             if (Groups.TryGetValue(group, out Group? targetGroup))
@@ -130,7 +139,7 @@ namespace ShadowsocksUriGenerator
                 return targetGroup.AddNode(node, host, port, plugin, pluginOpts);
             }
             else
-                return -1;
+                return -2;
         }
 
         /// <summary>
@@ -154,20 +163,21 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Removes nodes from the node group.
+        /// Removes the node from the node group.
         /// </summary>
-        /// <param name="group">Group name to remove nodes from.</param>
-        /// <param name="nodes">Node name to be removed.</param>
-        /// <returns>0 for success or found target group. -1 for non-existing group.</returns>
-        public int RemoveNodesFromGroup(string group, string[] nodes)
+        /// <param name="group">Group to remove nodes from.</param>
+        /// <param name="node">Node name to be removed.</param>
+        /// <returns>
+        /// 0 if the node is successfully found and removed.
+        /// -1 if the node doesn't exist.
+        /// -2 if the group doesn't exist.
+        /// </returns>
+        public int RemoveNodeFromGroup(string group, string node)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-            {
-                targetGroup.RemoveNodes(nodes);
-                return 0;
-            }
+                return targetGroup.RemoveNode(node) ? 0 : -1;
             else
-                return -1;
+                return -2;
         }
 
         /// <summary>
@@ -250,13 +260,16 @@ namespace ShadowsocksUriGenerator
         /// Gets all data usage records of the group.
         /// </summary>
         /// <param name="group">Target group.</param>
-        /// <returns>A list of data usage records as tuples.</returns>
-        public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetGroupDataUsage(string group)
+        /// <returns>
+        /// A list of data usage records as tuples.
+        /// Null if the group doesn't exist.
+        /// </returns>
+        public List<(string username, ulong bytesUsed, ulong bytesRemaining)>? GetGroupDataUsage(string group)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.GetDataUsage();
             else
-                return new();
+                return null;
         }
 
         /// <summary>

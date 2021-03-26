@@ -12,12 +12,13 @@ namespace ShadowsocksUriGenerator.Tests
         public void Generate_OnlineConfig_Properties()
         {
             var settings = new Settings();
-            var nodes = new Nodes();
-            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            using var nodes = new Nodes();
+            nodes.AddGroup("MyGroup");
+            nodes.AddGroup("MyGroupWithPlugin");
             nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
             nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
             var users = new Users();
-            users.AddUsers(new string[] { "root" });
+            users.AddUser("root");
             users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
             users.AddCredentialToUser("root", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
             var user = users.UserDict.First();
@@ -121,12 +122,15 @@ namespace ShadowsocksUriGenerator.Tests
         {
             var settings = new Settings();
             var directory = Utilities.GetAbsolutePath(settings.OnlineConfigOutputDirectory);
-            var nodes = new Nodes();
-            nodes.AddGroups(new string[] { "MyGroup", "MyGroupWithPlugin" });
+            using var nodes = new Nodes();
+            nodes.AddGroup("MyGroup");
+            nodes.AddGroup("MyGroupWithPlugin");
             nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
             nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
             var users = new Users();
-            users.AddUsers(new string[] { "root", "http", "nobody", });
+            users.AddUser("root");
+            users.AddUser("http");
+            users.AddUser("nobody");
             users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
             users.AddCredentialToUser("http", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
             var rootUser = users.UserDict["root"];
@@ -195,9 +199,11 @@ namespace ShadowsocksUriGenerator.Tests
         {
             var settings = new Settings();
             var directory = Utilities.GetAbsolutePath(settings.OnlineConfigOutputDirectory);
-            var nodes = new Nodes();
+            using var nodes = new Nodes();
             var users = new Users();
-            users.AddUsers(new string[] { "root", "http", "nobody", });
+            users.AddUser("root");
+            users.AddUser("http");
+            users.AddUser("nobody");
 
             settings.OnlineConfigDeliverByGroup = false;
             // Save

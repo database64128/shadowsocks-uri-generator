@@ -4,17 +4,19 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <AssemblyName>ss-uri-gen-chatbot-telegram</AssemblyName>
+    <ApplicationIcon>ss-uri-gen-chatbot-telegram.ico</ApplicationIcon>
+    <PackageId>ShadowsocksUriGenerator.Chatbot.Telegram</PackageId>
+    <Version>3.6.0</Version>
     <Authors>database64128</Authors>
+    <Product>Shadowsocks URI Generator - Telegram Chatbot</Product>
     <Description>A Telegram bot for user interactions with Shadowsocks URI Generator.</Description>
     <Copyright>© 2021 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
+    <PackageIcon>ss-uri-gen-chatbot-telegram.png</PackageIcon>
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>
     <RepositoryType>Public</RepositoryType>
-    <AssemblyName>ss-uri-gen-chatbot-telegram</AssemblyName>
-    <ApplicationIcon>ss-uri-gen-chatbot-telegram.ico</ApplicationIcon>
-    <PackageIcon>ss-uri-gen-chatbot-telegram.png</PackageIcon>
-    <Version>3.6.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21167.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21174.1" />
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
     <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="0.2.0" />
   </ItemGroup>

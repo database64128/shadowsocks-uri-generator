@@ -219,7 +219,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             var users = await Users.LoadUsersAsync();
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await Nodes.LoadNodesAsync();
                 var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
                 var replyBuilder = new StringBuilder();
 
@@ -280,7 +280,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             var users = await Users.LoadUsersAsync();
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await Nodes.LoadNodesAsync();
                 var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
                 var replyBuilder = new StringBuilder();
 
@@ -384,7 +384,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     }
                 if (argument == null || userEntry.Value.Key == argument) // no argument or successful lookup
                 {
-                    var nodes = await Nodes.LoadNodesAsync();
+                    using var nodes = await Nodes.LoadNodesAsync();
                     var username = userEntry.Value.Key;
                     var user = userEntry.Value.Value;
                     var records = userEntry.Value.Value.GetDataUsage(username, nodes);
@@ -456,9 +456,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
                 if (userGroups.Contains(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
                 {
-                    var nodes = await Nodes.LoadNodesAsync();
+                    using var nodes = await Nodes.LoadNodesAsync();
                     var records = nodes.GetGroupDataUsage(argument);
-                    if (records.Any())
+                    if (records == null)
+                    {
+                        reply = @"The specified group doesn't exist\.";
+                        Console.WriteLine(" Response: nonexistent group.");
+                    }
+                    else if (records.Any())
                     {
                         // sort records
                         records = records.OrderByDescending(x => x.bytesUsed).ToList();
@@ -534,9 +539,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                var username = userEntry.Value.Key;
-                var nodes = await Nodes.LoadNodesAsync();
-                var uris = string.IsNullOrEmpty(argument) ? users.GetUserSSUris(username, nodes) : users.GetUserSSUris(username, nodes, argument);
+                var user = userEntry.Value.Value;
+                using var nodes = await Nodes.LoadNodesAsync();
+                var uris = string.IsNullOrEmpty(argument) ? user.GetSSUris(nodes) : user.GetSSUris(nodes, argument);
                 if (uris.Count > 0)
                 {
                     var replyBuilder = new StringBuilder();
@@ -678,7 +683,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out _))
             {
-                var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await Nodes.LoadNodesAsync();
 
                 // collect data
                 var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);

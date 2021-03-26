@@ -138,14 +138,14 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Removes nodes from <see cref="NodeDict"/>.
+        /// Removes the node from <see cref="NodeDict"/>.
         /// </summary>
-        /// <param name="nodes">The list of nodes to be removed.</param>
-        public void RemoveNodes(string[] nodes)
-        {
-            foreach (var node in nodes)
-                NodeDict.Remove(node);
-        }
+        /// <param name="node">The node to be removed.</param>
+        /// <returns>
+        /// <see cref="true"/> if the node is successfully found and removed.
+        /// Otherwise <see cref="false"/>, including not already in the group.
+        /// </returns>
+        public bool RemoveNode(string node) => NodeDict.Remove(node);
 
         /// <summary>
         /// Activates the specified node.

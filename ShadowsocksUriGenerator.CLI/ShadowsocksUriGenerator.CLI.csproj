@@ -1,14 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
+    <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <PackageId>ShadowsocksUriGenerator</PackageId>
+    <AssemblyName>ss-uri-gen</AssemblyName>
+    <ApplicationIcon>ss-uri-gen.ico</ApplicationIcon>
+    <PackageId>ShadowsocksUriGenerator.CLI</PackageId>
     <Version>3.6.0</Version>
     <Authors>database64128</Authors>
-    <Product>ShadowsocksUriGenerator</Product>
-    <Description>Library for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with SIP008.</Description>
+    <Product>Shadowsocks URI Generator CLI</Product>
+    <Description>A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with SIP008.</Description>
     <Copyright>© 2021 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
@@ -18,11 +20,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21174.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShadowsocksUriGenerator\ShadowsocksUriGenerator.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\LICENSE">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-    <None Include="ss-uri-gen.png">
+    <None Include="..\ShadowsocksUriGenerator\ss-uri-gen.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>

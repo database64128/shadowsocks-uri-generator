@@ -90,7 +90,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     if (string.IsNullOrEmpty(botToken))
                     {
                         Console.WriteLine("No valid bot token is provided.");
-                        return;
+                        return -1;
                     }
 
                     try
@@ -112,6 +112,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     {
                         Console.WriteLine(ex);
                     }
+
+                    return 0;
                 });
 
             Console.OutputEncoding = Encoding.UTF8;
