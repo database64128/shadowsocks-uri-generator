@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -317,25 +318,29 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Loads users from Users.json.
         /// </summary>
-        /// <returns>A <see cref="Users"/> object.</returns>
-        public static async Task<Users> LoadUsersAsync()
+        /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
+        /// <returns>
+        /// A ValueTuple containing a <see cref="Users"/> object and an error message.
+        /// </returns>
+        public static async Task<(Users, string? errMsg)> LoadUsersAsync(CancellationToken cancellationToken = default)
         {
-            var users = await Utilities.LoadJsonAsync<Users>("Users.json", Utilities.commonJsonDeserializerOptions);
-            if (users.Version != DefaultVersion)
+            var (users, errMsg) = await Utilities.LoadJsonAsync<Users>("Users.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
+            if (errMsg is null && users.Version != DefaultVersion)
             {
                 UpdateUsers(ref users);
-                await SaveUsersAsync(users);
+                errMsg = await SaveUsersAsync(users, cancellationToken);
             }
-            return users;
+            return (users, errMsg);
         }
 
         /// <summary>
         /// Saves users to Users.json.
         /// </summary>
         /// <param name="users">The <see cref="Users"/> object to save.</param>
-        /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static async Task SaveUsersAsync(Users users)
-            => await Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions);
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
+        /// <returns>An error message. Null if no errors occurred.</returns>
+        public static Task<string?> SaveUsersAsync(Users users, CancellationToken cancellationToken = default)
+            => Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions, cancellationToken);
 
         /// <summary>
         /// Updates the users version.

@@ -1,16 +1,18 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI
 {
     public static class ReportCommand
     {
-        public static async Task Generate(SortBy? groupSortBy, SortBy? userSortBy)
+        public static async Task Generate(SortBy? groupSortBy, SortBy? userSortBy, CancellationToken cancellationToken = default)
         {
-            var users = await Users.LoadUsersAsync();
-            using var nodes = await Nodes.LoadNodesAsync();
-            var settings = await Settings.LoadSettingsAsync();
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
             // collect data
             var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);
@@ -99,9 +101,9 @@ namespace ShadowsocksUriGenerator.CLI
 
             // by group
             Console.WriteLine("Data usage by group");
-            Utilities.PrintTableBorder(groupNameFieldWidth, 11, 16);
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 11, 16);
             Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-            Utilities.PrintTableBorder(groupNameFieldWidth, 11, 16);
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 11, 16);
             foreach (var (group, bytesUsed, bytesRemaining) in recordsByGroup)
             {
                 Console.Write($"|{group.PadRight(groupNameFieldWidth)}|");
@@ -114,14 +116,14 @@ namespace ShadowsocksUriGenerator.CLI
                 else
                     Console.WriteLine($"{string.Empty,16}|");
             }
-            Utilities.PrintTableBorder(groupNameFieldWidth, 11, 16);
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 11, 16);
             Console.WriteLine();
 
             // by user
             Console.WriteLine("Data usage by user");
-            Utilities.PrintTableBorder(usernameFieldWidth, 11, 16);
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11, 16);
             Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-            Utilities.PrintTableBorder(usernameFieldWidth, 11, 16);
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11, 16);
             foreach (var (username, bytesUsed, bytesRemaining) in recordsByUser)
             {
                 Console.Write($"|{username.PadRight(usernameFieldWidth)}|");
@@ -134,7 +136,7 @@ namespace ShadowsocksUriGenerator.CLI
                 else
                     Console.WriteLine($"{string.Empty,16}|");
             }
-            Utilities.PrintTableBorder(usernameFieldWidth, 11, 16);
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11, 16);
         }
     }
 }

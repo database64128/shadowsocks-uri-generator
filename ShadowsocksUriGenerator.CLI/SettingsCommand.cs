@@ -1,17 +1,19 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI
 {
     public static class SettingsCommand
     {
-        public static async Task Get()
+        public static async Task Get(CancellationToken cancellationToken = default)
         {
-            var settings = await Settings.LoadSettingsAsync();
+            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            Utilities.PrintTableBorder(42, 40);
+            ConsoleHelper.PrintTableBorder(42, 40);
             Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
-            Utilities.PrintTableBorder(42, 40);
+            ConsoleHelper.PrintTableBorder(42, 40);
 
             Console.WriteLine($"|{"Version",-42}|{settings.Version,40}|");
             Console.WriteLine($"|{"UserDataUsageDefaultSortBy",-42}|{settings.UserDataUsageDefaultSortBy,40}|");
@@ -26,7 +28,7 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
 
-            Utilities.PrintTableBorder(42, 40);
+            ConsoleHelper.PrintTableBorder(42, 40);
         }
 
         public static async Task Set(
@@ -40,9 +42,10 @@ namespace ShadowsocksUriGenerator.CLI
             string? onlineConfigDeliveryRootUri,
             bool? outlineServerDeployOnChange,
             bool? outlineServerApplyDefaultUserOnAssociation,
-            string? outlineServerGlobalDefaultUser)
+            string? outlineServerGlobalDefaultUser,
+            CancellationToken cancellationToken = default)
         {
-            var settings = await Settings.LoadSettingsAsync();
+            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
             if (userDataUsageDefaultSortBy is SortBy userSortBy)
                 settings.UserDataUsageDefaultSortBy = userSortBy;
@@ -67,7 +70,7 @@ namespace ShadowsocksUriGenerator.CLI
             if (outlineServerGlobalDefaultUser != null)
                 settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
 
-            await Settings.SaveSettingsAsync(settings);
+            await JsonHelper.SaveSettingsAsync(settings, cancellationToken);
         }
     }
 }

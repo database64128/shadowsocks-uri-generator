@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -104,25 +105,29 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Loads settings from Settings.json.
         /// </summary>
-        /// <returns>A <see cref="Settings"/> object.</returns>
-        public static async Task<Settings> LoadSettingsAsync()
+        /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
+        /// <returns>
+        /// A ValueTuple containing a <see cref="Settings"/> object and an error message.
+        /// </returns>
+        public static async Task<(Settings, string? errMsg)> LoadSettingsAsync(CancellationToken cancellationToken = default)
         {
-            Settings settings = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions);
-            if (settings.Version != DefaultVersion)
+            var (settings, errMsg) = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
+            if (errMsg is null && settings.Version != DefaultVersion)
             {
                 UpdateSettings(ref settings);
-                await SaveSettingsAsync(settings);
+                errMsg = await SaveSettingsAsync(settings, cancellationToken);
             }
-            return settings;
+            return (settings, errMsg);
         }
 
         /// <summary>
         /// Saves settings to Settings.json.
         /// </summary>
         /// <param name="settings">The <see cref="Settings"/> object to save.</param>
-        /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static Task SaveSettingsAsync(Settings settings)
-            => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions);
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
+        /// <returns>An error message. Null if no errors occurred.</returns>
+        public static Task<string?> SaveSettingsAsync(Settings settings, CancellationToken cancellationToken = default)
+            => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions, cancellationToken);
 
         /// <summary>
         /// Updates the settings version.

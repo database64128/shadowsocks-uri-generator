@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,9 +25,9 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 while (true)
                 {
-                    var users = await Users.LoadUsersAsync();
-                    using var nodes = await Nodes.LoadNodesAsync();
-                    var settings = await Settings.LoadSettingsAsync();
+                    var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+                    using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+                    var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
                     if (pullOutlineServer)
                     {
@@ -64,19 +65,23 @@ namespace ShadowsocksUriGenerator.CLI
                     }
                     if (generateOnlineConfig)
                     {
-                        await OnlineConfig.GenerateAndSave(users, nodes, settings);
+                        var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
+                        if (errMsg is not null)
+                            Console.Write(errMsg);
                         Console.WriteLine("Generated online config.");
                     }
                     if (regenerateOnlineConfig)
                     {
                         OnlineConfig.Remove(users, settings);
                         Console.WriteLine("Cleaned online config.");
-                        await OnlineConfig.GenerateAndSave(users, nodes, settings);
+                        var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
+                        if (errMsg is not null)
+                            Console.Write(errMsg);
                         Console.WriteLine("Generated online config.");
                     }
 
-                    await Users.SaveUsersAsync(users);
-                    await Nodes.SaveNodesAsync(nodes);
+                    await JsonHelper.SaveUsersAsync(users, cancellationToken);
+                    await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
                     await Task.Delay(interval * 1000, cancellationToken);
                 }
             }

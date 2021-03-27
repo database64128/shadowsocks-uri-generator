@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
+using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram
@@ -72,14 +75,15 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         /// <summary>
         /// Loads bot config from TelegramBotConfig.json.
         /// </summary>
+        /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
         /// <returns>A <see cref="BotConfig"/> object.</returns>
-        public static async Task<BotConfig> LoadBotConfigAsync()
+        public static async Task<BotConfig> LoadBotConfigAsync(CancellationToken cancellationToken = default)
         {
-            BotConfig botConfig = await Utilities.LoadJsonAsync<BotConfig>("TelegramBotConfig.json", Utilities.commonJsonDeserializerOptions);
+            var botConfig = await JsonHelper.LoadJsonAsync<BotConfig>("TelegramBotConfig.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
             if (botConfig.Version != DefaultVersion)
             {
                 UpdateBotConfig(ref botConfig);
-                await SaveBotConfigAsync(botConfig);
+                await SaveBotConfigAsync(botConfig, cancellationToken);
             }
             return botConfig;
         }
@@ -88,9 +92,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         /// Saves bot config to TelegramBotConfig.json.
         /// </summary>
         /// <param name="botConfig">The <see cref="BotConfig"/> object to save.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static Task SaveBotConfigAsync(BotConfig botConfig)
-            => Utilities.SaveJsonAsync("TelegramBotConfig.json", botConfig, Utilities.commonJsonSerializerOptions);
+        public static Task SaveBotConfigAsync(BotConfig botConfig, CancellationToken cancellationToken = default)
+            => JsonHelper.SaveJsonAsync("TelegramBotConfig.json", botConfig, Utilities.commonJsonSerializerOptions, cancellationToken);
 
         /// <summary>
         /// Updates the bot config version.

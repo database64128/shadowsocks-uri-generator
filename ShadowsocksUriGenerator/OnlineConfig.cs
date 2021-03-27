@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -43,26 +45,43 @@ namespace ShadowsocksUriGenerator
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <param name="settings">The object storing all settings.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <param name="usernames">The specified users to generate for. Pass nothing to generate for all users.</param>
-        /// <returns>0 for success. 404 for user not found.</returns>
-        public static async Task<int> GenerateAndSave(Users users, Nodes nodes, Settings settings, params string[] usernames)
+        /// <returns>An error message. Null if no errors occurred.</returns>
+        public static async Task<string?> GenerateAndSave(Users users, Nodes nodes, Settings settings, CancellationToken cancellationToken = default, params string[] usernames)
         {
+            var errMsgSB = new StringBuilder();
             if (usernames.Length == 0) // generate for all users
+            {
                 foreach (var userEntry in users.UserDict)
                 {
                     var onlineConfigDict = GenerateForUser(userEntry, nodes, settings);
-                    await SaveOutputAsync(onlineConfigDict, settings);
+                    var errMsg = await SaveOutputAsync(onlineConfigDict, settings, cancellationToken);
+                    if (errMsg is not null)
+                        errMsgSB.AppendLine(errMsg);
                 }
+            }
             else // generate only for the specified user
+            {
                 foreach (var username in usernames)
+                {
                     if (users.UserDict.TryGetValue(username, out User? user))
                     {
                         var onlineConfigDict = GenerateForUser(new(username, user), nodes, settings);
-                        await SaveOutputAsync(onlineConfigDict, settings);
+                        var errMsg = await SaveOutputAsync(onlineConfigDict, settings, cancellationToken);
+                        if (errMsg is not null)
+                            errMsgSB.AppendLine(errMsg);
                     }
                     else
-                        return 404;
-            return 0;
+                    {
+                        errMsgSB.AppendLine($"Error: user {username} doesn't exist.");
+                    }
+                }
+            }
+            if (errMsgSB.Length > 0)
+                return errMsgSB.ToString();
+            else
+                return null;
         }
 
         /// <summary>
@@ -82,7 +101,7 @@ namespace ShadowsocksUriGenerator
             {
                 if (credEntry.Value == null)
                     continue;
-                
+
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
                 {
                     // per-group delivery
@@ -129,23 +148,33 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Saves the generated user configuration to a JSON file.
         /// </summary>
-        /// <param name="onlineConfig">The generated user configuration object.</param>
+        /// <param name="onlineConfigDict">Username-OnlineConfig pairs.</param>
         /// <param name="settings">The object storing all settings.</param>
-        /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static async Task SaveOutputAsync(Dictionary<string, OnlineConfig> onlineConfigDict, Settings settings)
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
+        /// <returns>An error message. Null if no errors occurred.</returns>
+        public static async Task<string?> SaveOutputAsync(Dictionary<string, OnlineConfig> onlineConfigDict, Settings settings, CancellationToken cancellationToken = default)
         {
-            foreach (var x in onlineConfigDict)
-                await Utilities.SaveJsonAsync(
+            var errMsgSB = new StringBuilder();
+            foreach (var x in onlineConfigDict) // TODO: handle error messages
+            {
+                var errMsg = await Utilities.SaveJsonAsync(
                     $"{settings.OnlineConfigOutputDirectory}/{x.Key}.json",
                     x.Value,
-                    Utilities.snakeCaseJsonSerializerOptions);
+                    Utilities.snakeCaseJsonSerializerOptions,
+                    cancellationToken);
+                if (errMsg is not null)
+                    errMsgSB.AppendLine(errMsg);
+            }
+            if (errMsgSB.Length > 0)
+                return errMsgSB.ToString();
+            else
+                return null;
         }
 
         /// <summary>
         /// Removes the generated JSON files for all users or the specified users.
         /// </summary>
         /// <param name="users">The object storing all users.</param>
-        /// <param name="nodes">The object storing all nodes.</param>
         /// <param name="settings">The object storing all settings.</param>
         /// <param name="usernames">The specified users. Pass nothing to remove for all users.</param>
         public static void Remove(Users users, Settings settings, params string[] usernames)

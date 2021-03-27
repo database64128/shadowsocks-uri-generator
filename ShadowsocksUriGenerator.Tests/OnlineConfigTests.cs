@@ -142,7 +142,7 @@ namespace ShadowsocksUriGenerator.Tests
             // Save
             var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings);
 
-            Assert.Equal(0, genResult);
+            Assert.Null(genResult);
             Assert.True(Directory.Exists(directory));
             foreach (var user in users.UserDict.Values)
                 Assert.True(File.Exists($"{directory}/{user.Uuid}.json"));
@@ -162,7 +162,7 @@ namespace ShadowsocksUriGenerator.Tests
             // Save
             var genByGroupResult = await OnlineConfig.GenerateAndSave(users, nodes, settings);
 
-            Assert.Equal(0, genByGroupResult);
+            Assert.Null(genByGroupResult);
             Assert.True(Directory.Exists(directory));
             foreach (var user in users.UserDict.Values)
                 Assert.True(File.Exists($"{directory}/{user.Uuid}.json"));
@@ -189,13 +189,13 @@ namespace ShadowsocksUriGenerator.Tests
         }
 
         [Theory]
-        [InlineData(0, "root")]
-        [InlineData(0, "http", "nobody")]
-        [InlineData(0, "root", "http", "nobody")]
-        [InlineData(404, "whoever")]
-        [InlineData(404, "whoever", "nobody")]
-        [InlineData(404, "nobody", "whoever", "http")]
-        public async Task Save_Clean_OnlineConfig_ForSpecifiedUsers(int expectedResult, params string[] selectedUsernames)
+        [InlineData(null, "root")]
+        [InlineData(null, "http", "nobody")]
+        [InlineData(null, "root", "http", "nobody")]
+        [InlineData("Error: user whoever doesn't exist.", "whoever")]
+        [InlineData("Error: user whoever doesn't exist.", "whoever", "nobody")]
+        [InlineData("Error: user whoever doesn't exist.", "nobody", "whoever", "http")]
+        public async Task Save_Clean_OnlineConfig_ForSpecifiedUsers(string? expectedResult, params string[] selectedUsernames)
         {
             var settings = new Settings();
             var directory = Utilities.GetAbsolutePath(settings.OnlineConfigOutputDirectory);
@@ -205,12 +205,16 @@ namespace ShadowsocksUriGenerator.Tests
             users.AddUser("http");
             users.AddUser("nobody");
 
+            // Constant interpolated strings is a preview feature.
+            if (expectedResult is not null)
+                expectedResult = $"{expectedResult}{Environment.NewLine}";
+
             settings.OnlineConfigDeliverByGroup = false;
             // Save
-            var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings, selectedUsernames);
+            var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings, default, selectedUsernames);
 
             Assert.Equal(expectedResult, genResult);
-            if (expectedResult == 0)
+            if (expectedResult is null)
             {
                 Assert.True(Directory.Exists(directory));
                 var expectedFileCount = selectedUsernames.Length;
@@ -221,7 +225,7 @@ namespace ShadowsocksUriGenerator.Tests
             // Clean
             OnlineConfig.Remove(users, settings, selectedUsernames[0]);
 
-            if (expectedResult == 0)
+            if (expectedResult is null)
             {
                 Assert.True(Directory.Exists(directory));
                 var expectedFileCount = selectedUsernames.Length - 1;

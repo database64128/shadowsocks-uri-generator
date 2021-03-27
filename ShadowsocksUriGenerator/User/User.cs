@@ -178,7 +178,7 @@ namespace ShadowsocksUriGenerator
         {
             BytesUsed = 0UL;
             var bytesUsedInGroup = 0UL; // make compiler happy
-            
+
             foreach (var groupEntry in nodes.Groups)
             {
                 // Filter out access key ids that belongs to the user.

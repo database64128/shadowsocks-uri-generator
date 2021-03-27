@@ -1,32 +1,35 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI
 {
     public static class OnlineConfigCommand
     {
-        public static async Task<int> Generate(string[]? usernames)
+        public static async Task<int> Generate(string[]? usernames, CancellationToken cancellationToken = default)
         {
-            var users = await Users.LoadUsersAsync();
-            using var nodes = await Nodes.LoadNodesAsync();
-            var settings = await Settings.LoadSettingsAsync();
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            int result;
-            if (usernames == null)
-                result = await OnlineConfig.GenerateAndSave(users, nodes, settings);
-            else
-                result = await OnlineConfig.GenerateAndSave(users, nodes, settings, usernames);
-            if (result == 404)
-                Console.WriteLine($"One or more specified users are not found.");
+            var errMsg = usernames == null
+                ? await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken)
+                : await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken, usernames);
+            if (errMsg is not null)
+            {
+                Console.WriteLine(errMsg);
+                return 1;
+            }
 
-            return result;
+            return 0;
         }
 
-        public static async Task<int> GetLinks(string[]? usernames)
+        public static async Task<int> GetLinks(string[]? usernames, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            var users = await Users.LoadUsersAsync();
-            var settings = await Settings.LoadSettingsAsync();
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
             if (usernames == null)
             {
@@ -65,10 +68,10 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static async Task<int> Clean(string[]? usernames, bool all)
+        public static async Task<int> Clean(string[]? usernames, bool all, CancellationToken cancellationToken = default)
         {
-            var users = await Users.LoadUsersAsync();
-            var settings = await Settings.LoadSettingsAsync();
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
             if (usernames != null && !all)
                 OnlineConfig.Remove(users, settings, usernames);

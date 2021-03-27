@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -90,7 +91,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
             if (!botConfig.AllowChatAssociation)
             {
                 reply = @"The admin has disabled Telegram association\.";
@@ -108,7 +109,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else
             {
-                var users = await Users.LoadUsersAsync();
+                var users = await JsonHelper.LoadUsersAsync(cancellationToken);
                 var userSearchResult = users.UserDict.Where(x => string.Equals(x.Value.Uuid, argument, StringComparison.OrdinalIgnoreCase));
                 KeyValuePair<string, User>? matchedUser = userSearchResult.Any() ? userSearchResult.First() : null;
                 if (matchedUser == null)
@@ -134,7 +135,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     botConfig.ChatAssociations.Add(message.From.Id, matchedUser.Value.Value.Uuid);
                     reply = $@"Successfully linked your Telegram account to `{matchedUser.Value.Key}`\.";
                     Console.WriteLine(" Response: success.");
-                    await BotConfig.SaveBotConfigAsync(botConfig);
+                    await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
                 }
             }
             await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
@@ -144,7 +145,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
             if (!botConfig.AllowChatAssociation)
             {
                 reply = @"The admin has disabled Telegram association\.";
@@ -159,7 +160,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             {
                 reply = $@"Successfully unlinked your Telegram account from `{userUuid}`\.";
                 Console.WriteLine(" Response: success.");
-                await BotConfig.SaveBotConfigAsync(botConfig);
+                await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
             }
             else
             {
@@ -173,8 +174,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (!botConfig.UsersCanSeeAllUsers)
             {
                 reply = @"The admin has disabled the command\.";
@@ -215,11 +216,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                using var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                 var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
                 var replyBuilder = new StringBuilder();
 
@@ -276,11 +277,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                using var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                 var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
                 var replyBuilder = new StringBuilder();
 
@@ -319,8 +320,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (!botConfig.UsersCanSeeAllUsers)
             {
                 reply = @"The admin has disabled the command\.";
@@ -365,8 +366,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply = @"An error occurred\."; // the initial value is only used when there's an error in the logic
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 if (argument != null && userEntry.Value.Key != argument) // look up specified user
@@ -384,7 +385,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     }
                 if (argument == null || userEntry.Value.Key == argument) // no argument or successful lookup
                 {
-                    using var nodes = await Nodes.LoadNodesAsync();
+                    using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                     var username = userEntry.Value.Key;
                     var user = userEntry.Value.Value;
                     var records = userEntry.Value.Value.GetDataUsage(username, nodes);
@@ -439,8 +440,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (!botConfig.UsersCanSeeGroupDataUsage)
             {
                 reply = @"The admin has disabled the command\.";
@@ -456,7 +457,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
                 if (userGroups.Contains(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
                 {
-                    using var nodes = await Nodes.LoadNodesAsync();
+                    using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                     var records = nodes.GetGroupDataUsage(argument);
                     if (records == null)
                     {
@@ -530,8 +531,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (message.Chat.Type != ChatType.Private)
             {
                 reply = @"Retrieval of sensitive information is only allowed in private chats\.";
@@ -540,7 +541,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 var user = userEntry.Value.Value;
-                using var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                 var uris = string.IsNullOrEmpty(argument) ? user.GetSSUris(nodes) : user.GetSSUris(nodes, argument);
                 if (uris.Count > 0)
                 {
@@ -572,13 +573,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (message.Chat.Type != ChatType.Private)
                 reply = @"Retrieval of sensitive information is only allowed in private chats\.";
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                var settings = await Settings.LoadSettingsAsync();
+                var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
                 var replyBuilder = new StringBuilder();
 
                 replyBuilder.AppendLine("SIP008 delivery link for all servers:");
@@ -610,8 +611,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (message.Chat.Type != ChatType.Private)
                 reply = @"Retrieval of sensitive information is only allowed in private chats\.";
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
@@ -674,8 +675,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
             string reply;
-            var botConfig = await BotConfig.LoadBotConfigAsync();
-            var users = await Users.LoadUsersAsync();
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (!botConfig.UsersCanSeeAllUsers || !botConfig.UsersCanSeeAllGroups || !botConfig.UsersCanSeeGroupDataUsage)
             {
                 reply = @"You are not authorized to view the report\.";
@@ -683,7 +684,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out _))
             {
-                using var nodes = await Nodes.LoadNodesAsync();
+                using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
                 // collect data
                 var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);

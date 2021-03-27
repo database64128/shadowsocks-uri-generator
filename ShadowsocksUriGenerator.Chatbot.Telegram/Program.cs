@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Net.Http;
@@ -20,13 +21,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             var configGetCommand = new Command("get", "Get and print bot config.")
             {
                 Handler = CommandHandler.Create(
-                    async () =>
+                    async (CancellationToken cancellationToken) =>
                     {
-                        var botConfig = await BotConfig.LoadBotConfigAsync();
+                        var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
 
-                        Utilities.PrintTableBorder(28, 50);
+                        ConsoleHelper.PrintTableBorder(28, 50);
                         Console.WriteLine($"|{"Key",-28}|{"Value",50}|");
-                        Utilities.PrintTableBorder(28, 50);
+                        ConsoleHelper.PrintTableBorder(28, 50);
 
                         Console.WriteLine($"|{"Version",-28}|{botConfig.Version,50}|");
                         Console.WriteLine($"|{"BotToken",-28}|{botConfig.BotToken,50}|");
@@ -35,16 +36,16 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         Console.WriteLine($"|{"UsersCanSeeGroupDataUsage",-28}|{botConfig.UsersCanSeeGroupDataUsage,50}|");
                         Console.WriteLine($"|{"AllowChatAssociation",-28}|{botConfig.AllowChatAssociation,50}|");
 
-                        Utilities.PrintTableBorder(28, 50);
+                        ConsoleHelper.PrintTableBorder(28, 50);
                     }),
             };
 
             var configSetCommand = new Command("set", "Change bot config.")
             {
                 Handler = CommandHandler.Create(
-                    async (string? botToken, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? allowChatAssociation) =>
+                    async (string? botToken, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? allowChatAssociation, CancellationToken cancellationToken) =>
                     {
-                        var botConfig = await BotConfig.LoadBotConfigAsync();
+                        var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
 
                         if (!string.IsNullOrEmpty(botToken))
                             botConfig.BotToken = botToken;
@@ -57,7 +58,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         if (allowChatAssociation is bool allowLinking)
                             botConfig.AllowChatAssociation = allowLinking;
 
-                        await BotConfig.SaveBotConfigAsync(botConfig);
+                        await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
                     }),
             };
             configSetCommand.AddOption(new Option<string?>("--bot-token", "The Telegram bot token."));
@@ -80,7 +81,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             rootCommand.Handler = CommandHandler.Create(
                 async (string? botToken, CancellationToken cancellationToken) =>
                 {
-                    var botConfig = await BotConfig.LoadBotConfigAsync();
+                    var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
 
                     // Priority: commandline option > environment variable > config file
                     if (string.IsNullOrEmpty(botToken))

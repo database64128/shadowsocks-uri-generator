@@ -1,15 +1,24 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI
 {
     public static class NodeCommand
     {
-        public static async Task<int> Add(string group, string nodename, string host, string portString, string? plugin, string? pluginOpts)
+        public static async Task<int> Add(
+            string group,
+            string nodename,
+            string host,
+            string portString,
+            string? plugin,
+            string? pluginOpts,
+            CancellationToken cancellationToken = default)
         {
-            using var nodes = await Nodes.LoadNodesAsync();
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             var result = nodes.AddNodeToGroup(group, nodename, host, portString, plugin, pluginOpts);
             switch (result)
@@ -31,13 +40,13 @@ namespace ShadowsocksUriGenerator.CLI
                     break;
             }
 
-            await Nodes.SaveNodesAsync(nodes);
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return result;
         }
 
-        public static async Task<int> Rename(string group, string oldName, string newName)
+        public static async Task<int> Rename(string group, string oldName, string newName, CancellationToken cancellationToken = default)
         {
-            using var nodes = await Nodes.LoadNodesAsync();
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             var result = nodes.RenameNodeInGroup(group, oldName, newName);
             switch (result)
@@ -59,14 +68,14 @@ namespace ShadowsocksUriGenerator.CLI
                     break;
             }
 
-            await Nodes.SaveNodesAsync(nodes);
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return result;
         }
 
-        public static async Task<int> Remove(string group, string[] nodenames)
+        public static async Task<int> Remove(string group, string[] nodenames, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            using var nodes = await Nodes.LoadNodesAsync();
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             foreach (var nodename in nodenames)
             {
@@ -89,13 +98,13 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult += result;
             }
 
-            await Nodes.SaveNodesAsync(nodes);
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return commandResult;
         }
 
-        public static async Task List(string[]? groups, bool namesOnly, bool onePerLine)
+        public static async Task List(string[]? groups, bool namesOnly, bool onePerLine, CancellationToken cancellationToken = default)
         {
-            using var nodes = await Nodes.LoadNodesAsync();
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             if (namesOnly)
             {
@@ -106,7 +115,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                     Console.WriteLine($"Group: {groupEntry.Key}");
                     var keys = groupEntry.Value.NodeDict.Keys.ToList();
-                    Utilities.PrintNameList(keys, onePerLine);
+                    ConsoleHelper.PrintNameList(keys, onePerLine);
                     Console.WriteLine();
                 }
 
@@ -138,9 +147,9 @@ namespace ShadowsocksUriGenerator.CLI
             var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength + 2 : 8;
             var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength + 2 : 16;
 
-            Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+            ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
             Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
-            Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+            ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
             foreach (var groupEntry in nodes.Groups)
             {
@@ -151,7 +160,7 @@ namespace ShadowsocksUriGenerator.CLI
                     PrintNodeInfo(node, groupEntry.Key);
             }
 
-            Utilities.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+            ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
             void PrintNodeInfo(KeyValuePair<string, Node> node, string group)
             {
@@ -159,10 +168,10 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static async Task<int> Activate(string group, string[] nodenames, bool allNodes)
+        public static async Task<int> Activate(string group, string[] nodenames, bool allNodes, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            using var nodes = await Nodes.LoadNodesAsync();
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             if (allNodes)
             {
@@ -201,14 +210,14 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            await Nodes.SaveNodesAsync(nodes);
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return commandResult;
         }
 
-        public static async Task<int> Deactivate(string group, string[] nodenames, bool allNodes)
+        public static async Task<int> Deactivate(string group, string[] nodenames, bool allNodes, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            using var nodes = await Nodes.LoadNodesAsync();
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             if (allNodes)
             {
@@ -247,7 +256,7 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            await Nodes.SaveNodesAsync(nodes);
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return commandResult;
         }
     }

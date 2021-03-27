@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
@@ -144,36 +143,40 @@ namespace ShadowsocksUriGenerator
         /// <typeparam name="T">Data object type.</typeparam>
         /// <param name="filename">JSON file name.</param>
         /// <param name="jsonSerializerOptions">Deserialization options.</param>
-        /// <returns>A data object loaded from the JSON file.</returns>
-        public static async Task<T> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null) where T : class, new()
+        /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
+        /// <returns>
+        /// A ValueTuple containing a data object loaded from the JSON file and an error message.
+        /// The error message is null if no errors occurred.
+        /// </returns>
+        public static async Task<(T, string? errMsg)> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null, CancellationToken cancellationToken = default) where T : class, new()
         {
             // extend relative path
             filename = GetAbsolutePath(filename);
 
             if (!File.Exists(filename))
-                return new T();
+                return new();
 
             T? jsonData = null;
+            string? errMsg = null;
             FileStream? jsonFile = null;
+
             try
             {
                 jsonFile = new FileStream(filename, FileMode.Open);
-                jsonData = await JsonSerializer.DeserializeAsync<T>(jsonFile, jsonSerializerOptions);
+                jsonData = await JsonSerializer.DeserializeAsync<T>(jsonFile, jsonSerializerOptions, cancellationToken);
             }
             catch
             {
-                Console.WriteLine($"Error: failed to load {filename}.");
-                Environment.Exit(1);
+                errMsg = $"Error: failed to load {filename}.";
             }
             finally
             {
-                if (jsonFile != null)
+                if (jsonFile is not null)
                     await jsonFile.DisposeAsync();
             }
-            if (jsonData != null)
-                return jsonData;
-            else
-                return new T();
+
+            jsonData ??= new();
+            return (jsonData, errMsg);
         }
 
         /// <summary>
@@ -183,10 +186,13 @@ namespace ShadowsocksUriGenerator
         /// <param name="filename">JSON file name.</param>
         /// <param name="jsonData">The data object to save.</param>
         /// <param name="jsonSerializerOptions">Serialization options.</param>
-        /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static async Task SaveJsonAsync<T>(string filename, T jsonData, JsonSerializerOptions? jsonSerializerOptions = null)
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
+        /// <returns>An error message. Null if no errors occurred.</returns>
+        public static async Task<string?> SaveJsonAsync<T>(string filename, T jsonData, JsonSerializerOptions? jsonSerializerOptions = null, CancellationToken cancellationToken = default)
         {
+            string? errMsg = null;
             FileStream? jsonFile = null;
+
             try
             {
                 // extend relative path
@@ -196,57 +202,23 @@ namespace ShadowsocksUriGenerator
                 Directory.CreateDirectory(directoryPath);
                 // save JSON
                 jsonFile = new FileStream(filename, FileMode.Create);
-                await JsonSerializer.SerializeAsync(jsonFile, jsonData, jsonSerializerOptions);
+                await JsonSerializer.SerializeAsync(jsonFile, jsonData, jsonSerializerOptions, cancellationToken);
             }
             catch (ArgumentException)
             {
-                Console.WriteLine($"Error: invalid path: {filename}.");
+                errMsg = $"Error: invalid path: {filename}.";
             }
             catch
             {
-                Console.WriteLine($"Error: failed to save {filename}.");
+                errMsg = $"Error: failed to save {filename}.";
             }
             finally
             {
-                if (jsonFile != null)
+                if (jsonFile is not null)
                     await jsonFile.DisposeAsync();
             }
-        }
 
-        public static void PrintTableBorder(params int[] columnWidths)
-        {
-            foreach (var columnWidth in columnWidths)
-            {
-                Console.Write('+');
-                for (var i = 0; i < columnWidth; i++)
-                    Console.Write('-');
-            }
-            Console.Write("+\n");
-        }
-
-        public static void PrintNameList(List<string> names, bool onePerLine = false)
-        {
-            Console.WriteLine($"Total {names.Count}");
-            if (onePerLine)
-            {
-                foreach (var name in names)
-                    Console.WriteLine(name);
-            }
-            else
-            {
-                var stringBuilder = new StringBuilder();
-                foreach (var name in names)
-                    if (name.Contains(' '))
-                        stringBuilder.Append($"\"{name}\" ");
-                    else
-                        stringBuilder.Append($"{name} ");
-                stringBuilder.Remove(stringBuilder.Length - 1, 1);
-                if (names.Count > 0)
-                    stringBuilder.AppendLine();
-
-                var output = stringBuilder.ToString();
-                Console.Write(output);
-            }
+            return errMsg;
         }
     }
 }

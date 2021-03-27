@@ -21,7 +21,7 @@ namespace ShadowsocksUriGenerator
         /// used by this version of the app.
         /// </summary>
         public static int DefaultVersion => 2;
-        
+
         /// <summary>
         /// Gets or sets the configuration version number.
         /// 0 for the legacy config version
@@ -499,25 +499,29 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Loads nodes from Nodes.json.
         /// </summary>
-        /// <returns>A <see cref="Nodes"/> object.</returns>
-        public static async Task<Nodes> LoadNodesAsync()
+        /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
+        /// <returns>
+        /// A ValueTuple containing a <see cref="Nodes"/> object and an error message.
+        /// </returns>
+        public static async Task<(Nodes, string? errMsg)> LoadNodesAsync(CancellationToken cancellationToken = default)
         {
-            var nodes = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions);
-            if (nodes.Version != DefaultVersion)
+            var (nodes, errMsg) = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
+            if (errMsg is null && nodes.Version != DefaultVersion)
             {
                 UpdateNodes(ref nodes);
-                await SaveNodesAsync(nodes);
+                errMsg = await SaveNodesAsync(nodes, cancellationToken);
             }
-            return nodes;
+            return (nodes, errMsg);
         }
 
         /// <summary>
         /// Saves nodes to Nodes.json.
         /// </summary>
         /// <param name="nodes">The <see cref="Nodes"/> object to save.</param>
-        /// <returns>A task that represents the asynchronous write operation.</returns>
-        public static async Task SaveNodesAsync(Nodes nodes)
-            => await Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions);
+        /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
+        /// <returns>An error message. Null if no errors occurred.</returns>
+        public static Task<string?> SaveNodesAsync(Nodes nodes, CancellationToken cancellationToken = default)
+            => Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions, cancellationToken);
 
         /// <summary>
         /// Updates the nodes version.

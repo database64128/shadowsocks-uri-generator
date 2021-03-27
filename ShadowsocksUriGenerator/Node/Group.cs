@@ -311,8 +311,7 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null)
                 throw new InvalidOperationException("Outline API key is not found.");
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey);
 
             OutlineDefaultUser = defaultUser;
             return _apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken);
@@ -331,8 +330,7 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null)
                 return null;
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey);
 
             var tasks = new List<Task<HttpResponseMessage>>();
             var statusCodes = new List<HttpStatusCode>();
@@ -389,8 +387,7 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null)
                 return -2;
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey);
 
             var serverInfoTask = _apiClient.GetServerInfoAsync(cancellationToken);
             var accessKeysTask = _apiClient.GetAccessKeysAsync(cancellationToken);
@@ -474,8 +471,7 @@ namespace ShadowsocksUriGenerator
                 return -2;
             if (OutlineAccessKeys == null)
                 await UpdateOutlineServer(group, users, true, cancellationToken);
-            if (OutlineAccessKeys == null)
-                OutlineAccessKeys = new();
+            OutlineAccessKeys ??= new();
 
             var tasks = new List<Task<HttpStatusCode[]>>();
             var statusCodes = new List<HttpStatusCode>();
@@ -519,8 +515,7 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null || OutlineAccessKeys == null)
                 return 1;
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey);
 
             // find user id
             var filteredUserIds = OutlineAccessKeys.Where(x => x.Name == oldName).Select(x => x.Id);
@@ -547,10 +542,8 @@ namespace ShadowsocksUriGenerator
                 return -2;
             if (OutlineAccessKeys == null)
                 await UpdateOutlineServer(group, users, true, cancellationToken);
-            if (OutlineAccessKeys == null)
-                OutlineAccessKeys = new();
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
+            OutlineAccessKeys ??= new();
+            _apiClient ??= new(OutlineApiKey);
 
             var tasks = new List<Task<HttpStatusCode[]>>();
             var statusCodes = new List<HttpStatusCode>();
@@ -585,10 +578,8 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null)
                 throw new InvalidOperationException("Outline API key is not found.");
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
-            if (OutlineAccessKeys == null)
-                OutlineAccessKeys = new();
+            _apiClient ??= new(OutlineApiKey);
+            OutlineAccessKeys ??= new();
 
             var statusCodes = new List<HttpStatusCode>();
 
@@ -636,8 +627,7 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey == null || OutlineAccessKeys == null)
                 throw new InvalidOperationException("Outline API key is not found.");
-            if (_apiClient == null)
-                _apiClient = new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey);
 
             // Get ID list
             var userIDs = OutlineAccessKeys.Where(x => usernames.Contains(x.Name)).Select(x => x.Id);
