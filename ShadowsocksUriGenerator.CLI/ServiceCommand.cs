@@ -75,6 +75,8 @@ namespace ShadowsocksUriGenerator.CLI
                         Console.WriteLine("Generated online config.");
                     }
 
+                    await Users.SaveUsersAsync(users);
+                    await Nodes.SaveNodesAsync(nodes);
                     await Task.Delay(interval * 1000, cancellationToken);
                 }
             }
