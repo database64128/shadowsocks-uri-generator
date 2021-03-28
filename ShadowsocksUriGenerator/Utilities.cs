@@ -154,7 +154,7 @@ namespace ShadowsocksUriGenerator
             filename = GetAbsolutePath(filename);
 
             if (!File.Exists(filename))
-                return new();
+                return (new(), null);
 
             T? jsonData = null;
             string? errMsg = null;
