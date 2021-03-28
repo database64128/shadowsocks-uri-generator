@@ -76,10 +76,10 @@ namespace ShadowsocksUriGenerator.Tests
             nodes.AddGroup("G");
 
             // Add
-            var successAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", "443");
-            var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
-            var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", "443");
-            var badGroupAdd = nodes.AddNodeToGroup("H", "MyNode0", "github.com", "443");
+            var successAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443);
+            var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com");
+            var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443);
+            var badGroupAdd = nodes.AddNodeToGroup("H", "MyNode0", "github.com", 443);
             var badPortAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", "https");
 
             Assert.Equal(0, successAdd);
@@ -153,8 +153,8 @@ namespace ShadowsocksUriGenerator.Tests
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
             nodes.AddGroup("MyGroupWithPlugin");
-            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", "443");
-            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", "443", "v2ray-plugin", "server;tls;host=github.com");
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443);
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com");
             var users = new Users();
             users.AddUser("root");
             users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
