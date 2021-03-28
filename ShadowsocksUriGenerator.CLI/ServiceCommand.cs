@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,6 +8,15 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class ServiceCommand
     {
+        public static string? ValidateRun(CommandResult commandResult)
+        {
+            if (commandResult.Children.Contains("--generate-online-config") &&
+                commandResult.Children.Contains("--regenerate-online-config"))
+                return "You don't need to generate online config twice.";
+            else
+                return null;
+        }
+
         public static async Task Run(
             int interval,
             bool pullOutlineServer,

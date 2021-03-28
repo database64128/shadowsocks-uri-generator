@@ -1,6 +1,7 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.Collections.Generic;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,18 +10,51 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class NodeCommand
     {
+        public static int ParsePortNumber(ArgumentResult argumentResult)
+        {
+            var portString = argumentResult.Tokens.Single().Value;
+            if (int.TryParse(portString, out var port))
+            {
+                if (port is > 0 and <= 65535)
+                {
+                    return port;
+                }
+                else
+                {
+                    argumentResult.ErrorMessage = "Port out of range: (0, 65535]";
+                    return default;
+                }
+            }
+            else
+            {
+                argumentResult.ErrorMessage = $"Invalid port number: {portString}";
+                return default;
+            }
+        }
+
+        public static string? ValidateAdd(CommandResult commandResult)
+        {
+            var hasPlugin = commandResult.Children.Contains("--plugin");
+            var hasPluginOpts = commandResult.Children.Contains("--plugin-opts");
+
+            if (!hasPlugin && hasPluginOpts)
+                return "You didn't specify a plugin.";
+            else
+                return null;
+        }
+
         public static async Task<int> Add(
             string group,
             string nodename,
             string host,
-            string portString,
+            int port,
             string? plugin,
             string? pluginOpts,
             CancellationToken cancellationToken = default)
         {
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            var result = nodes.AddNodeToGroup(group, nodename, host, portString, plugin, pluginOpts);
+            var result = nodes.AddNodeToGroup(group, nodename, host, port, plugin, pluginOpts);
             switch (result)
             {
                 case 0:
@@ -33,7 +67,7 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"Error: Group {group} doesn't exist.");
                     break;
                 case -3:
-                    Console.WriteLine($"Error: Invalid port number: {portString}.");
+                    Console.WriteLine($"Error: Invalid port number: {port}.");
                     break;
                 default:
                     Console.WriteLine($"Unknown error.");

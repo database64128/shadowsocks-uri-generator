@@ -321,7 +321,7 @@ namespace ShadowsocksUriGenerator.CLI
         }
 
         public static async Task<int> SetDataLimit(
-            string dataLimit,
+            ulong dataLimitInBytes,
             string[] groups,
             bool global,
             bool perUser,
@@ -332,33 +332,25 @@ namespace ShadowsocksUriGenerator.CLI
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            if (Utilities.TryParseDataLimitString(dataLimit, out var dataLimitInBytes))
+            foreach (var group in groups)
             {
-                foreach (var group in groups)
+                var result = nodes.SetDataLimitForGroup(dataLimitInBytes, group, global, perUser, usernames);
+                switch (result)
                 {
-                    var result = nodes.SetDataLimitForGroup(dataLimitInBytes, group, global, perUser, usernames);
-                    switch (result)
-                    {
-                        case 0:
-                            Console.WriteLine($"Data limit set for {group}.");
-                            break;
-                        case -1:
-                            Console.WriteLine($"Error: Group {group} doesn't exist.");
-                            break;
-                        case -2:
-                            Console.WriteLine($"An error occurred while setting for {group}: some users were not found.");
-                            break;
-                        default:
-                            Console.WriteLine($"Unknown error.");
-                            break;
-                    }
-                    commandResult += result;
+                    case 0:
+                        Console.WriteLine($"Data limit set for {group}.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: Group {group} doesn't exist.");
+                        break;
+                    case -2:
+                        Console.WriteLine($"An error occurred while setting for {group}: some users were not found.");
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown error.");
+                        break;
                 }
-            }
-            else
-            {
-                Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
-                commandResult = -3;
+                commandResult += result;
             }
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);

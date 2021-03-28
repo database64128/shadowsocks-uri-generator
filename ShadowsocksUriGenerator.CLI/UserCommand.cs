@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -182,6 +183,19 @@ namespace ShadowsocksUriGenerator.CLI
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);
             return commandResult;
+        }
+
+        public static string? ValidateAddCredential(CommandResult commandResult)
+        {
+            var hasMethod = commandResult.Children.Contains("--method");
+            var hasPassword = commandResult.Children.Contains("--password");
+            var hasUserinfo = commandResult.Children.Contains("--userinfo-base64url");
+
+            if (hasMethod && hasPassword && !hasUserinfo ||
+                !hasMethod && !hasPassword && hasUserinfo)
+                return null;
+            else
+                return "You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.";
         }
 
         public static async Task<int> AddCredential(
@@ -409,38 +423,30 @@ namespace ShadowsocksUriGenerator.CLI
             return 0;
         }
 
-        public static async Task<int> SetDataLimit(string dataLimit, string[] usernames, string[]? groups, CancellationToken cancellationToken = default)
+        public static async Task<int> SetDataLimit(ulong dataLimitInBytes, string[] usernames, string[]? groups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
 
-            if (Utilities.TryParseDataLimitString(dataLimit, out var dataLimitInBytes))
+            foreach (var username in usernames)
             {
-                foreach (var username in usernames)
+                var result = users.SetDataLimitToUser(dataLimitInBytes, username, groups);
+                switch (result)
                 {
-                    var result = users.SetDataLimitToUser(dataLimitInBytes, username, groups);
-                    switch (result)
-                    {
-                        case 0:
-                            Console.WriteLine($"Data limit set for {username}.");
-                            break;
-                        case -1:
-                            Console.WriteLine($"Error: user {username} doesn't exist.");
-                            break;
-                        case -2:
-                            Console.WriteLine($"An error occurred while setting for {username}: some groups were not found.");
-                            break;
-                        default:
-                            Console.WriteLine($"Unknown error.");
-                            break;
-                    }
-                    commandResult += result;
+                    case 0:
+                        Console.WriteLine($"Data limit set for {username}.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: user {username} doesn't exist.");
+                        break;
+                    case -2:
+                        Console.WriteLine($"An error occurred while setting for {username}: some groups were not found.");
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown error.");
+                        break;
                 }
-            }
-            else
-            {
-                Console.WriteLine($"An error occurred while parsing the data limit: {dataLimit}");
-                commandResult = -3;
+                commandResult += result;
             }
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);

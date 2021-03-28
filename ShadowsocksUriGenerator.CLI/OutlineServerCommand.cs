@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -256,6 +257,15 @@ namespace ShadowsocksUriGenerator.CLI
             await JsonHelper.SaveUsersAsync(users, cancellationToken);
             await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return commandResult;
+        }
+
+        public static string? ValidateRotatePassword(CommandResult commandResult)
+        {
+            if (commandResult.Children.Contains("--usernames") ||
+                commandResult.Children.Contains("--groups"))
+                return null;
+            else
+                return "Please provide either a username or a group, or both.";
         }
 
         public static async Task<int> RotatePassword(string[]? usernames, string[]? groups, CancellationToken cancellationToken = default)

@@ -21,12 +21,12 @@ namespace ShadowsocksUriGenerator.CLI
             var userListCommand = new Command("list", "List all users.");
             var userJoinGroupsCommand = new Command("join", "Join groups.");
             var userLeaveGroupsCommand = new Command("leave", "Leave groups.");
-            var userAddCredentialCommand = new Command("add-credential", "Add a credential associated with a group for the user.");
+            var userAddCredentialCommand = new Command("add-credential", "Add a credential for the user to access nodes in the group.");
             var userRemoveCredentialsCommand = new Command("remove-credentials", "Remove the group's credential from the user.");
             var userListCredentialsCommand = new Command("list-credentials", "List user-group credentials.");
             var userGetSSLinksCommand = new Command("get-ss-links", "Get the user's Shadowsocks URLs.");
             var userGetDataUsageCommand = new Command("get-data-usage", "Get the user's data usage records.");
-            var userSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
+            var userSetDataLimitCommand = new Command("set-data-limit", "Set a data limit on the specified users in all or the specified groups.");
 
             var userCommand = new Command("user", "Manage users.")
             {
@@ -142,15 +142,46 @@ namespace ShadowsocksUriGenerator.CLI
                 serviceCommand,
             };
 
-            var usernamesArgument = new Argument<string[]>("usernames", "One or more usernames.");
-            var nodenamesArgument = new Argument<string[]>("nodenames", "One or more node names.");
-            var groupsArgument = new Argument<string[]>("groups", "One or more group names.");
-            usernamesArgument.Arity = ArgumentArity.OneOrMore;
-            nodenamesArgument.Arity = ArgumentArity.OneOrMore;
-            groupsArgument.Arity = ArgumentArity.OneOrMore;
+            var usernameArgument = new Argument<string>("username", "Target user.");
+            var groupArgument = new Argument<string>("group", "Target group.");
+            var oldNameArgument = new Argument<string>("oldName", "Current name.");
+            var newNameArgument = new Argument<string>("newName", "New name.");
+
+            var usernamesArgumentZeroOrMore = new Argument<string[]>("usernames", "Zero or more usernames.");
+            var nodenamesArgumentZeroOrMore = new Argument<string[]>("nodenames", "Zero or more node names.");
+            var groupsArgumentZeroOrMore = new Argument<string[]>("groups", "Zero or more group names.");
+
+            var usernamesArgumentOneOrMore = new Argument<string[]>("usernames", "One or more usernames.")
+            {
+                Arity = ArgumentArity.OneOrMore,
+            };
+            var nodenamesArgumentOneOrMore = new Argument<string[]>("nodenames", "One or more node names.")
+            {
+                Arity = ArgumentArity.OneOrMore,
+            };
+            var groupsArgumentOneOrMore = new Argument<string[]>("groups", "One or more group names.")
+            {
+                Arity = ArgumentArity.OneOrMore,
+            };
+
+            var dataLimitArgument = new Argument<ulong>("dataLimit", Parsers.ParseDataString)
+            {
+                Description = "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
+            };
+            var portStringArgument = new Argument<int>("portString", NodeCommand.ParsePortNumber)
+            {
+                Description = "Port number of the new node.",
+            };
+
+            var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
+            var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
 
             var namesOnlyOption = new Option<bool>(new string[] { "-s", "--short", "--names-only" }, "Display names only, without a table.");
             var onePerLineOption = new Option<bool>(new string[] { "-1", "--one-per-line" }, "Display one name per line.");
+            var allUsersOption = new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Target all users.");
+            var allNodesOption = new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Target all nodes in target group.");
+            var allGroupsOption = new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Target all groups.");
+            var sortByOption = new Option<SortBy?>("--sort-by", "Sort rule for data usage records.");
 
             userCommand.AddAlias("u");
             nodeCommand.AddAlias("n");
@@ -166,17 +197,17 @@ namespace ShadowsocksUriGenerator.CLI
             interactiveCommand.AddAlias("repl");
 
             userAddCommand.AddAlias("a");
-            userAddCommand.AddArgument(usernamesArgument);
+            userAddCommand.AddArgument(usernamesArgumentOneOrMore);
             userAddCommand.Handler = CommandHandler.Create<string[], CancellationToken>(UserCommand.Add);
 
-            userRenameCommand.AddArgument(new Argument<string>("oldName", "The existing username."));
-            userRenameCommand.AddArgument(new Argument<string>("newName", "The new username."));
+            userRenameCommand.AddArgument(oldNameArgument);
+            userRenameCommand.AddArgument(newNameArgument);
             userRenameCommand.Handler = CommandHandler.Create<string, string, CancellationToken>(UserCommand.Rename);
 
             userRemoveCommand.AddAlias("rm");
             userRemoveCommand.AddAlias("del");
             userRemoveCommand.AddAlias("delete");
-            userRemoveCommand.AddArgument(usernamesArgument);
+            userRemoveCommand.AddArgument(usernamesArgumentOneOrMore);
             userRemoveCommand.Handler = CommandHandler.Create<string[], CancellationToken>(UserCommand.Remove);
 
             userListCommand.AddAlias("l");
@@ -185,70 +216,75 @@ namespace ShadowsocksUriGenerator.CLI
             userListCommand.AddOption(onePerLineOption);
             userListCommand.Handler = CommandHandler.Create<bool, bool, CancellationToken>(UserCommand.List);
 
-            userJoinGroupsCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userJoinGroupsCommand.AddArgument(new Argument<string[]>("groups", "Groups to join."));
-            userJoinGroupsCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Join all groups."));
+            userJoinGroupsCommand.AddArgument(usernameArgument);
+            userJoinGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
+            userJoinGroupsCommand.AddOption(allGroupsOption);
+            userJoinGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userJoinGroupsCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(UserCommand.JoinGroups);
 
-            userLeaveGroupsCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userLeaveGroupsCommand.AddArgument(new Argument<string[]>("groups", "Groups to leave."));
-            userLeaveGroupsCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Leave all groups."));
+            userLeaveGroupsCommand.AddArgument(usernameArgument);
+            userLeaveGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
+            userLeaveGroupsCommand.AddOption(allGroupsOption);
+            userLeaveGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userLeaveGroupsCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(UserCommand.LeaveGroups);
 
             userAddCredentialCommand.AddAlias("ac");
-            userAddCredentialCommand.AddArgument(new Argument<string>("username", "The user that the credential belongs to."));
-            userAddCredentialCommand.AddArgument(new Argument<string>("group", "The group that the credential is for."));
-            userAddCredentialCommand.AddOption(new Option<string?>("--method", "The encryption method. MUST be combined with --password."));
-            userAddCredentialCommand.AddOption(new Option<string?>("--password", "The password. MUST be combined with --method."));
-            userAddCredentialCommand.AddOption(new Option<string?>("--userinfo-base64url", "The userinfo encoded in URL-safe base64. Can't be used with any other option."));
+            userAddCredentialCommand.AddArgument(usernameArgument);
+            userAddCredentialCommand.AddArgument(groupArgument);
+            userAddCredentialCommand.AddOption(new Option<string?>("--method", "The encryption method. Use with --password."));
+            userAddCredentialCommand.AddOption(new Option<string?>("--password", "The password. Use with --method."));
+            userAddCredentialCommand.AddOption(new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'."));
+            userAddCredentialCommand.AddValidator(UserCommand.ValidateAddCredential);
             userAddCredentialCommand.Handler = CommandHandler.Create<string, string, string?, string?, string?, CancellationToken>(UserCommand.AddCredential);
 
             userRemoveCredentialsCommand.AddAlias("rc");
-            userRemoveCredentialsCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userRemoveCredentialsCommand.AddArgument(new Argument<string[]>("groups", "Credentials to these groups will be removed."));
-            userRemoveCredentialsCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Remove credentials to all groups."));
+            userRemoveCredentialsCommand.AddArgument(usernameArgument);
+            userRemoveCredentialsCommand.AddArgument(groupsArgumentZeroOrMore);
+            userRemoveCredentialsCommand.AddOption(allGroupsOption);
+            userRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userRemoveCredentialsCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(UserCommand.RemoveCredentials);
 
             userListCredentialsCommand.AddAlias("lc");
-            userListCredentialsCommand.AddOption(new Option<string[]>("--usernames", "Show credentials of these users."));
-            userListCredentialsCommand.AddOption(new Option<string[]>("--groups", "Show credentials to these groups."));
+            userListCredentialsCommand.AddOption(usernamesOption);
+            userListCredentialsCommand.AddOption(groupsOption);
             userListCredentialsCommand.Handler = CommandHandler.Create<string[], string[], CancellationToken>(UserCommand.ListCredentials);
 
             userGetSSLinksCommand.AddAlias("ss");
-            userGetSSLinksCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userGetSSLinksCommand.AddOption(new Option<string[]>("--groups", "Get links for these groups."));
+            userGetSSLinksCommand.AddArgument(usernameArgument);
+            userGetSSLinksCommand.AddOption(groupsOption);
             userGetSSLinksCommand.Handler = CommandHandler.Create<string, string[], CancellationToken>(UserCommand.GetSSLinks);
 
             userGetDataUsageCommand.AddAlias("data");
-            userGetDataUsageCommand.AddArgument(new Argument<string>("username", "Target user."));
-            userGetDataUsageCommand.AddOption(new Option<SortBy?>("--sort-by", "Sort rule for data usage records."));
+            userGetDataUsageCommand.AddArgument(usernameArgument);
+            userGetDataUsageCommand.AddOption(sortByOption);
             userGetDataUsageCommand.Handler = CommandHandler.Create<string, SortBy?, CancellationToken>(UserCommand.GetDataUsage);
 
             userSetDataLimitCommand.AddAlias("limit");
-            userSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
-            userSetDataLimitCommand.AddArgument(new Argument<string[]>("usernames", "Target users."));
-            userSetDataLimitCommand.AddOption(new Option<string[]?>("--groups", "Only set the data limit to these groups."));
-            userSetDataLimitCommand.Handler = CommandHandler.Create<string, string[], string[]?, CancellationToken>(UserCommand.SetDataLimit);
+            userSetDataLimitCommand.AddArgument(dataLimitArgument);
+            userSetDataLimitCommand.AddArgument(usernamesArgumentOneOrMore);
+            userSetDataLimitCommand.AddOption(groupsOption);
+            userSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], string[]?, CancellationToken>(UserCommand.SetDataLimit);
 
             nodeAddCommand.AddAlias("a");
-            nodeAddCommand.AddArgument(new Argument<string>("group", "The group that the new node belongs to."));
+            nodeAddCommand.AddArgument(groupArgument);
             nodeAddCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             nodeAddCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
-            nodeAddCommand.AddArgument(new Argument<string>("portString", "Port number of the new node."));
+            nodeAddCommand.AddArgument(portStringArgument);
             nodeAddCommand.AddOption(new Option<string?>("--plugin", "Plugin binary name of the new node."));
             nodeAddCommand.AddOption(new Option<string?>("--plugin-opts", "Plugin options of the new node."));
-            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, string, string?, string?, CancellationToken>(NodeCommand.Add);
+            nodeAddCommand.AddValidator(NodeCommand.ValidateAdd);
+            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string?, string?, CancellationToken>(NodeCommand.Add);
 
-            nodeRenameCommand.AddArgument(new Argument<string>("group", "The group which contains the node."));
-            nodeRenameCommand.AddArgument(new Argument<string>("oldName", "The existing node name."));
-            nodeRenameCommand.AddArgument(new Argument<string>("newName", "The new node name."));
+            nodeRenameCommand.AddArgument(groupArgument);
+            nodeRenameCommand.AddArgument(oldNameArgument);
+            nodeRenameCommand.AddArgument(newNameArgument);
             nodeRenameCommand.Handler = CommandHandler.Create<string, string, string, CancellationToken>(NodeCommand.Rename);
 
             nodeRemoveCommand.AddAlias("rm");
             nodeRemoveCommand.AddAlias("del");
             nodeRemoveCommand.AddAlias("delete");
-            nodeRemoveCommand.AddArgument(new Argument<string>("group", "Group to delete nodes from."));
-            nodeRemoveCommand.AddArgument(nodenamesArgument);
+            nodeRemoveCommand.AddArgument(groupArgument);
+            nodeRemoveCommand.AddArgument(nodenamesArgumentOneOrMore);
             nodeRemoveCommand.Handler = CommandHandler.Create<string, string[], CancellationToken>(NodeCommand.Remove);
 
             nodeListCommand.AddAlias("l");
@@ -260,30 +296,32 @@ namespace ShadowsocksUriGenerator.CLI
 
             nodeActivateCommand.AddAlias("enable");
             nodeActivateCommand.AddAlias("unhide");
-            nodeActivateCommand.AddArgument(new Argument<string>("group", "Target group."));
-            nodeActivateCommand.AddArgument(new Argument<string[]>("nodenames", "Nodes to activate."));
-            nodeActivateCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Activate all nodes in target group."));
+            nodeActivateCommand.AddArgument(groupArgument);
+            nodeActivateCommand.AddArgument(nodenamesArgumentZeroOrMore);
+            nodeActivateCommand.AddOption(allNodesOption);
+            nodeActivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
             nodeActivateCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(NodeCommand.Activate);
 
             nodeDeactivateCommand.AddAlias("disable");
             nodeDeactivateCommand.AddAlias("hide");
-            nodeDeactivateCommand.AddArgument(new Argument<string>("group", "Target group."));
-            nodeDeactivateCommand.AddArgument(new Argument<string[]>("nodenames", "Nodes to deactivate."));
-            nodeDeactivateCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Deactivate all nodes in target group."));
+            nodeDeactivateCommand.AddArgument(groupArgument);
+            nodeDeactivateCommand.AddArgument(nodenamesArgumentZeroOrMore);
+            nodeDeactivateCommand.AddOption(allNodesOption);
+            nodeDeactivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
             nodeDeactivateCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(NodeCommand.Deactivate);
 
             groupAddCommand.AddAlias("a");
-            groupAddCommand.AddArgument(groupsArgument);
+            groupAddCommand.AddArgument(groupsArgumentOneOrMore);
             groupAddCommand.Handler = CommandHandler.Create<string[], CancellationToken>(GroupCommand.Add);
 
-            groupRenameCommand.AddArgument(new Argument<string>("oldName", "The existing group name."));
-            groupRenameCommand.AddArgument(new Argument<string>("newName", "The new group name."));
+            groupRenameCommand.AddArgument(oldNameArgument);
+            groupRenameCommand.AddArgument(newNameArgument);
             groupRenameCommand.Handler = CommandHandler.Create<string, string, CancellationToken>(GroupCommand.Rename);
 
             groupRemoveCommand.AddAlias("rm");
             groupRemoveCommand.AddAlias("del");
             groupRemoveCommand.AddAlias("delete");
-            groupRemoveCommand.AddArgument(groupsArgument);
+            groupRemoveCommand.AddArgument(groupsArgumentOneOrMore);
             groupRemoveCommand.Handler = CommandHandler.Create<string[], CancellationToken>(GroupCommand.Remove);
 
             groupListCommand.AddAlias("l");
@@ -293,33 +331,35 @@ namespace ShadowsocksUriGenerator.CLI
             groupListCommand.Handler = CommandHandler.Create<bool, bool, CancellationToken>(GroupCommand.List);
 
             groupAddUsersCommand.AddAlias("au");
-            groupAddUsersCommand.AddArgument(new Argument<string>("group", "Target group."));
-            groupAddUsersCommand.AddArgument(new Argument<string[]>("usernames", "Users to add."));
-            groupAddUsersCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Add all users to target group."));
+            groupAddUsersCommand.AddArgument(groupArgument);
+            groupAddUsersCommand.AddArgument(usernamesArgumentZeroOrMore);
+            groupAddUsersCommand.AddOption(allUsersOption);
+            groupAddUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupAddUsersCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(GroupCommand.AddUsers);
 
             groupRemoveUsersCommand.AddAlias("ru");
-            groupRemoveUsersCommand.AddArgument(new Argument<string>("group", "Target group."));
-            groupRemoveUsersCommand.AddArgument(new Argument<string[]>("usernames", "Members to remove."));
-            groupRemoveUsersCommand.AddOption(new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Remove all members of target group."));
+            groupRemoveUsersCommand.AddArgument(groupArgument);
+            groupRemoveUsersCommand.AddArgument(usernamesArgumentZeroOrMore);
+            groupRemoveUsersCommand.AddOption(allUsersOption);
+            groupRemoveUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveUsersCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(GroupCommand.RemoveUsers);
 
             groupListUsersCommand.AddAlias("lu");
-            groupListUsersCommand.AddArgument(new Argument<string>("group", "Target group."));
+            groupListUsersCommand.AddArgument(groupArgument);
             groupListUsersCommand.Handler = CommandHandler.Create<string, CancellationToken>(GroupCommand.ListUsers);
 
             groupGetDataUsageCommand.AddAlias("data");
-            groupGetDataUsageCommand.AddArgument(new Argument<string>("group", "Target group."));
-            groupGetDataUsageCommand.AddOption(new Option<SortBy?>("--sort-by", "Sort rule for data usage records."));
+            groupGetDataUsageCommand.AddArgument(groupArgument);
+            groupGetDataUsageCommand.AddOption(sortByOption);
             groupGetDataUsageCommand.Handler = CommandHandler.Create<string, SortBy?, CancellationToken>(GroupCommand.GetDataUsage);
 
             groupSetDataLimitCommand.AddAlias("limit");
-            groupSetDataLimitCommand.AddArgument(new Argument<string>("dataLimit", "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'."));
-            groupSetDataLimitCommand.AddArgument(groupsArgument);
+            groupSetDataLimitCommand.AddArgument(dataLimitArgument);
+            groupSetDataLimitCommand.AddArgument(groupsArgumentOneOrMore);
             groupSetDataLimitCommand.AddOption(new Option<bool>("--global", "Set the global data limit of the group."));
             groupSetDataLimitCommand.AddOption(new Option<bool>("--per-user", "Set the same data limit for each user."));
-            groupSetDataLimitCommand.AddOption(new Option<string[]?>("--usernames", "Only set the data limit to these users."));
-            groupSetDataLimitCommand.Handler = CommandHandler.Create<string, string[], bool, bool, string[]?, CancellationToken>(GroupCommand.SetDataLimit);
+            groupSetDataLimitCommand.AddOption(usernamesOption);
+            groupSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], bool, bool, string[]?, CancellationToken>(GroupCommand.SetDataLimit);
 
             onlineConfigGenerateCommand.AddAlias("g");
             onlineConfigGenerateCommand.AddAlias("gen");
@@ -337,18 +377,18 @@ namespace ShadowsocksUriGenerator.CLI
             onlineConfigCleanCommand.AddAlias("c");
             onlineConfigCleanCommand.AddAlias("clear");
             onlineConfigCleanCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));
-            onlineConfigCleanCommand.AddOption(new Option<bool>("--all", "Clean for all users."));
+            onlineConfigCleanCommand.AddOption(allUsersOption);
             onlineConfigCleanCommand.Handler = CommandHandler.Create<string[]?, bool, CancellationToken>(OnlineConfigCommand.Clean);
 
             outlineServerAddCommand.AddAlias("a");
-            outlineServerAddCommand.AddArgument(new Argument<string>("group", "Specify a group to add the Outline server to."));
+            outlineServerAddCommand.AddArgument(groupArgument);
             outlineServerAddCommand.AddArgument(new Argument<string>("apiKey", "The Outline server API key."));
             outlineServerAddCommand.Handler = CommandHandler.Create<string, string, CancellationToken>(OutlineServerCommand.Add);
 
-            outlineServerGetCommand.AddArgument(new Argument<string>("group", "The associated group."));
+            outlineServerGetCommand.AddArgument(groupArgument);
             outlineServerGetCommand.Handler = CommandHandler.Create<string, CancellationToken>(OutlineServerCommand.Get);
 
-            outlineServerSetCommand.AddArgument(new Argument<string>("group", "The associated group."));
+            outlineServerSetCommand.AddArgument(groupArgument);
             outlineServerSetCommand.AddOption(new Option<string?>("--name", "Name of the Outline server."));
             outlineServerSetCommand.AddOption(new Option<string?>("--hostname", "Hostname of the Outline server."));
             outlineServerSetCommand.AddOption(new Option<int?>("--port", "Port number for new access keys on the Outline server."));
@@ -357,21 +397,22 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerSetCommand.Handler = CommandHandler.Create<string, string?, string?, int?, bool?, string?, CancellationToken>(OutlineServerCommand.Set);
 
             outlineServerRemoveCommand.AddAlias("rm");
-            outlineServerRemoveCommand.AddArgument(groupsArgument);
+            outlineServerRemoveCommand.AddArgument(groupsArgumentOneOrMore);
             outlineServerRemoveCommand.AddOption(new Option<bool>("--remove-creds", "Remove credentials from all associated users."));
             outlineServerRemoveCommand.Handler = CommandHandler.Create<string[], bool, CancellationToken>(OutlineServerCommand.Remove);
 
             outlineServerPullCommand.AddAlias("update");
-            outlineServerPullCommand.AddArgument(new Argument<string[]?>("groups", "Specify groups to update for."));
+            outlineServerPullCommand.AddArgument(new Argument<string[]?>("groups", "Specify groups to update for. Leave empty to update all groups."));
             outlineServerPullCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user credential storage from retrieved access key list."));
             outlineServerPullCommand.Handler = CommandHandler.Create<string[]?, bool, CancellationToken>(OutlineServerCommand.Pull);
 
-            outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "Groups to deploy for."));
+            outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "Groups to deploy for. Leave empty to deploy all groups."));
             outlineServerDeployCommand.Handler = CommandHandler.Create<string[]?, CancellationToken>(OutlineServerCommand.Deploy);
 
             outlineServerRotatePasswordCommand.AddAlias("rotate");
-            outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--usernames", "Target users."));
-            outlineServerRotatePasswordCommand.AddOption(new Option<string[]?>("--groups", "Target groups."));
+            outlineServerRotatePasswordCommand.AddOption(usernamesOption);
+            outlineServerRotatePasswordCommand.AddOption(groupsOption);
+            outlineServerRotatePasswordCommand.AddValidator(OutlineServerCommand.ValidateRotatePassword);
             outlineServerRotatePasswordCommand.Handler = CommandHandler.Create<string[]?, string[]?, CancellationToken>(OutlineServerCommand.RotatePassword);
 
             reportCommand.AddOption(new Option<SortBy?>("--group-sort-by", "Sort rule for group data usage records."));
@@ -421,6 +462,7 @@ namespace ShadowsocksUriGenerator.CLI
             serviceCommand.AddOption(new Option<bool>("--deploy-outline-server", "Deploy local configurations to Outline servers."));
             serviceCommand.AddOption(new Option<bool>("--generate-online-config", "Generate online config."));
             serviceCommand.AddOption(new Option<bool>("--regenerate-online-config", "Clean and regenerate online config."));
+            serviceCommand.AddValidator(ServiceCommand.ValidateRun);
             serviceCommand.Handler = CommandHandler.Create<int, bool, bool, bool, bool, CancellationToken>(ServiceCommand.Run);
 
             Console.OutputEncoding = Encoding.UTF8;
