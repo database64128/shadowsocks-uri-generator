@@ -185,6 +185,16 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
+        /// Removes all members from the group.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        public void RemoveAllUsersFromGroup(string group)
+        {
+            foreach (var userEntry in UserDict)
+                userEntry.Value.RemoveFromGroup(group);
+        }
+
+        /// <summary>
         /// Removes all users from the specified groups.
         /// </summary>
         /// <param name="groups">Target groups.</param>
@@ -200,7 +210,12 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="user">Target user.</param>
         /// <param name="group">Target group.</param>
-        /// <returns>0 when success. -1 when user not in group. -2 when user not found.</returns>
+        /// <returns>
+        /// 0 when success.
+        /// 1 when no associated credential.
+        /// -1 when user not in group.
+        /// -2 when user not found.
+        /// </returns>
         public int RemoveCredentialFromUser(string user, string group)
         {
             if (UserDict.TryGetValue(user, out var targetUser))
@@ -224,6 +239,16 @@ namespace ShadowsocksUriGenerator
             }
             else
                 return -2;
+        }
+
+        /// <summary>
+        /// Removes the group credential from all users.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        public void RemoveCredentialsFromAllUsers(string group)
+        {
+            foreach (var userEntry in UserDict)
+                userEntry.Value.RemoveCredential(group);
         }
 
         /// <summary>

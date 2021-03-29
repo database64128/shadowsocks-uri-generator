@@ -46,5 +46,18 @@ namespace ShadowsocksUriGenerator.CLI
 
             return null;
         }
+
+        public static string? ValidateAddCredential(CommandResult commandResult)
+        {
+            var hasMethod = commandResult.Children.Contains("--method");
+            var hasPassword = commandResult.Children.Contains("--password");
+            var hasUserinfo = commandResult.Children.Contains("--userinfo-base64url");
+
+            if (hasMethod && hasPassword && !hasUserinfo ||
+                !hasMethod && !hasPassword && hasUserinfo)
+                return null;
+            else
+                return "You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.";
+        }
     }
 }

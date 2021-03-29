@@ -11,10 +11,6 @@ namespace ShadowsocksUriGenerator.CLI
     {
         static Task<int> Main(string[] args)
         {
-            var loadUsersTask = Users.LoadUsersAsync();
-            var loadNodesTask = Nodes.LoadNodesAsync();
-            var loadSettingsTask = Settings.LoadSettingsAsync();
-
             var userAddCommand = new Command("add", "Add users.");
             var userRenameCommand = new Command("rename", "Renames an existing user with a new name.");
             var userRemoveCommand = new Command("remove", "Remove users.");
@@ -68,6 +64,9 @@ namespace ShadowsocksUriGenerator.CLI
             var groupAddUsersCommand = new Command("add-users", "Add users to the group.");
             var groupRemoveUsersCommand = new Command("remove-users", "Remove users from the group.");
             var groupListUsersCommand = new Command("list-users", "List users in the group.");
+            var groupAddCredentialCommand = new Command("add-credential", "Add credential to selected users in the group.");
+            var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
+            var groupListCredentialsCommand = new Command("list-credentials", "List credentials in the group.");
             var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
             var groupSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
 
@@ -80,6 +79,9 @@ namespace ShadowsocksUriGenerator.CLI
                 groupAddUsersCommand,
                 groupRemoveUsersCommand,
                 groupListUsersCommand,
+                groupAddCredentialCommand,
+                groupRemoveCredentialsCommand,
+                groupListCredentialsCommand,
                 groupGetDataUsageCommand,
                 groupSetDataLimitCommand,
             };
@@ -176,6 +178,10 @@ namespace ShadowsocksUriGenerator.CLI
             var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
             var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
 
+            var methodOption = new Option<string?>("--method", "The encryption method. Use with --password.");
+            var passwordOption = new Option<string?>("--password", "The password. Use with --method.");
+            var userinfoBase64urlOption = new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'.");
+
             var namesOnlyOption = new Option<bool>(new string[] { "-s", "--short", "--names-only" }, "Display names only, without a table.");
             var onePerLineOption = new Option<bool>(new string[] { "-1", "--one-per-line" }, "Display one name per line.");
             var allUsersOption = new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Target all users.");
@@ -230,12 +236,14 @@ namespace ShadowsocksUriGenerator.CLI
 
             userAddCredentialCommand.AddAlias("ac");
             userAddCredentialCommand.AddArgument(usernameArgument);
-            userAddCredentialCommand.AddArgument(groupArgument);
-            userAddCredentialCommand.AddOption(new Option<string?>("--method", "The encryption method. Use with --password."));
-            userAddCredentialCommand.AddOption(new Option<string?>("--password", "The password. Use with --method."));
-            userAddCredentialCommand.AddOption(new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'."));
-            userAddCredentialCommand.AddValidator(UserCommand.ValidateAddCredential);
-            userAddCredentialCommand.Handler = CommandHandler.Create<string, string, string?, string?, string?, CancellationToken>(UserCommand.AddCredential);
+            userAddCredentialCommand.AddArgument(groupsArgumentZeroOrMore);
+            userAddCredentialCommand.AddOption(methodOption);
+            userAddCredentialCommand.AddOption(passwordOption);
+            userAddCredentialCommand.AddOption(userinfoBase64urlOption);
+            userAddCredentialCommand.AddOption(allGroupsOption);
+            userAddCredentialCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
+            userAddCredentialCommand.Handler = CommandHandler.Create<string, string[], string?, string?, string?, bool, CancellationToken>(UserCommand.AddCredential);
 
             userRemoveCredentialsCommand.AddAlias("rc");
             userRemoveCredentialsCommand.AddArgument(usernameArgument);
@@ -347,6 +355,28 @@ namespace ShadowsocksUriGenerator.CLI
             groupListUsersCommand.AddAlias("lu");
             groupListUsersCommand.AddArgument(groupArgument);
             groupListUsersCommand.Handler = CommandHandler.Create<string, CancellationToken>(GroupCommand.ListUsers);
+
+            groupAddCredentialCommand.AddAlias("ac");
+            groupAddCredentialCommand.AddArgument(groupArgument);
+            groupAddCredentialCommand.AddArgument(usernamesArgumentZeroOrMore);
+            groupAddCredentialCommand.AddOption(methodOption);
+            groupAddCredentialCommand.AddOption(passwordOption);
+            groupAddCredentialCommand.AddOption(userinfoBase64urlOption);
+            groupAddCredentialCommand.AddOption(allUsersOption);
+            groupAddCredentialCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            groupAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
+            groupAddCredentialCommand.Handler = CommandHandler.Create<string, string[], string?, string?, string?, bool, CancellationToken>(GroupCommand.AddCredential);
+
+            groupRemoveCredentialsCommand.AddAlias("rc");
+            groupRemoveCredentialsCommand.AddArgument(groupArgument);
+            groupRemoveCredentialsCommand.AddArgument(usernamesArgumentZeroOrMore);
+            groupRemoveCredentialsCommand.AddOption(allUsersOption);
+            groupRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            groupRemoveCredentialsCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(GroupCommand.RemoveCredentials);
+
+            groupListCredentialsCommand.AddAlias("lc");
+            groupListCredentialsCommand.AddArgument(groupArgument);
+            groupListCredentialsCommand.Handler = CommandHandler.Create<string, CancellationToken>(GroupCommand.ListCredentials);
 
             groupGetDataUsageCommand.AddAlias("data");
             groupGetDataUsageCommand.AddArgument(groupArgument);

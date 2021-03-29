@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -238,6 +239,196 @@ namespace ShadowsocksUriGenerator.CLI
             }
 
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+        }
+
+        public static async Task<int> AddCredential(
+            string group,
+            string[] usernames,
+            string? method,
+            string? password,
+            string? userinfoBase64url,
+            bool allUsers,
+            CancellationToken cancellationToken = default)
+        {
+            var commandResult = 0;
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            if (!nodes.Groups.ContainsKey(group))
+            {
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                return -2;
+            }
+
+            if (allUsers)
+            {
+                foreach (var userEntry in users.UserDict)
+                {
+                    int result;
+                    if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
+                        result = userEntry.Value.AddCredential(group, method, password);
+                    else if (!string.IsNullOrEmpty(userinfoBase64url))
+                        result = userEntry.Value.AddCredential(group, userinfoBase64url);
+                    else
+                    {
+                        Console.WriteLine("You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.");
+                        return -1;
+                    }
+                    switch (result)
+                    {
+                        case 0:
+                            Console.WriteLine($"Added group credential to {userEntry.Key}.");
+                            break;
+                        case 2:
+                            Console.WriteLine("The user already has a credential for the group.");
+                            break;
+                        case -2:
+                            Console.WriteLine("Error: The provided credential is invalid.");
+                            commandResult += result;
+                            break;
+                        default:
+                            Console.WriteLine($"Unknown error: {result}.");
+                            commandResult += result;
+                            break;
+                    }
+                }
+            }
+
+            foreach (var username in usernames)
+            {
+                int result;
+                if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
+                    result = users.AddCredentialToUser(username, group, method, password);
+                else if (!string.IsNullOrEmpty(userinfoBase64url))
+                    result = users.AddCredentialToUser(username, group, userinfoBase64url);
+                else
+                {
+                    Console.WriteLine("You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.");
+                    return -1;
+                }
+                switch (result)
+                {
+                    case 0:
+                        Console.WriteLine($"Added group credential to {username}.");
+                        break;
+                    case 2:
+                        Console.WriteLine("The user already has a credential for the group.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: user {username} doesn't exist.");
+                        commandResult += result;
+                        break;
+                    case -2:
+                        Console.WriteLine("Error: The provided credential is invalid.");
+                        commandResult += result;
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown error: {result}.");
+                        commandResult += result;
+                        break;
+                }
+            }
+
+            await JsonHelper.SaveUsersAsync(users, cancellationToken);
+            return commandResult;
+        }
+
+        public static async Task<int> RemoveCredentials(string group, string[] usernames, bool allUsers, CancellationToken cancellationToken = default)
+        {
+            var commandResult = 0;
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            if (!nodes.Groups.ContainsKey(group))
+            {
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                return -2;
+            }
+
+            if (allUsers)
+            {
+                users.RemoveCredentialsFromAllUsers(group);
+            }
+
+            foreach (var username in usernames)
+            {
+                var result = users.RemoveCredentialFromUser(username, group);
+                switch (result)
+                {
+                    case 0:
+                        Console.WriteLine($"Removed credential of {group} from {username}.");
+                        break;
+                    case 1:
+                        Console.WriteLine($"Warning: user {username} is in group {group} but has no associated credential.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: User {username} is not in group {group}.");
+                        commandResult += result;
+                        break;
+                    case -2:
+                        Console.WriteLine($"Error: user {username} doesn't exist.");
+                        commandResult += result;
+                        break;
+                }
+            }
+
+            await JsonHelper.SaveUsersAsync(users, cancellationToken);
+            return commandResult;
+        }
+
+        public static async Task<int> ListCredentials(string group, CancellationToken cancellationToken = default)
+        {
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            if (!nodes.Groups.ContainsKey(group))
+            {
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                return -2;
+            }
+
+            var groupCreds = new List<(string username, string method, string password)>();
+            foreach (var userEntry in users.UserDict)
+            {
+                var groupCred = userEntry.Value.Credentials.Where(x => x.Key == group && x.Value is not null)
+                                                           .Select(x => (userEntry.Key, x.Value!.Method, x.Value.Password)); // Null forgiving reason: null check performed in .Where()
+                groupCreds.AddRange(groupCred);
+            }
+
+            Console.WriteLine($"{"Group",-16}{group}");
+            Console.WriteLine($"{"Credentials",-16}{groupCreds.Count}");
+            Console.WriteLine();
+
+            if (groupCreds.Count == 0)
+            {
+                return 0;
+            }
+
+            var maxUsernameLength = groupCreds.Select(x => x.username.Length)
+                                              .DefaultIfEmpty()
+                                              .Max();
+            var maxMethodLength = groupCreds.Select(x => x.method.Length)
+                                            .DefaultIfEmpty()
+                                            .Max();
+            var maxPasswordLength = groupCreds.Select(x => x.password.Length)
+                                              .DefaultIfEmpty()
+                                              .Max();
+            var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
+            var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
+            var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
+
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
+            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
+
+            foreach (var (username, method, password) in groupCreds)
+            {
+                Console.WriteLine($"|{username.PadRight(usernameFieldWidth)}|{method.PadRight(methodFieldWidth)}|{password.PadRight(passwordFieldWidth)}|");
+            }
+
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
+
+            return 0;
         }
 
         public static async Task<int> GetDataUsage(string group, SortBy? sortBy, CancellationToken cancellationToken = default)

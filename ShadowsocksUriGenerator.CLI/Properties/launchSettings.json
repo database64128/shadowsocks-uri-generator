@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ShadowsocksUriGenerator.CLI": {
+      "commandName": "Project",
+      "commandLineArgs": "interactive"
+    }
+  }
+}

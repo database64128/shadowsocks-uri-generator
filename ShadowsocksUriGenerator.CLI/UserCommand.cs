@@ -1,6 +1,5 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
-using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -185,69 +184,67 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static string? ValidateAddCredential(CommandResult commandResult)
-        {
-            var hasMethod = commandResult.Children.Contains("--method");
-            var hasPassword = commandResult.Children.Contains("--password");
-            var hasUserinfo = commandResult.Children.Contains("--userinfo-base64url");
-
-            if (hasMethod && hasPassword && !hasUserinfo ||
-                !hasMethod && !hasPassword && hasUserinfo)
-                return null;
-            else
-                return "You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.";
-        }
-
         public static async Task<int> AddCredential(
             string username,
-            string group,
+            string[] groups,
             string? method,
             string? password,
             string? userinfoBase64url,
+            bool allGroups,
             CancellationToken cancellationToken = default)
         {
+            var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            if (!nodes.Groups.ContainsKey(group))
+            if (allGroups)
+                groups = nodes.Groups.Keys.ToArray();
+
+            foreach (var group in groups)
             {
-                Console.WriteLine($"Group not found: {group}");
-                return -1;
-            }
+                if (!nodes.Groups.ContainsKey(group))
+                {
+                    Console.WriteLine($"Error: Group {group} doesn't exist.");
+                    return -1;
+                }
 
-            int result;
+                int result;
 
-            if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
-                result = users.AddCredentialToUser(username, group, method, password);
-            else if (!string.IsNullOrEmpty(userinfoBase64url))
-                result = users.AddCredentialToUser(username, group, userinfoBase64url);
-            else
-                result = users.AddUserToGroup(username, group);
+                if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
+                    result = users.AddCredentialToUser(username, group, method, password);
+                else if (!string.IsNullOrEmpty(userinfoBase64url))
+                    result = users.AddCredentialToUser(username, group, userinfoBase64url);
+                else
+                    result = users.AddUserToGroup(username, group);
 
-            switch (result)
-            {
-                case 0:
-                    Console.WriteLine($"Successfully added {username} to {group}.");
-                    break;
-                case 1:
-                    Console.WriteLine($"The user is already in the group.");
-                    break;
-                case 2:
-                    Console.WriteLine("The user already has a credential for the group.");
-                    break;
-                case -1:
-                    Console.WriteLine($"User not found: {username}");
-                    break;
-                case -2:
-                    Console.WriteLine("The provided credential is invalid.");
-                    break;
-                default:
-                    Console.WriteLine($"Unknown error: {result}.");
-                    break;
+                switch (result)
+                {
+                    case 0:
+                        Console.WriteLine($"Added {username} => {group}");
+                        break;
+                    case 1:
+                        Console.WriteLine($"The user is already in the group.");
+                        break;
+                    case 2:
+                        Console.WriteLine("The user already has a credential for the group.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: user {username} doesn't exist.");
+                        commandResult += result;
+                        break;
+                    case -2:
+                        Console.WriteLine("Error: The provided credential is invalid.");
+                        commandResult += result;
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown error: {result}.");
+                        commandResult += result;
+                        break;
+                }
             }
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);
-            return result;
+            return commandResult;
         }
 
         public static async Task<int> RemoveCredentials(string username, string[] groups, bool allGroups, CancellationToken cancellationToken = default)
@@ -260,7 +257,7 @@ namespace ShadowsocksUriGenerator.CLI
                 var result = users.RemoveAllCredentialsFromUser(username);
                 if (result == -2)
                 {
-                    Console.WriteLine($"User not found: {username}");
+                    Console.WriteLine($"Error: user {username} doesn't exist.");
                     commandResult += result;
                 }
             }
@@ -268,11 +265,23 @@ namespace ShadowsocksUriGenerator.CLI
             foreach (var group in groups)
             {
                 var result = users.RemoveCredentialFromUser(username, group);
-                if (result == -1)
-                    Console.WriteLine($"User {username} is not in group {group}.");
-                else if (result == -2)
-                    Console.WriteLine($"User not found: {username}");
-                commandResult += result;
+                switch (result)
+                {
+                    case 0:
+                        Console.WriteLine($"Removed credential of {group} from {username}.");
+                        break;
+                    case 1:
+                        Console.WriteLine($"Warning: user {username} is in group {group} but has no associated credential.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: User {username} is not in group {group}.");
+                        commandResult += result;
+                        break;
+                    case -2:
+                        Console.WriteLine($"Error: user {username} doesn't exist.");
+                        commandResult += result;
+                        break;
+                }
             }
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);
