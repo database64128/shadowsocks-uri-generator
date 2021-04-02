@@ -197,6 +197,9 @@ namespace ShadowsocksUriGenerator.CLI
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            groups ??= Array.Empty<string>();
+
             if (allGroups)
                 groups = nodes.Groups.Keys.ToArray();
 
@@ -432,7 +435,7 @@ namespace ShadowsocksUriGenerator.CLI
             return 0;
         }
 
-        public static async Task<int> SetDataLimit(ulong dataLimitInBytes, string[] usernames, string[]? groups, CancellationToken cancellationToken = default)
+        public static async Task<int> SetDataLimit(ulong dataLimitInBytes, string[] usernames, string[] groups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);

@@ -86,8 +86,8 @@ namespace ShadowsocksUriGenerator.CLI
                 groupSetDataLimitCommand,
             };
 
-            var onlineConfigGenerateCommand = new Command("generate", "Generate SIP008-compliant online configuration delivery JSON files.");
-            var onlineConfigGetLinksCommand = new Command("get-links", "Get the user's SIP008-compliant online configuration delivery URL.");
+            var onlineConfigGenerateCommand = new Command("generate", "Generate SIP008-compliant online configuration delivery JSON files for specified or all users.");
+            var onlineConfigGetLinksCommand = new Command("get-links", "Get SIP008-compliant online configuration delivery URLs for specified or all users.");
             var onlineConfigCleanCommand = new Command("clean", "Clean online configuration files for specified or all users.");
 
             var onlineConfigCommand = new Command("online-config", "Manage SIP008 online configuration.")
@@ -101,8 +101,8 @@ namespace ShadowsocksUriGenerator.CLI
             var outlineServerGetCommand = new Command("get", "Get the associated Outline server's information.");
             var outlineServerSetCommand = new Command("set", "Change settings of the associated Outline server.");
             var outlineServerRemoveCommand = new Command("remove", "Remove the Outline server from the group.");
-            var outlineServerPullCommand = new Command("pull", "Update server information, access keys, and metrics from the associated Outline server.");
-            var outlineServerDeployCommand = new Command("deploy", "Deploy the group's configuration to the associated Outline server.");
+            var outlineServerPullCommand = new Command("pull", "Pull server information, access keys, and metrics from Outline servers of specified or all groups.");
+            var outlineServerDeployCommand = new Command("deploy", "Deploy local configuration to Outline servers of specified or all groups.");
             var outlineServerRotatePasswordCommand = new Command("rotate-password", "Rotate passwords for the specified users and/or groups.");
 
             var outlineServerCommand = new Command("outline-server", "Manage Outline servers.")
@@ -271,7 +271,7 @@ namespace ShadowsocksUriGenerator.CLI
             userSetDataLimitCommand.AddArgument(dataLimitArgument);
             userSetDataLimitCommand.AddArgument(usernamesArgumentOneOrMore);
             userSetDataLimitCommand.AddOption(groupsOption);
-            userSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], string[]?, CancellationToken>(UserCommand.SetDataLimit);
+            userSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], string[], CancellationToken>(UserCommand.SetDataLimit);
 
             nodeAddCommand.AddAlias("a");
             nodeAddCommand.AddArgument(groupArgument);
@@ -297,10 +297,10 @@ namespace ShadowsocksUriGenerator.CLI
 
             nodeListCommand.AddAlias("l");
             nodeListCommand.AddAlias("ls");
-            nodeListCommand.AddArgument(new Argument<string[]?>("groups", "Only show nodes from these groups. Leave empty for all groups."));
+            nodeListCommand.AddArgument(groupsArgumentZeroOrMore);
             nodeListCommand.AddOption(namesOnlyOption);
             nodeListCommand.AddOption(onePerLineOption);
-            nodeListCommand.Handler = CommandHandler.Create<string[]?, bool, bool, CancellationToken>(NodeCommand.List);
+            nodeListCommand.Handler = CommandHandler.Create<string[], bool, bool, CancellationToken>(NodeCommand.List);
 
             nodeActivateCommand.AddAlias("enable");
             nodeActivateCommand.AddAlias("unhide");
@@ -389,26 +389,27 @@ namespace ShadowsocksUriGenerator.CLI
             groupSetDataLimitCommand.AddOption(new Option<bool>("--global", "Set the global data limit of the group."));
             groupSetDataLimitCommand.AddOption(new Option<bool>("--per-user", "Set the same data limit for each user."));
             groupSetDataLimitCommand.AddOption(usernamesOption);
-            groupSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], bool, bool, string[]?, CancellationToken>(GroupCommand.SetDataLimit);
+            groupSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], bool, bool, string[], CancellationToken>(GroupCommand.SetDataLimit);
 
             onlineConfigGenerateCommand.AddAlias("g");
             onlineConfigGenerateCommand.AddAlias("gen");
-            onlineConfigGenerateCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to generate for. Leave empty for all users."));
-            onlineConfigGenerateCommand.Handler = CommandHandler.Create<string[]?, CancellationToken>(OnlineConfigCommand.Generate);
+            onlineConfigGenerateCommand.AddArgument(usernamesArgumentZeroOrMore);
+            onlineConfigGenerateCommand.Handler = CommandHandler.Create<string[], CancellationToken>(OnlineConfigCommand.Generate);
 
             onlineConfigGetLinksCommand.AddAlias("l");
             onlineConfigGetLinksCommand.AddAlias("link");
             onlineConfigGetLinksCommand.AddAlias("links");
             onlineConfigGetLinksCommand.AddAlias("url");
             onlineConfigGetLinksCommand.AddAlias("urls");
-            onlineConfigGetLinksCommand.AddArgument(new Argument<string[]?>("usernames", "Target users. Leave empty for all users."));
-            onlineConfigGetLinksCommand.Handler = CommandHandler.Create<string[]?, CancellationToken>(OnlineConfigCommand.GetLinks);
+            onlineConfigGetLinksCommand.AddArgument(usernamesArgumentZeroOrMore);
+            onlineConfigGetLinksCommand.Handler = CommandHandler.Create<string[], CancellationToken>(OnlineConfigCommand.GetLinks);
 
             onlineConfigCleanCommand.AddAlias("c");
             onlineConfigCleanCommand.AddAlias("clear");
-            onlineConfigCleanCommand.AddArgument(new Argument<string[]?>("usernames", "Specify users to clean online configuration files for."));
+            onlineConfigCleanCommand.AddArgument(usernamesArgumentZeroOrMore);
             onlineConfigCleanCommand.AddOption(allUsersOption);
-            onlineConfigCleanCommand.Handler = CommandHandler.Create<string[]?, bool, CancellationToken>(OnlineConfigCommand.Clean);
+            onlineConfigCleanCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            onlineConfigCleanCommand.Handler = CommandHandler.Create<string[], CancellationToken>(OnlineConfigCommand.Clean);
 
             outlineServerAddCommand.AddAlias("a");
             outlineServerAddCommand.AddArgument(groupArgument);
@@ -432,18 +433,18 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerRemoveCommand.Handler = CommandHandler.Create<string[], bool, CancellationToken>(OutlineServerCommand.Remove);
 
             outlineServerPullCommand.AddAlias("update");
-            outlineServerPullCommand.AddArgument(new Argument<string[]?>("groups", "Specify groups to update for. Leave empty to update all groups."));
+            outlineServerPullCommand.AddArgument(groupsArgumentZeroOrMore);
             outlineServerPullCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user credential storage from retrieved access key list."));
-            outlineServerPullCommand.Handler = CommandHandler.Create<string[]?, bool, CancellationToken>(OutlineServerCommand.Pull);
+            outlineServerPullCommand.Handler = CommandHandler.Create<string[], bool, CancellationToken>(OutlineServerCommand.Pull);
 
-            outlineServerDeployCommand.AddArgument(new Argument<string[]?>("groups", "Groups to deploy for. Leave empty to deploy all groups."));
-            outlineServerDeployCommand.Handler = CommandHandler.Create<string[]?, CancellationToken>(OutlineServerCommand.Deploy);
+            outlineServerDeployCommand.AddArgument(groupsArgumentZeroOrMore);
+            outlineServerDeployCommand.Handler = CommandHandler.Create<string[], CancellationToken>(OutlineServerCommand.Deploy);
 
             outlineServerRotatePasswordCommand.AddAlias("rotate");
             outlineServerRotatePasswordCommand.AddOption(usernamesOption);
             outlineServerRotatePasswordCommand.AddOption(groupsOption);
             outlineServerRotatePasswordCommand.AddValidator(OutlineServerCommand.ValidateRotatePassword);
-            outlineServerRotatePasswordCommand.Handler = CommandHandler.Create<string[]?, string[]?, CancellationToken>(OutlineServerCommand.RotatePassword);
+            outlineServerRotatePasswordCommand.Handler = CommandHandler.Create<string[], string[], CancellationToken>(OutlineServerCommand.RotatePassword);
 
             reportCommand.AddOption(new Option<SortBy?>("--group-sort-by", "Sort rule for group data usage records."));
             reportCommand.AddOption(new Option<SortBy?>("--user-sort-by", "Sort rule for user data usage records."));

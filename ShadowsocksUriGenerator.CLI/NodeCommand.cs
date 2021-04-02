@@ -136,15 +136,18 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task List(string[]? groups, bool namesOnly, bool onePerLine, CancellationToken cancellationToken = default)
+        public static async Task List(string[] groups, bool namesOnly, bool onePerLine, CancellationToken cancellationToken = default)
         {
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            groups ??= Array.Empty<string>();
 
             if (namesOnly)
             {
                 foreach (var groupEntry in nodes.Groups)
                 {
-                    if (groups != null && !groups.Contains(groupEntry.Key))
+                    if (groups.Length > 0 && !groups.Contains(groupEntry.Key))
                         continue;
 
                     Console.WriteLine($"Group: {groupEntry.Key}");
@@ -187,7 +190,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             foreach (var groupEntry in nodes.Groups)
             {
-                if (groups != null && !groups.Contains(groupEntry.Key))
+                if (groups.Length > 0 && !groups.Contains(groupEntry.Key))
                     continue;
 
                 foreach (var node in groupEntry.Value.NodeDict)

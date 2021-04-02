@@ -294,7 +294,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="perUser">Set the same data limit for each user.</param>
         /// <param name="usernames">Only set the data limit to these users.</param>
         /// <returns>0 on success. -1 on group not found. -2 on user not found.</returns>
-        public int SetDataLimitForGroup(ulong dataLimit, string group, bool global, bool perUser, string[]? usernames = null)
+        public int SetDataLimitForGroup(ulong dataLimit, string group, bool global, bool perUser, params string[] usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.SetDataLimit(dataLimit, global, perUser, usernames);

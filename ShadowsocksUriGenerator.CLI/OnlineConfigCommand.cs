@@ -7,15 +7,16 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class OnlineConfigCommand
     {
-        public static async Task<int> Generate(string[]? usernames, CancellationToken cancellationToken = default)
+        public static async Task<int> Generate(string[] usernames, CancellationToken cancellationToken = default)
         {
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            var errMsg = usernames == null
-                ? await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken)
-                : await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken, usernames);
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            usernames ??= Array.Empty<string>();
+
+            var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken, usernames);
             if (errMsg is not null)
             {
                 Console.WriteLine(errMsg);
@@ -25,13 +26,16 @@ namespace ShadowsocksUriGenerator.CLI
             return 0;
         }
 
-        public static async Task<int> GetLinks(string[]? usernames, CancellationToken cancellationToken = default)
+        public static async Task<int> GetLinks(string[] usernames, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            if (usernames == null)
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            usernames ??= Array.Empty<string>();
+
+            if (usernames.Length == 0)
             {
                 foreach (var userEntry in users.UserDict)
                 {
@@ -68,20 +72,15 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static async Task<int> Clean(string[]? usernames, bool all, CancellationToken cancellationToken = default)
+        public static async Task<int> Clean(string[] usernames, CancellationToken cancellationToken = default)
         {
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            if (usernames != null && !all)
-                OnlineConfig.Remove(users, settings, usernames);
-            else if (usernames == null && all)
-                OnlineConfig.Remove(users, settings);
-            else
-            {
-                Console.WriteLine("Invalid arguments or options. Either specify usernames, or use '--all' to target all users.");
-                return -3;
-            }
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            usernames ??= Array.Empty<string>();
+
+            OnlineConfig.Remove(users, settings, usernames);
 
             return 0;
         }

@@ -257,13 +257,13 @@ namespace ShadowsocksUriGenerator
         /// <param name="perUser">Set the same data limit for each user.</param>
         /// <param name="usernames">Only set the data limit to these users.</param>
         /// <returns></returns>
-        public int SetDataLimit(ulong dataLimit, bool global, bool perUser, string[]? usernames = null)
+        public int SetDataLimit(ulong dataLimit, bool global, bool perUser, params string[] usernames)
         {
             if (global)
                 DataLimitInBytes = dataLimit;
             if (perUser)
                 PerUserDataLimitInBytes = dataLimit;
-            if (usernames != null)
+            if (usernames.Length > 0)
             {
                 // TODO: resolve user id and save data limit to dictionary.
             }

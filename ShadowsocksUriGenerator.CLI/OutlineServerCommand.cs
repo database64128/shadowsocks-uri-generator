@@ -164,15 +164,18 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task<int> Pull(string[]? groups, bool noSync, CancellationToken cancellationToken = default)
+        public static async Task<int> Pull(string[] groups, bool noSync, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
 
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            groups ??= Array.Empty<string>();
+
             try
             {
-                if (groups == null)
+                if (groups.Length == 0)
                     await nodes.UpdateOutlineServerForAllGroups(users, !noSync, cancellationToken);
                 else
                     foreach (var group in groups)
@@ -212,15 +215,18 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task<int> Deploy(string[]? groups, CancellationToken cancellationToken = default)
+        public static async Task<int> Deploy(string[] groups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            groups ??= Array.Empty<string>();
+
             try
             {
-                if (groups == null)
+                if (groups.Length == 0)
                     await nodes.DeployAllOutlineServers(users, cancellationToken);
                 else
                 {
@@ -273,20 +279,26 @@ namespace ShadowsocksUriGenerator.CLI
                 return "Please provide either a username or a group, or both.";
         }
 
-        public static async Task<int> RotatePassword(string[]? usernames, string[]? groups, CancellationToken cancellationToken = default)
+        public static async Task<int> RotatePassword(string[] usernames, string[] groups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            usernames ??= Array.Empty<string>();
+
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            groups ??= Array.Empty<string>();
+
             try
             {
-                if (groups != null)
+                if (groups.Length > 0)
                 {
                     var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
                     await Task.WhenAll(tasks);
                 }
-                else if (usernames != null)
+                else if (usernames.Length > 0)
                 {
                     var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
                                                 .SelectMany(x => users.UserDict[x].Credentials.Keys)

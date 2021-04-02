@@ -254,6 +254,9 @@ namespace ShadowsocksUriGenerator.CLI
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
+            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
+            usernames ??= Array.Empty<string>();
+
             if (!nodes.Groups.ContainsKey(group))
             {
                 Console.WriteLine($"Error: Group {group} doesn't exist.");
@@ -516,7 +519,7 @@ namespace ShadowsocksUriGenerator.CLI
             string[] groups,
             bool global,
             bool perUser,
-            string[]? usernames,
+            string[] usernames,
             CancellationToken cancellationToken = default)
         {
             var commandResult = 0;

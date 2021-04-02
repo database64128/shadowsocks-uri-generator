@@ -332,7 +332,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="username">Target user.</param>
         /// <param name="groups">Only set for these groups.</param>
         /// <returns>0 on success. -1 on user not found. -2 on group not found.</returns>
-        public int SetDataLimitToUser(ulong dataLimit, string username, string[]? groups = null)
+        public int SetDataLimitToUser(ulong dataLimit, string username, params string[] groups)
         {
             if (UserDict.TryGetValue(username, out var user))
                 return user.SetDataLimit(dataLimit, groups);

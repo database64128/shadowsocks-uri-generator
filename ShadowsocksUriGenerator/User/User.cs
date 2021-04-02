@@ -239,9 +239,9 @@ namespace ShadowsocksUriGenerator
         /// <param name="dataLimit">The data limit in bytes.</param>
         /// <param name="groups">Only set for these groups.</param>
         /// <returns>0 on success. -2 on group not found.</returns>
-        public int SetDataLimit(ulong dataLimit, string[]? groups = null)
+        public int SetDataLimit(ulong dataLimit, params string[] groups)
         {
-            if (groups == null)
+            if (groups.Length == 0)
                 DataLimitInBytes = dataLimit;
             else
                 foreach (var group in groups)
