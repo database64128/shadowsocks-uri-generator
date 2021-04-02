@@ -155,12 +155,14 @@ namespace ShadowsocksUriGenerator
         public static async Task<string?> SaveOutputAsync(Dictionary<string, OnlineConfig> onlineConfigDict, Settings settings, CancellationToken cancellationToken = default)
         {
             var errMsgSB = new StringBuilder();
-            foreach (var x in onlineConfigDict) // TODO: handle error messages
+            foreach (var x in onlineConfigDict)
             {
                 var errMsg = await Utilities.SaveJsonAsync(
                     $"{settings.OnlineConfigOutputDirectory}/{x.Key}.json",
                     x.Value,
                     Utilities.snakeCaseJsonSerializerOptions,
+                    false,
+                    true,
                     cancellationToken);
                 if (errMsg is not null)
                     errMsgSB.AppendLine(errMsg);

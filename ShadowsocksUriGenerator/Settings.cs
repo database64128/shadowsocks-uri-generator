@@ -127,7 +127,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <returns>An error message. Null if no errors occurred.</returns>
         public static Task<string?> SaveSettingsAsync(Settings settings, CancellationToken cancellationToken = default)
-            => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions, cancellationToken);
+            => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the settings version.

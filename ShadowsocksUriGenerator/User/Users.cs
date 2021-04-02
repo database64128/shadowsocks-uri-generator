@@ -365,7 +365,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <returns>An error message. Null if no errors occurred.</returns>
         public static Task<string?> SaveUsersAsync(Users users, CancellationToken cancellationToken = default)
-            => Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions, cancellationToken);
+            => Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the users version.

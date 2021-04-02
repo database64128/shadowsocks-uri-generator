@@ -53,7 +53,7 @@ namespace ShadowsocksUriGenerator.CLI.Utils
 
         public static async Task SaveJsonAsync<T>(string filename, T jsonData, JsonSerializerOptions? jsonSerializerOptions = null, CancellationToken cancellationToken = default)
         {
-            var errMsg = await Utilities.SaveJsonAsync(filename, jsonData, jsonSerializerOptions, cancellationToken);
+            var errMsg = await Utilities.SaveJsonAsync(filename, jsonData, jsonSerializerOptions, false, false, cancellationToken);
             if (errMsg is not null)
             {
                 Console.WriteLine(errMsg);

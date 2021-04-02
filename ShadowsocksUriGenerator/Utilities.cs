@@ -59,28 +59,16 @@ namespace ShadowsocksUriGenerator
             dataLimitInBytes = 0UL;
             if (string.IsNullOrEmpty(dataLimit))
                 return false;
-            ulong multiplier = 1UL;
-            switch (dataLimit[^1])
+            var multiplier = dataLimit[^1] switch
             {
-                case 'K':
-                    multiplier = 1024UL;
-                    break;
-                case 'M':
-                    multiplier = 1024UL * 1024UL;
-                    break;
-                case 'G':
-                    multiplier = 1024UL * 1024UL * 1024UL;
-                    break;
-                case 'T':
-                    multiplier = 1024UL * 1024UL * 1024UL * 1024UL;
-                    break;
-                case 'P':
-                    multiplier = 1024UL * 1024UL * 1024UL * 1024UL * 1024UL;
-                    break;
-                case 'E':
-                    multiplier = 1024UL * 1024UL * 1024UL * 1024UL * 1024UL * 1024UL;
-                    break;
-            }
+                'K' => 1024UL,
+                'M' => 1024UL * 1024UL,
+                'G' => 1024UL * 1024UL * 1024UL,
+                'T' => 1024UL * 1024UL * 1024UL * 1024UL,
+                'P' => 1024UL * 1024UL * 1024UL * 1024UL * 1024UL,
+                'E' => 1024UL * 1024UL * 1024UL * 1024UL * 1024UL * 1024UL,
+                _ => 1UL,
+            };
             if (multiplier == 1UL)
                 return ulong.TryParse(dataLimit, out dataLimitInBytes);
             else if (ulong.TryParse(dataLimit[0..^1], out var dataLimitBeforeMultiplication))
@@ -162,12 +150,12 @@ namespace ShadowsocksUriGenerator
 
             try
             {
-                jsonFile = new FileStream(filename, FileMode.Open);
+                jsonFile = new(filename, FileMode.Open);
                 jsonData = await JsonSerializer.DeserializeAsync<T>(jsonFile, jsonSerializerOptions, cancellationToken);
             }
-            catch
+            catch (Exception ex)
             {
-                errMsg = $"Error: failed to load {filename}.";
+                errMsg = $"Error: failed to load {filename}: {ex.Message}";
             }
             finally
             {
@@ -186,31 +174,51 @@ namespace ShadowsocksUriGenerator
         /// <param name="filename">JSON file name.</param>
         /// <param name="jsonData">The data object to save.</param>
         /// <param name="jsonSerializerOptions">Serialization options.</param>
+        /// <param name="alwaysOverwrite">Always overwrite the original file.</param>
+        /// <param name="noBackup">Do not create `filename.old` as backup.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <returns>An error message. Null if no errors occurred.</returns>
-        public static async Task<string?> SaveJsonAsync<T>(string filename, T jsonData, JsonSerializerOptions? jsonSerializerOptions = null, CancellationToken cancellationToken = default)
+        public static async Task<string?> SaveJsonAsync<T>(
+            string filename,
+            T jsonData,
+            JsonSerializerOptions? jsonSerializerOptions = null,
+            bool alwaysOverwrite = false,
+            bool noBackup = false,
+            CancellationToken cancellationToken = default)
         {
+            // extend relative path
+            filename = GetAbsolutePath(filename);
+
             string? errMsg = null;
             FileStream? jsonFile = null;
 
             try
             {
-                // extend relative path
-                filename = GetAbsolutePath(filename);
                 // create directory
                 var directoryPath = Path.GetDirectoryName(filename) ?? throw new ArgumentException("Invalid path", nameof(filename));
                 Directory.CreateDirectory(directoryPath);
+
                 // save JSON
-                jsonFile = new FileStream(filename, FileMode.Create);
-                await JsonSerializer.SerializeAsync(jsonFile, jsonData, jsonSerializerOptions, cancellationToken);
+                if (alwaysOverwrite || !File.Exists(filename)) // alwaysOverwrite or file doesn't exist. Just write to it.
+                {
+                    jsonFile = new(filename, FileMode.Create);
+                    await JsonSerializer.SerializeAsync(jsonFile, jsonData, jsonSerializerOptions, cancellationToken);
+                }
+                else // File exists. Write to `filename.new` and then replace with the new file and creates backup `filename.old`.
+                {
+                    jsonFile = new($"{filename}.new", FileMode.Create);
+                    await JsonSerializer.SerializeAsync(jsonFile, jsonData, jsonSerializerOptions, cancellationToken);
+                    jsonFile.Close();
+                    File.Replace($"{filename}.new", filename, noBackup ? null : $"{filename}.old");
+                }
             }
             catch (ArgumentException)
             {
-                errMsg = $"Error: invalid path: {filename}.";
+                errMsg = $"Error: invalid path: {filename}";
             }
-            catch
+            catch (Exception ex)
             {
-                errMsg = $"Error: failed to save {filename}.";
+                errMsg = $"Error: failed to save {filename}: {ex.Message}";
             }
             finally
             {

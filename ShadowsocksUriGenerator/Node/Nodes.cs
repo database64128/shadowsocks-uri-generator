@@ -521,7 +521,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <returns>An error message. Null if no errors occurred.</returns>
         public static Task<string?> SaveNodesAsync(Nodes nodes, CancellationToken cancellationToken = default)
-            => Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions, cancellationToken);
+            => Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the nodes version.
