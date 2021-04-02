@@ -315,7 +315,7 @@ namespace ShadowsocksUriGenerator
         /// -2 when the API key is not a valid JSON string.
         /// -3 when applying default user failed.
         /// </returns>
-        public Task<int> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser, CancellationToken cancellationToken = default)
+        public Task<int> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser = null, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser, cancellationToken);

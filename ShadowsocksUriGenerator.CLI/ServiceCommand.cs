@@ -47,7 +47,7 @@ namespace ShadowsocksUriGenerator.CLI
                         }
                         catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                         {
-                            Console.WriteLine(ex.Message);
+                            throw;
                         }
                         catch (Exception ex)
                         {
@@ -64,7 +64,7 @@ namespace ShadowsocksUriGenerator.CLI
                         }
                         catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
                         {
-                            Console.WriteLine(ex.Message);
+                            throw;
                         }
                         catch (Exception ex)
                         {
@@ -95,8 +95,12 @@ namespace ShadowsocksUriGenerator.CLI
                     await Task.Delay(interval * 1000, cancellationToken);
                 }
             }
-            catch (TaskCanceledException)
+            catch (TaskCanceledException) // Task.Delay() canceled
             {
+            }
+            catch (OperationCanceledException ex) // HttpClient canceled
+            {
+                Console.WriteLine(ex.Message);
             }
             catch (Exception ex)
             {

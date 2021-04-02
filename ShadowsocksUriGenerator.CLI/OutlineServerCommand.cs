@@ -25,11 +25,13 @@ namespace ShadowsocksUriGenerator.CLI
                     result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser, cancellationToken);
                 else
                     result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null, cancellationToken);
+
+                await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             }
             catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
             {
                 Console.WriteLine(ex.Message);
-                result = -4;
+                result = 1;
             }
             catch (Exception ex)
             {
@@ -53,7 +55,6 @@ namespace ShadowsocksUriGenerator.CLI
                     break;
             }
 
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return result;
         }
 
@@ -114,10 +115,13 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine("Error: Group not found or no associated Outline server.");
                     commandResult = -2;
                 }
+
+                await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             }
             catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
             {
                 Console.WriteLine(ex.Message);
+                commandResult = 1;
             }
             catch (Exception ex)
             {
@@ -126,7 +130,6 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult -= 3;
             }
 
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return commandResult;
         }
 
@@ -195,6 +198,7 @@ namespace ShadowsocksUriGenerator.CLI
             catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
             {
                 Console.WriteLine(ex.Message);
+                commandResult = 1;
             }
             catch (Exception ex)
             {
@@ -203,8 +207,8 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult -= 3;
             }
 
-            await JsonHelper.SaveUsersAsync(users, cancellationToken);
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+            await JsonHelper.SaveUsersAsync(users, default);
+            await JsonHelper.SaveNodesAsync(nodes, default);
             return commandResult;
         }
 
@@ -246,6 +250,7 @@ namespace ShadowsocksUriGenerator.CLI
             catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
             {
                 Console.WriteLine(ex.Message);
+                commandResult = 1;
             }
             catch (Exception ex)
             {
@@ -254,8 +259,8 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult -= 3;
             }
 
-            await JsonHelper.SaveUsersAsync(users, cancellationToken);
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+            await JsonHelper.SaveUsersAsync(users, default);
+            await JsonHelper.SaveNodesAsync(nodes, default);
             return commandResult;
         }
 
@@ -298,6 +303,7 @@ namespace ShadowsocksUriGenerator.CLI
             catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
             {
                 Console.WriteLine(ex.Message);
+                commandResult = 1;
             }
             catch (Exception ex)
             {
@@ -306,8 +312,8 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult -= 3;
             }
 
-            await JsonHelper.SaveUsersAsync(users, cancellationToken);
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+            await JsonHelper.SaveUsersAsync(users, default);
+            await JsonHelper.SaveNodesAsync(nodes, default);
             return commandResult;
         }
     }

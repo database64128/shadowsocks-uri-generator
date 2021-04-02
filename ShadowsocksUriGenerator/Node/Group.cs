@@ -277,7 +277,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="apiKey">The Outline server API key.</param>
         /// <param name="globalDefaultUser">The global default user setting.</param>
         /// <returns>0 for success. -2 for invalid JSON string. -3 when applying default user failed.</returns>
-        public async Task<int> AssociateOutlineServer(string apiKey, string? globalDefaultUser, CancellationToken cancellationToken = default)
+        public async Task<int> AssociateOutlineServer(string apiKey, string? globalDefaultUser = null, CancellationToken cancellationToken = default)
         {
             try
             {
