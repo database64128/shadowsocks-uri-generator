@@ -45,13 +45,14 @@ namespace ShadowsocksUriGenerator.CLI
                         {
                             await nodes.UpdateOutlineServerForAllGroups(users, true, cancellationToken);
                         }
-                        catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+                        catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
                         {
+                            Console.WriteLine(ex.Message);
                             throw;
                         }
-                        catch (Exception ex)
+                        catch (Exception ex) // timeout and other errors
                         {
-                            Console.WriteLine($"An error occurred while updating from Outline servers.");
+                            Console.WriteLine($"An error occurred while pulling from Outline servers.");
                             Console.WriteLine(ex.Message);
                         }
                         Console.WriteLine("Pulled from Outline servers.");
@@ -62,11 +63,12 @@ namespace ShadowsocksUriGenerator.CLI
                         {
                             await nodes.DeployAllOutlineServers(users, cancellationToken);
                         }
-                        catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+                        catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
                         {
+                            Console.WriteLine(ex.Message);
                             throw;
                         }
-                        catch (Exception ex)
+                        catch (Exception ex) // timeout and other errors
                         {
                             Console.WriteLine($"An error occurred while deploying Outline servers.");
                             Console.WriteLine(ex.Message);
@@ -95,14 +97,10 @@ namespace ShadowsocksUriGenerator.CLI
                     await Task.Delay(interval * 1000, cancellationToken);
                 }
             }
-            catch (TaskCanceledException) // Task.Delay() canceled
+            catch (OperationCanceledException) // Task.Delay() or HttpClient canceled
             {
             }
-            catch (OperationCanceledException ex) // HttpClient canceled
-            {
-                Console.WriteLine(ex.Message);
-            }
-            catch (Exception ex)
+            catch (Exception ex) // other unhandled
             {
                 Console.WriteLine($"An error occurred while executing one of the scheduled tasks.");
                 Console.WriteLine(ex.Message);

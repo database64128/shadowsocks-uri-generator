@@ -28,13 +28,14 @@ namespace ShadowsocksUriGenerator.CLI
 
                 await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             }
-            catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
                 Console.WriteLine(ex.Message);
                 result = 1;
             }
-            catch (Exception ex)
+            catch (Exception ex) // timeout and other errors
             {
+                Console.WriteLine($"An error occurred while connecting to the Outline server.");
                 Console.WriteLine(ex.Message);
                 result = -3;
             }
@@ -118,12 +119,12 @@ namespace ShadowsocksUriGenerator.CLI
 
                 await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             }
-            catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
                 Console.WriteLine(ex.Message);
                 commandResult = 1;
             }
-            catch (Exception ex)
+            catch (Exception ex) // timeout and other errors
             {
                 Console.WriteLine($"An error occurred while applying settings to Outline servers.");
                 Console.WriteLine(ex.Message);
@@ -198,14 +199,14 @@ namespace ShadowsocksUriGenerator.CLI
                         commandResult += result;
                     }
             }
-            catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
                 Console.WriteLine(ex.Message);
                 commandResult = 1;
             }
-            catch (Exception ex)
+            catch (Exception ex) // timeout and other errors
             {
-                Console.WriteLine($"An error occurred while updating from Outline servers.");
+                Console.WriteLine($"An error occurred while pulling from Outline servers.");
                 Console.WriteLine(ex.Message);
                 commandResult -= 3;
             }
@@ -253,12 +254,12 @@ namespace ShadowsocksUriGenerator.CLI
                     }
                 }
             }
-            catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
                 Console.WriteLine(ex.Message);
                 commandResult = 1;
             }
-            catch (Exception ex)
+            catch (Exception ex) // timeout and other errors
             {
                 Console.WriteLine($"An error occurred while deploying Outline servers.");
                 Console.WriteLine(ex.Message);
@@ -312,12 +313,12 @@ namespace ShadowsocksUriGenerator.CLI
                     commandResult = -3;
                 }
             }
-            catch (OperationCanceledException ex) when (ex is not TaskCanceledException)
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
                 Console.WriteLine(ex.Message);
                 commandResult = 1;
             }
-            catch (Exception ex)
+            catch (Exception ex) // timeout and other errors
             {
                 Console.WriteLine($"An error occurred while connecting to Outline servers.");
                 Console.WriteLine(ex.Message);
