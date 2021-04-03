@@ -13,9 +13,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.Cha
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.CLI", "ShadowsocksUriGenerator.CLI\ShadowsocksUriGenerator.CLI.csproj", "{CFFB4519-8EE5-423E-9093-2DAD3ECE8235}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.CLI.Utils", "ShadowsocksUriGenerator.CLI.Utils\ShadowsocksUriGenerator.CLI.Utils.csproj", "{E90E6C41-9160-4DBA-BA80-DFBCF335194C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.CLI.Utils", "ShadowsocksUriGenerator.CLI.Utils\ShadowsocksUriGenerator.CLI.Utils.csproj", "{E90E6C41-9160-4DBA-BA80-DFBCF335194C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.CLI.Tests", "ShadowsocksUriGenerator.CLI.Tests\ShadowsocksUriGenerator.CLI.Tests.csproj", "{D035E8E4-F380-4607-9BC8-3F610ADF9F5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.CLI.Tests", "ShadowsocksUriGenerator.CLI.Tests\ShadowsocksUriGenerator.CLI.Tests.csproj", "{D035E8E4-F380-4607-9BC8-3F610ADF9F5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Rescue.CLI", "ShadowsocksUriGenerator.Rescue.CLI\ShadowsocksUriGenerator.Rescue.CLI.csproj", "{46983015-7962-49F6-946E-7870E9C79026}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Rescue", "ShadowsocksUriGenerator.Rescue\ShadowsocksUriGenerator.Rescue.csproj", "{AC66E10A-566C-419A-967F-FF363C62F8C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +55,14 @@ Global
 		{D035E8E4-F380-4607-9BC8-3F610ADF9F5D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D035E8E4-F380-4607-9BC8-3F610ADF9F5D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D035E8E4-F380-4607-9BC8-3F610ADF9F5D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46983015-7962-49F6-946E-7870E9C79026}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46983015-7962-49F6-946E-7870E9C79026}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46983015-7962-49F6-946E-7870E9C79026}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46983015-7962-49F6-946E-7870E9C79026}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC66E10A-566C-419A-967F-FF363C62F8C2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC66E10A-566C-419A-967F-FF363C62F8C2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC66E10A-566C-419A-967F-FF363C62F8C2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC66E10A-566C-419A-967F-FF363C62F8C2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

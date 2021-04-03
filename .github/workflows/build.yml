@@ -38,28 +38,33 @@ jobs:
       - name: Publish framework-dependent
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release --no-restore
+          dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release --no-restore
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release --no-restore
       - name: Publish self-contained for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
       - name: Publish self-contained for Linux x64
         if: matrix.os == 'ubuntu-20.04'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
       - name: Publish self-contained for Windows ARM64
         if: matrix.os == 'windows-latest'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
       - name: Publish self-contained for Windows x64
         if: matrix.os == 'windows-latest'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-x64 --self-contained
-      # Upload
+      # Upload ShadowsocksUriGenerator.CLI
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v2
@@ -96,6 +101,44 @@ jobs:
         with:
           name: ss-uri-gen-${{ github.sha }}-windows
           path: ShadowsocksUriGenerator.CLI/bin/Release/net5.0/publish/
+      # Upload ShadowsocksUriGenerator.Rescue.CLI
+      - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Linux ARM64
+        if: matrix.os == 'ubuntu-20.04'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ss-uri-gen-rescue-${{ github.sha }}-linux-arm64
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/linux-arm64/publish/
+      - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Linux x64
+        if: matrix.os == 'ubuntu-20.04'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ss-uri-gen-rescue-${{ github.sha }}-linux-x64
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/linux-x64/publish/
+      - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Linux framework-dependent
+        if: matrix.os == 'ubuntu-20.04'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ss-uri-gen-rescue-${{ github.sha }}-linux
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/publish/
+      - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Windows ARM64
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ss-uri-gen-rescue-${{ github.sha }}-windows-arm64
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/win-arm64/publish/
+      - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Windows x64
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ss-uri-gen-rescue-${{ github.sha }}-windows-x64
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/win-x64/publish/
+      - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Windows framework-dependent
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v2
+        with:
+          name: ss-uri-gen-rescue-${{ github.sha }}-windows
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/publish/
+      # Upload ShadowsocksUriGenerator.Chatbot.Telegram
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
         uses: actions/upload-artifact@v2
