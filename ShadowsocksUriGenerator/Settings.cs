@@ -13,31 +13,35 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Gets or sets the settings version number.
+        /// Defaults to <see cref="DefaultVersion"/>.
         /// </summary>
-        public int Version { get; set; }
+        public int Version { get; set; } = DefaultVersion;
 
         /// <summary>
         /// Gets or sets the default sort rule for user data usage report.
+        /// Defaults to <see cref="SortBy.DefaultAscending"/>.
         /// </summary>
-        public SortBy UserDataUsageDefaultSortBy { get; set; }
+        public SortBy UserDataUsageDefaultSortBy { get; set; } = SortBy.DefaultAscending;
 
         /// <summary>
         /// Gets or sets the default sort rule for group data usage report.
+        /// Defaults to <see cref="SortBy.DataUsedDescending"/>.
         /// </summary>
-        public SortBy GroupDataUsageDefaultSortBy { get; set; }
+        public SortBy GroupDataUsageDefaultSortBy { get; set; } = SortBy.DataUsedDescending;
 
         /// <summary>
         /// Gets or sets whether the generated servers list
         /// in an SIP008 JSON should be sorted by server name.
         /// Defaults to true.
         /// </summary>
-        public bool OnlineConfigSortByName { get; set; }
+        public bool OnlineConfigSortByName { get; set; } = true;
 
         /// <summary>
         /// Gets or sets whether online config should be delivered
         /// to each user by group. Turning this on will generate
         /// one online config JSON for each group associated with the user,
         /// in addition to the single JSON that contains all associated servers.
+        /// Defaults to false.
         /// </summary>
         public bool OnlineConfigDeliverByGroup { get; set; }
 
@@ -46,61 +50,51 @@ namespace ShadowsocksUriGenerator
         /// should be removed when the user is being removed.
         /// Defaults to true.
         /// </summary>
-        public bool OnlineConfigCleanOnUserRemoval { get; set; }
+        public bool OnlineConfigCleanOnUserRemoval { get; set; } = true;
 
         /// <summary>
         /// Gets or sets whether data usage metrics are updated
         /// from configured sources when generating online config.
+        /// Defaults to true;
         /// </summary>
-        public bool OnlineConfigUpdateDataUsageOnGeneration { get; set; }
+        public bool OnlineConfigUpdateDataUsageOnGeneration { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the output directory path
         /// for online configuration delivery (SIP008).
         /// Must NOT end with '/' or '\'.
+        /// Defaults to a randomly generated UUID.
         /// </summary>
-        public string OnlineConfigOutputDirectory { get; set; }
+        public string OnlineConfigOutputDirectory { get; set; } = Guid.NewGuid().ToString();
 
         /// <summary>
         /// Gets or sets the URI of the folder which contains
         /// user configuration files for online configuration delivery.
         /// Must NOT end with '/'.
+        /// Defaults to an empty string.
         /// </summary>
-        public string OnlineConfigDeliveryRootUri { get; set; }
+        public string OnlineConfigDeliveryRootUri { get; set; } = "";
 
         /// <summary>
         /// Gets or sets whether changes made to local databases
         /// trigger deployments to linked Outline servers.
+        /// Defaults to false.
         /// </summary>
         public bool OutlineServerDeployOnChange { get; set; }
 
         /// <summary>
         /// Gets or sets whether to apply the global default user
         /// when associating with Outline servers.
+        /// Defaults to true.
         /// </summary>
-        public bool OutlineServerApplyDefaultUserOnAssociation { get; set; }
+        public bool OutlineServerApplyDefaultUserOnAssociation { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the global setting
         /// for Outline server's default access key's user.
+        /// Defaults to an empty string.
         /// </summary>
-        public string OutlineServerGlobalDefaultUser { get; set; }
-
-        public Settings()
-        {
-            Version = DefaultVersion;
-            UserDataUsageDefaultSortBy = SortBy.DefaultAscending;
-            GroupDataUsageDefaultSortBy = SortBy.DataUsedDescending;
-            OnlineConfigSortByName = true;
-            OnlineConfigDeliverByGroup = false;
-            OnlineConfigCleanOnUserRemoval = true;
-            OnlineConfigUpdateDataUsageOnGeneration = true;
-            OnlineConfigOutputDirectory = Guid.NewGuid().ToString();
-            OnlineConfigDeliveryRootUri = "";
-            OutlineServerDeployOnChange = false;
-            OutlineServerApplyDefaultUserOnAssociation = true;
-            OutlineServerGlobalDefaultUser = "";
-        }
+        public string OutlineServerGlobalDefaultUser { get; set; } = "";
 
         /// <summary>
         /// Loads settings from Settings.json.
