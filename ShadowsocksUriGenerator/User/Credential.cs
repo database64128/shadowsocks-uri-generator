@@ -1,19 +1,21 @@
 ﻿using System;
 using System.Text;
+using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator
 {
     /// <summary>
-    /// Each credential corresponds to a node group.
-    /// Userinfo = Method + ":" + Password.
-    /// UserinfoBase64url = base64url(Userinfo).
+    /// Stores user credential information
+    /// that can be used to connect to nodes.
     /// </summary>
     public class Credential : IEquatable<Credential>
     {
         public string Method { get; set; }
         public string Password { get; set; }
-        public string Userinfo { get; set; }
-        public string UserinfoBase64url { get; set; }
+        [JsonIgnore]
+        public string Userinfo => $"{Method}:{Password}";
+        [JsonIgnore]
+        public string UserinfoBase64url => Base64UserinfoEncoder(Userinfo);
 
         /// <summary>
         /// Parameterless constructor for System.Text.Json
@@ -22,23 +24,18 @@ namespace ShadowsocksUriGenerator
         {
             Method = "";
             Password = "";
-            Userinfo = "";
-            UserinfoBase64url = "";
         }
 
         public Credential(string method, string password)
         {
             Method = method;
             Password = password;
-            Userinfo = method + ":" + password;
-            UserinfoBase64url = Base64UserinfoEncoder(Userinfo);
         }
 
         public Credential(string userinfoBase64url)
         {
-            UserinfoBase64url = userinfoBase64url;
-            Userinfo = Base64UserinfoDecoder(userinfoBase64url);
-            var methodPasswordArray = Userinfo.Split(':', 2);
+            var userinfo = Base64UserinfoDecoder(userinfoBase64url);
+            var methodPasswordArray = userinfo.Split(':', 2);
             if (methodPasswordArray.Length == 2)
             {
                 Method = methodPasswordArray[0];

@@ -380,13 +380,7 @@ namespace ShadowsocksUriGenerator
                     users.Version++;
                     goto case 1;
                 case 1: // Userinfo_base64url => UserinfoBase64url
-                    foreach (var userEntry in users.UserDict)
-                        foreach (var credEntry in userEntry.Value.Credentials)
-                        {
-                            if (credEntry.Value == null)
-                                continue;
-                            credEntry.Value.UserinfoBase64url = Credential.Base64UserinfoEncoder(credEntry.Value.Userinfo);
-                        }
+                    // not needed anymore
                     users.Version++;
                     goto default; // go to the next update path
                 default:
