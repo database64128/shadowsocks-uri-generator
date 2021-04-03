@@ -8,7 +8,7 @@ namespace ShadowsocksUriGenerator
     /// Userinfo = Method + ":" + Password.
     /// UserinfoBase64url = base64url(Userinfo).
     /// </summary>
-    public class Credential
+    public class Credential : IEquatable<Credential>
     {
         public string Method { get; set; }
         public string Password { get; set; }
@@ -49,6 +49,12 @@ namespace ShadowsocksUriGenerator
                 throw new ArgumentException("Cannot parse into method:password.", nameof(userinfoBase64url));
             }
         }
+
+        public bool Equals(Credential? other) => Method == other?.Method && Password == other?.Password;
+
+        public override bool Equals(object? obj) => Equals(obj as Credential);
+
+        public override int GetHashCode() => Userinfo.GetHashCode();
 
         public static string Base64UserinfoEncoder(string userinfo)
         {
