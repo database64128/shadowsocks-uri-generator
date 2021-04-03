@@ -536,7 +536,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="username">Target user.</param>
         /// <returns>0 on success. -2 when no associated Outline server.</returns>
-        public async Task<int> RotatePassword(string group, Users users, CancellationToken cancellationToken = default, params string[]? usernames)
+        public async Task<int> RotatePassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (OutlineApiKey == null)
                 return -2;
@@ -547,7 +547,9 @@ namespace ShadowsocksUriGenerator
 
             var tasks = new List<Task<HttpStatusCode[]>>();
             var statusCodes = new List<HttpStatusCode>();
-            var targetUsers = usernames ?? users.UserDict.Where(x => x.Value.Credentials.ContainsKey(group)).Select(x => x.Key);
+            var targetUsers = usernames.Length > 0
+                ? usernames
+                : users.UserDict.Where(x => x.Value.Credentials.ContainsKey(group)).Select(x => x.Key);
 
             // Remove
             var removalResponse = await RemoveUserFromOutlineServer(targetUsers, users, group);

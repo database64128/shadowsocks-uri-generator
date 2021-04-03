@@ -488,7 +488,7 @@ namespace ShadowsocksUriGenerator
         /// -1 when target group doesn't exist.
         /// -2 when no associated Outline server.
         /// </returns>
-        public Task<int> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[]? usernames)
+        public Task<int> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.RotatePassword(group, users, cancellationToken, usernames);
