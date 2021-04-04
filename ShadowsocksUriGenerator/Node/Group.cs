@@ -355,6 +355,8 @@ namespace ShadowsocksUriGenerator
                 tasks.Remove(finishedTask);
             }
 
+            OutlineServerInfo = await _apiClient.GetServerInfoAsync(cancellationToken);
+
             return statusCodes;
         }
 
