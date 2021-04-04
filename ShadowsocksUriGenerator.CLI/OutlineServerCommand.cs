@@ -65,7 +65,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             var outlineApiKeyString = nodes.GetOutlineApiKeyStringFromGroup(group);
             var outlineServerInfo = nodes.GetOutlineServerInfoFromGroup(group);
-            if (outlineApiKeyString != null && outlineServerInfo != null)
+            if (outlineApiKeyString is not null && outlineServerInfo is not null)
             {
                 Console.WriteLine($"{"Name",-32}{outlineServerInfo.Name,-36}");
                 Console.WriteLine($"{"ID",-32}{outlineServerInfo.ServerId,-36}");
@@ -100,7 +100,7 @@ namespace ShadowsocksUriGenerator.CLI
             try
             {
                 var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
-                if (statusCodes != null)
+                if (statusCodes is not null)
                 {
                     foreach (var statusCode in statusCodes)
                     {

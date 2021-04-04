@@ -52,7 +52,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 command = command[..atSignIndex];
 
             // Trim quotes and spaces from argument
-            if (argument != null)
+            if (argument is not null)
             {
                 argument = argument.Trim();
                 argument = argument.Trim('\'', '"');
@@ -112,7 +112,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var users = await JsonHelper.LoadUsersAsync(cancellationToken);
                 var userSearchResult = users.UserDict.Where(x => string.Equals(x.Value.Uuid, argument, StringComparison.OrdinalIgnoreCase));
                 KeyValuePair<string, User>? matchedUser = userSearchResult.Any() ? userSearchResult.First() : null;
-                if (matchedUser == null)
+                if (matchedUser is null)
                 {
                     reply = @"User not found\.";
                     Console.WriteLine(" Response: user not found.");
@@ -255,7 +255,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 AppendTableBorder(ref replyBuilder, 7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
                 foreach (var groupEntry in nodes.Groups)
-                    if ((argument == null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key)))
+                    if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key)))
                         foreach (var node in groupEntry.Value.NodeDict)
                             replyBuilder.AppendLine($"|{(node.Value.Deactivated ? "🛑" : "✔"),7}|{node.Key.PadRight(nodeNameFieldWidth)}|{groupEntry.Key.PadRight(groupNameFieldWidth)}|{node.Value.Uuid,36}|{node.Value.Host.PadLeft(hostnameFieldWidth)}|{node.Value.Port,5}|{(node.Value.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{(node.Value.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
 
@@ -370,7 +370,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                if (argument != null && userEntry.Value.Key != argument) // look up specified user
+                if (argument is not null && userEntry.Value.Key != argument) // look up specified user
                     if (!botConfig.UsersCanSeeAllUsers)
                     {
                         reply = @"The admin won't let you view other user's data usage\.";
@@ -383,7 +383,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         reply = @"The specified user doesn't exist\.";
                         Console.WriteLine(" Response: target user not found.");
                     }
-                if (argument == null || userEntry.Value.Key == argument) // no argument or successful lookup
+                if (argument is null || userEntry.Value.Key == argument) // no argument or successful lookup
                 {
                     using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                     var username = userEntry.Value.Key;
@@ -459,7 +459,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 {
                     using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
                     var records = nodes.GetGroupDataUsage(argument);
-                    if (records == null)
+                    if (records is null)
                     {
                         reply = @"The specified group doesn't exist\.";
                         Console.WriteLine(" Response: nonexistent group.");
@@ -645,7 +645,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         if (!string.IsNullOrEmpty(argument) && argument != credEntry.Key)
                             continue;
 
-                        if (credEntry.Value == null)
+                        if (credEntry.Value is null)
                             replyBuilder.AppendLine($"|{credEntry.Key.PadRight(groupNameFieldWidth)}|{string.Empty,-24}|{string.Empty.PadRight(passwordFieldWidth)}|");
                         else
                             replyBuilder.AppendLine($"|{credEntry.Key.PadRight(groupNameFieldWidth)}|{credEntry.Value.Method,-24}|{credEntry.Value.Password.PadRight(passwordFieldWidth)}|");

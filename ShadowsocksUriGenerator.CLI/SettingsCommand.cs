@@ -67,7 +67,7 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.OutlineServerDeployOnChange = deployOnChange;
             if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
                 settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
-            if (outlineServerGlobalDefaultUser != null)
+            if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                 settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
 
             await JsonHelper.SaveSettingsAsync(settings, cancellationToken);

@@ -474,9 +474,7 @@ namespace ShadowsocksUriGenerator.CLI
                         var inputLine = Console.ReadLine()?.Trim();
 
                         // Verify input
-                        if (inputLine == null)
-                            continue;
-                        if (inputLine is "exit" or "quit")
+                        if (inputLine is null or "exit" or "quit")
                             break;
                         if (inputLine is "i" or "interactive")
                         {

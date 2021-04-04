@@ -99,7 +99,7 @@ namespace ShadowsocksUriGenerator
             var userOnlineConfig = new OnlineConfig(username, user.Uuid, user.BytesUsed, user.BytesRemaining);
             foreach (var credEntry in user.Credentials)
             {
-                if (credEntry.Value == null)
+                if (credEntry.Value is null)
                     continue;
 
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group

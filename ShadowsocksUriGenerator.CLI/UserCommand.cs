@@ -324,7 +324,7 @@ namespace ShadowsocksUriGenerator.CLI
                     if (groups.Length > 0 && !groups.Contains(credEntry.Key))
                         continue;
 
-                    if (credEntry.Value == null)
+                    if (credEntry.Value is null)
                         Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{credEntry.Key.PadRight(groupNameFieldWidth)}|{string.Empty,-24}|{string.Empty.PadRight(passwordFieldWidth)}|");
                     else
                         Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{credEntry.Key.PadRight(groupNameFieldWidth)}|{credEntry.Value.Method,-24}|{credEntry.Value.Password.PadRight(passwordFieldWidth)}|");
@@ -341,7 +341,7 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             var uris = users.GetUserSSUris(username, nodes, groups);
-            if (uris != null)
+            if (uris is not null)
             {
                 foreach (var uri in uris)
                     Console.WriteLine($"{uri.AbsoluteUri}");
@@ -362,7 +362,7 @@ namespace ShadowsocksUriGenerator.CLI
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
             var records = users.GetUserDataUsage(username, nodes);
-            if (records == null)
+            if (records is null)
             {
                 Console.WriteLine($"Error: user {username} doesn't exist.");
                 return -2;

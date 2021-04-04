@@ -442,7 +442,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             var records = nodes.GetGroupDataUsage(group);
 
-            if (records == null)
+            if (records is null)
             {
                 Console.WriteLine($"Error: group {group} doesn't exist.");
                 return -2;

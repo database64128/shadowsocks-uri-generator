@@ -67,7 +67,7 @@ namespace ShadowsocksUriGenerator
                 var credential = new Credential(method, password);
                 Credentials.Add(group, credential);
             }
-            else if (Credentials[group] == null) // already in group, add credential
+            else if (Credentials[group] is null) // already in group, add credential
                 Credentials[group] = new(method, password);
             else // already in group with credential
                 return 2;
@@ -95,7 +95,7 @@ namespace ShadowsocksUriGenerator
 
             if (!Credentials.ContainsKey(group)) // not in group, add user to it
                 Credentials.Add(group, credential);
-            else if (Credentials[group] == null) // already in group, add credential
+            else if (Credentials[group] is null) // already in group, add credential
                 Credentials[group] = credential;
             else // already in group with credential
                 return 2;
@@ -126,7 +126,7 @@ namespace ShadowsocksUriGenerator
         {
             if (Credentials.TryGetValue(group, out var credential))
             {
-                if (credential == null)
+                if (credential is null)
                     return 1;
                 else
                     Credentials[group] = null;
@@ -145,7 +145,7 @@ namespace ShadowsocksUriGenerator
                 // Skip if either
                 // - User is in group but has no credential.
                 // - Only retrieve ss URIs from specific groups, not including this group.
-                if (credEntry.Value == null || groups.Length > 0 && !groups.Contains(credEntry.Key))
+                if (credEntry.Value is null || groups.Length > 0 && !groups.Contains(credEntry.Key))
                     continue;
                 var userinfoBase64url = credEntry.Value.UserinfoBase64url;
                 if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
@@ -183,7 +183,7 @@ namespace ShadowsocksUriGenerator
             {
                 // Filter out access key ids that belongs to the user.
                 var filteredAccessKeyIds = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username).Select(x => x.Id);
-                if (filteredAccessKeyIds != null)
+                if (filteredAccessKeyIds is not null)
                 {
                     foreach (var id in filteredAccessKeyIds)
                     {
@@ -212,7 +212,7 @@ namespace ShadowsocksUriGenerator
             {
                 // Filter out access key ids that belongs to the user.
                 var filteredAccessKeyIds = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username).Select(x => x.Id);
-                if (filteredAccessKeyIds != null)
+                if (filteredAccessKeyIds is not null)
                 {
                     foreach (var id in filteredAccessKeyIds)
                     {
