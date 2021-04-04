@@ -99,9 +99,9 @@ namespace ShadowsocksUriGenerator.Outline
             => _httpClient.GetFromJsonAsync<DataUsage>($"{_apiKey.ApiUrl}/metrics/transfer", Utilities.commonJsonDeserializerOptions, cancellationToken);
 
         public Task<HttpResponseMessage> SetDataLimitAsync(ulong dataLimit, CancellationToken cancellationToken = default)
-            => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/experimental/access-key-data-limit", new DataLimit(dataLimit), Utilities.commonJsonSerializerOptions, cancellationToken);
+            => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/server/access-key-data-limit", new DataLimit(dataLimit), Utilities.commonJsonSerializerOptions, cancellationToken);
 
         public Task<HttpResponseMessage> DeleteDataLimitAsync(CancellationToken cancellationToken = default)
-            => _httpClient.DeleteAsync($"{_apiKey.ApiUrl}/experimental/access-key-data-limit", cancellationToken);
+            => _httpClient.DeleteAsync($"{_apiKey.ApiUrl}/server/access-key-data-limit", cancellationToken);
     }
 }

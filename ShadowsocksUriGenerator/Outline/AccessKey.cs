@@ -9,6 +9,7 @@ namespace ShadowsocksUriGenerator.Outline
         public string Password { get; set; }
         public int Port { get; set; }
         public string Method { get; set; }
+        public DataLimit? DataLimit { get; set; }
         public string AccessUrl { get; set; }
 
         public AccessKey()
@@ -27,6 +28,7 @@ namespace ShadowsocksUriGenerator.Outline
             && Password == other.Password
             && Port == other.Port
             && Method == other.Method
+            && DataLimit == other.DataLimit
             && AccessUrl == other.AccessUrl;
 
         public override bool Equals(object? obj) => Equals(obj as AccessKey);

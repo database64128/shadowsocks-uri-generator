@@ -11,6 +11,7 @@ namespace ShadowsocksUriGenerator.Outline
         [JsonConverter(typeof(DateTimeOffsetUnixTimeMillisecondsConverter))]
         public DateTimeOffset CreatedTimestampMs { get; set; }
         public string Version { get; set; }
+        public DataLimit? AccessKeyDataLimit { get; set; }
         public int PortForNewAccessKeys { get; set; }
         public string HostnameForAccessKeys { get; set; }
 
