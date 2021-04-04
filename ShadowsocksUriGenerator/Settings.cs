@@ -53,13 +53,6 @@ namespace ShadowsocksUriGenerator
         public bool OnlineConfigCleanOnUserRemoval { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets whether data usage metrics are updated
-        /// from configured sources when generating online config.
-        /// Defaults to true;
-        /// </summary>
-        public bool OnlineConfigUpdateDataUsageOnGeneration { get; set; } = true;
-
-        /// <summary>
         /// Gets or sets the output directory path
         /// for online configuration delivery (SIP008).
         /// Must NOT end with '/' or '\'.
@@ -74,13 +67,6 @@ namespace ShadowsocksUriGenerator
         /// Defaults to an empty string.
         /// </summary>
         public string OnlineConfigDeliveryRootUri { get; set; } = "";
-
-        /// <summary>
-        /// Gets or sets whether changes made to local databases
-        /// trigger deployments to linked Outline servers.
-        /// Defaults to false.
-        /// </summary>
-        public bool OutlineServerDeployOnChange { get; set; }
 
         /// <summary>
         /// Gets or sets whether to apply the global default user

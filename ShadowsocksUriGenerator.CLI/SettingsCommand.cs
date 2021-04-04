@@ -21,10 +21,8 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"OnlineConfigSortByName",-42}|{settings.OnlineConfigSortByName,40}|");
             Console.WriteLine($"|{"OnlineConfigDeliverByGroup",-42}|{settings.OnlineConfigDeliverByGroup,40}|");
             Console.WriteLine($"|{"OnlineConfigCleanOnUserRemoval",-42}|{settings.OnlineConfigCleanOnUserRemoval,40}|");
-            Console.WriteLine($"|{"OnlineConfigUpdateDataUsageOnGeneration",-42}|{settings.OnlineConfigUpdateDataUsageOnGeneration,40}|");
             Console.WriteLine($"|{"OnlineConfigOutputDirectory",-42}|{settings.OnlineConfigOutputDirectory,40}|");
             Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-42}|{settings.OnlineConfigDeliveryRootUri,40}|");
-            Console.WriteLine($"|{"OutlineServerDeployOnChange",-42}|{settings.OutlineServerDeployOnChange,40}|");
             Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
 
@@ -37,10 +35,8 @@ namespace ShadowsocksUriGenerator.CLI
             bool? onlineConfigSortByName,
             bool? onlineConfigDeliverByGroup,
             bool? onlineConfigCleanOnUserRemoval,
-            bool? onlineConfigUpdateDataUsageOnGeneration,
             string? onlineConfigOutputDirectory,
             string? onlineConfigDeliveryRootUri,
-            bool? outlineServerDeployOnChange,
             bool? outlineServerApplyDefaultUserOnAssociation,
             string? outlineServerGlobalDefaultUser,
             CancellationToken cancellationToken = default)
@@ -57,14 +53,10 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.OnlineConfigDeliverByGroup = deliverByGroup;
             if (onlineConfigCleanOnUserRemoval is bool cleanOnUserRemoval)
                 settings.OnlineConfigCleanOnUserRemoval = cleanOnUserRemoval;
-            if (onlineConfigUpdateDataUsageOnGeneration is bool updateDataUsageOnGeneration)
-                settings.OnlineConfigUpdateDataUsageOnGeneration = updateDataUsageOnGeneration;
             if (!string.IsNullOrEmpty(onlineConfigOutputDirectory))
                 settings.OnlineConfigOutputDirectory = onlineConfigOutputDirectory;
             if (!string.IsNullOrEmpty(onlineConfigDeliveryRootUri))
                 settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
-            if (outlineServerDeployOnChange is bool deployOnChange)
-                settings.OutlineServerDeployOnChange = deployOnChange;
             if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
                 settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
             if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
