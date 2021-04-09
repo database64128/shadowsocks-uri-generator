@@ -24,6 +24,7 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"OnlineConfigOutputDirectory",-42}|{settings.OnlineConfigOutputDirectory,40}|");
             Console.WriteLine($"|{"OnlineConfigDeliveryRootUri",-42}|{settings.OnlineConfigDeliveryRootUri,40}|");
             Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
+            Console.WriteLine($"|{"OutlineServerApplyDataLimitOnAssociationn",-42}|{settings.OutlineServerApplyDataLimitOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
 
             ConsoleHelper.PrintTableBorder(42, 40);
@@ -38,6 +39,7 @@ namespace ShadowsocksUriGenerator.CLI
             string? onlineConfigOutputDirectory,
             string? onlineConfigDeliveryRootUri,
             bool? outlineServerApplyDefaultUserOnAssociation,
+            bool? outlineServerApplyDataLimitOnAssociation,
             string? outlineServerGlobalDefaultUser,
             CancellationToken cancellationToken = default)
         {
@@ -59,6 +61,8 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
             if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
                 settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
+            if (outlineServerApplyDataLimitOnAssociation is bool applyDataLimitOnAssociation)
+                settings.OutlineServerApplyDataLimitOnAssociation = applyDataLimitOnAssociation;
             if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                 settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
 

@@ -1,6 +1,7 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.Collections.Generic;
+using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -216,8 +217,8 @@ namespace ShadowsocksUriGenerator.CLI
             var maxUsernameLength = users.UserDict.Select(x => x.Key.Length)
                                                   .DefaultIfEmpty()
                                                   .Max();
-            var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values)
-                                                  .Select(x => x?.Password.Length ?? 0)
+            var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Memberships.Values)
+                                                  .Select(x => x.Password.Length)
                                                   .DefaultIfEmpty()
                                                   .Max();
             var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
@@ -232,9 +233,9 @@ namespace ShadowsocksUriGenerator.CLI
 
             foreach (var user in users.UserDict)
             {
-                if (user.Value.Credentials.TryGetValue(group, out var cred))
+                if (user.Value.Memberships.TryGetValue(group, out var memberinfo))
                 {
-                    Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{cred?.Method,-24}|{(cred?.Password ?? string.Empty).PadRight(passwordFieldWidth)}|");
+                    Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{memberinfo.Method,-24}|{memberinfo.Password.PadRight(passwordFieldWidth)}|");
                 }
             }
 
@@ -393,8 +394,8 @@ namespace ShadowsocksUriGenerator.CLI
             var groupCreds = new List<(string username, string method, string password)>();
             foreach (var userEntry in users.UserDict)
             {
-                var groupCred = userEntry.Value.Credentials.Where(x => x.Key == group && x.Value is not null)
-                                                           .Select(x => (userEntry.Key, x.Value!.Method, x.Value.Password)); // Null forgiving reason: null check performed in .Where()
+                var groupCred = userEntry.Value.Memberships.Where(x => x.Key == group)
+                                                           .Select(x => (userEntry.Key, x.Value.Method, x.Value.Password));
                 groupCreds.AddRange(groupCred);
             }
 
@@ -514,11 +515,21 @@ namespace ShadowsocksUriGenerator.CLI
             return 0;
         }
 
+        public static string? ValidatePerUserDataLimit(CommandResult commandResult)
+        {
+            var hasPerUser = commandResult.Children.Contains("--per-user");
+            var hasUsernames = commandResult.Children.Contains("--usernames");
+
+            if (!hasPerUser && hasUsernames)
+                return "Custom user targets must be used with per-user limits.";
+
+            return null;
+        }
+
         public static async Task<int> SetDataLimit(
-            ulong dataLimitInBytes,
             string[] groups,
-            bool global,
-            bool perUser,
+            ulong? global,
+            ulong? perUser,
             string[] usernames,
             CancellationToken cancellationToken = default)
         {
@@ -526,28 +537,76 @@ namespace ShadowsocksUriGenerator.CLI
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            foreach (var group in groups)
+            if (global is ulong globalDataLimit)
             {
-                var result = nodes.SetDataLimitForGroup(dataLimitInBytes, group, global, perUser, usernames);
-                switch (result)
+                foreach (var group in groups)
                 {
-                    case 0:
-                        Console.WriteLine($"Data limit set for {group}.");
-                        break;
-                    case -1:
-                        Console.WriteLine($"Error: Group {group} doesn't exist.");
-                        break;
-                    case -2:
-                        Console.WriteLine($"An error occurred while setting for {group}: some users were not found.");
-                        break;
-                    default:
-                        Console.WriteLine($"Unknown error.");
-                        break;
+                    var result = nodes.SetGroupGlobalDataLimit(group, globalDataLimit);
+                    switch (result)
+                    {
+                        case 0:
+                            Console.WriteLine($"Global data limit set on {group}.");
+                            break;
+                        case -2:
+                            Console.WriteLine($"Error: Group {group} doesn't exist.");
+                            break;
+                        default:
+                            Console.WriteLine($"Unknown error.");
+                            break;
+                    }
+                    commandResult += result;
                 }
-                commandResult += result;
+            }
+
+            if (perUser is ulong perUserDataLimit)
+            {
+                foreach (var group in groups)
+                {
+                    if (usernames.Length == 0)
+                    {
+                        var result = nodes.SetGroupPerUserDataLimit(group, perUserDataLimit);
+                        switch (result)
+                        {
+                            case 0:
+                                Console.WriteLine($"Per-user data limit set on {group}.");
+                                break;
+                            case -2:
+                                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                                break;
+                            default:
+                                Console.WriteLine($"Unknown error.");
+                                break;
+                        }
+                        commandResult += result;
+                    }
+                    else
+                    {
+                        foreach (var username in usernames)
+                        {
+                            var result = users.SetUserDataLimitInGroup(username, group, perUserDataLimit);
+                            switch (result)
+                            {
+                                case 0:
+                                    Console.WriteLine($"Custom data limit set on {username} in {group}.");
+                                    break;
+                                case -1:
+                                    Console.WriteLine($"Error: user {username} doesn't exist.");
+                                    break;
+                                case -2:
+                                    Console.WriteLine($"Error: user {username} is not in group {group}.");
+                                    break;
+                                default:
+                                    Console.WriteLine($"Unknown error.");
+                                    break;
+                            }
+                            commandResult += result;
+                        }
+                    }
+                }
             }
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             return commandResult;
         }
     }

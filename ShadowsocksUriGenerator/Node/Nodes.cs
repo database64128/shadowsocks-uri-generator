@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -286,20 +285,44 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Sets the data limit for the specified group.
+        /// Sets the global data limit on the group.
         /// </summary>
-        /// <param name="dataLimit">The data limit in bytes.</param>
         /// <param name="group">Target group.</param>
-        /// <param name="global">Set the global data limit of the group.</param>
-        /// <param name="perUser">Set the same data limit for each user.</param>
-        /// <param name="usernames">Only set the data limit to these users.</param>
-        /// <returns>0 on success. -1 on group not found. -2 on user not found.</returns>
-        public int SetDataLimitForGroup(ulong dataLimit, string group, bool global, bool perUser, params string[] usernames)
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <returns>
+        /// 0 if the global data limit is successfully set on the group.
+        /// -2 if the group doesn't exist.
+        /// </returns>
+        public int SetGroupGlobalDataLimit(string group, ulong dataLimit)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.SetDataLimit(dataLimit, global, perUser, usernames);
+            {
+                targetGroup.DataLimitInBytes = dataLimit;
+                targetGroup.UpdateDataRemaining();
+                return 0;
+            }
             else
-                return -1;
+                return -2;
+        }
+
+        /// <summary>
+        /// Sets the per-user data limit on the group.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <returns>
+        /// 0 if the per-user data limit is successfully set on the group.
+        /// -2 if the group doesn't exist.
+        /// </returns>
+        public int SetGroupPerUserDataLimit(string group, ulong dataLimit)
+        {
+            if (Groups.TryGetValue(group, out var targetGroup))
+            {
+                targetGroup.PerUserDataLimitInBytes = dataLimit;
+                return 0;
+            }
+            else
+                return -2;
         }
 
         /// <summary>
@@ -309,18 +332,22 @@ namespace ShadowsocksUriGenerator
         /// <param name="group">Target group.</param>
         /// <param name="apiKey">Outline server API key.</param>
         /// <param name="globalDefaultUser">The global default user setting.</param>
+        /// <param name="applyDataLimit">Whether to apply the per-user data limit.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// 0 when success.
         /// -1 when target group doesn't exist.
         /// -2 when the API key is not a valid JSON string.
         /// -3 when applying default user failed.
+        /// -4 when applying data limit failed.
+        /// Only return values of -3 and -4 have an error message.
         /// </returns>
-        public Task<int> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser = null, CancellationToken cancellationToken = default)
+        public Task<(int result, string? errMsg)> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser, cancellationToken);
+                return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser, applyDataLimit, cancellationToken);
             else
-                return Task.FromResult(-1);
+                return Task.FromResult<(int result, string? errMsg)>((-1, null));
         }
 
         /// <summary>
@@ -368,16 +395,17 @@ namespace ShadowsocksUriGenerator
         /// <param name="port">Port number for new access keys.</param>
         /// <param name="metrics">Enable telemetry.</param>
         /// <param name="defaultUser">The default username for access key id 0.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// The task that represents the operation.
-        /// Null if the group can't be found
-        /// or no associated Outline server.</returns>
-        public Task<List<HttpStatusCode>?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken = default)
+        /// An optional error message.
+        /// </returns>
+        public Task<string?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.SetOutlineServer(name, hostname, port, metrics, defaultUser, cancellationToken);
             else
-                return Task.FromResult<List<HttpStatusCode>?>(null);
+                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>
@@ -401,27 +429,39 @@ namespace ShadowsocksUriGenerator
         /// Updates every assoicated Outline server's
         /// information, access keys, and data usage.
         /// </summary>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="updateLocalCredentials">
+        /// Whether to update user credential dictionary.
+        /// Defaults to true.
+        /// </param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>A task representing the update process.</returns>
-        public Task UpdateOutlineServerForAllGroups(Users users, bool updateLocalCredentials, CancellationToken cancellationToken = default)
+        public Task PullFromOutlineServerForAllGroups(Users users, bool updateLocalCredentials = true, CancellationToken cancellationToken = default)
         {
-            var tasks = Groups.Select(async x => await x.Value.UpdateOutlineServer(x.Key, users, updateLocalCredentials, cancellationToken));
+            var tasks = Groups.Select(async x => await x.Value.PullFromOutlineServer(x.Key, users, updateLocalCredentials, cancellationToken));
             return Task.WhenAll(tasks);
         }
 
         /// <summary>
-        /// Updates the specified group's Outline server's
-        /// information, access keys, and data usage.
+        /// Pulls server information, access keys, and data usage
+        /// from the specified group's associated Outline server.
         /// </summary>
-        /// <param name="group"></param>
+        /// <param name="group">Target group.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="updateLocalCredentials">
+        /// Whether to update user credential dictionary.
+        /// Defaults to true.
+        /// </param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// 0 on success.
         /// -1 when target group doesn't exist.
         /// -2 when no associated Outline server.
         /// </returns>
-        public Task<int> UpdateGroupOutlineServer(string group, Users users, bool updateLocalCredentials, CancellationToken cancellationToken = default)
+        public Task<int> PullFromGroupOutlineServer(string group, Users users, bool updateLocalCredentials = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.UpdateOutlineServer(group, users, updateLocalCredentials, cancellationToken);
+                return targetGroup.PullFromOutlineServer(group, users, updateLocalCredentials, cancellationToken);
             else
                 return Task.FromResult(-1);
         }
@@ -431,23 +471,24 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The object which contains all users' information.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// 0 on success.
-        /// -1 when target group doesn't exist.
-        /// -2 when no associated Outline server.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public Task<int> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
+        public Task<string?> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.DeployToOutlineServer(group, users, cancellationToken);
             else
-                return Task.FromResult(-1);
+                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>
         /// Deploy to every associated Outline server.
         /// </summary>
         /// <param name="users">The object which contains all users' information.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the completion of all deployments.</returns>
         public Task DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
         {
@@ -461,6 +502,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="group">Group name.</param>
         /// <param name="oldName">The old username.</param>
         /// <param name="newName">The new username.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// 0 on success.
         /// 1 when not an Outline user.
@@ -469,10 +511,10 @@ namespace ShadowsocksUriGenerator
         /// -2 when no associated Outline server.
         /// -3 when an error occurred while sending the request.
         /// </returns>
-        public Task<int> RenameUserInGroup(string group, string oldName, string newName)
+        public Task<int> RenameUserInGroup(string group, string oldName, string newName, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.RenameUser(oldName, newName);
+                return targetGroup.RenameUser(oldName, newName, cancellationToken);
             else
                 return Task.FromResult(-1);
         }
@@ -482,18 +524,18 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The object which contains all users' information.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <param name="usernames">Optional. The list of target users.</param>
         /// <returns>
-        /// 0 on success.
-        /// -1 when target group doesn't exist.
-        /// -2 when no associated Outline server.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public Task<int> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
+        public Task<string?> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.RotatePassword(group, users, cancellationToken, usernames);
             else
-                return Task.FromResult(-1);
+                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>

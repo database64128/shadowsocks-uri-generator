@@ -196,7 +196,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 AppendTableBorder(ref replyBuilder, nameFieldWidth, 18);
 
                 foreach (var user in users.UserDict)
-                    replyBuilder.AppendLine($"|{user.Key.PadRight(nameFieldWidth)}|{user.Value.Credentials.Count,18}|");
+                    replyBuilder.AppendLine($"|{user.Key.PadRight(nameFieldWidth)}|{user.Value.Memberships.Count,18}|");
 
                 AppendTableBorder(ref replyBuilder, nameFieldWidth, 18);
                 replyBuilder.AppendLine("```");
@@ -221,7 +221,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-                var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
+                var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
                 var replyBuilder = new StringBuilder();
 
                 var maxNodeNameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Keys)
@@ -282,7 +282,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-                var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
+                var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
                 var replyBuilder = new StringBuilder();
 
                 var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
@@ -338,7 +338,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var memberListBuilder = new StringBuilder();
 
                 foreach (var user in users.UserDict)
-                    if (user.Value.Credentials.ContainsKey(argument))
+                    if (user.Value.Memberships.ContainsKey(argument))
                     {
                         memberListBuilder.AppendLine($@"- {user.Key}");
                         memberCount++;
@@ -454,7 +454,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                var userGroups = userEntry.Value.Value.Credentials.Keys.ToList();
+                var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
                 if (userGroups.Contains(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
                 {
                     using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
@@ -592,7 +592,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     replyBuilder.AppendLine();
                     replyBuilder.AppendLine("SIP008 delivery link by server group:");
                     replyBuilder.AppendLine("```");
-                    foreach (var group in userEntry.Value.Value.Credentials.Keys)
+                    foreach (var group in userEntry.Value.Value.Memberships.Keys)
                         replyBuilder.AppendLine($"{settings.OnlineConfigDeliveryRootUri}/{userEntry.Value.Value.Uuid}/{Uri.EscapeDataString(group)}.json");
                     replyBuilder.AppendLine("```");
                 }
@@ -618,15 +618,15 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 var username = userEntry.Value.Key;
-                if (userEntry.Value.Value.Credentials.Count > 0)
+                if (userEntry.Value.Value.Memberships.Count > 0)
                 {
                     var replyBuilder = new StringBuilder();
-                    var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Credentials.Keys)
+                    var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Memberships.Keys)
                                                            .Select(x => x.Length)
                                                            .DefaultIfEmpty()
                                                            .Max();
-                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Credentials.Values)
-                                                          .Select(x => x?.Password.Length ?? 0)
+                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Memberships.Values)
+                                                          .Select(x => x.Password.Length)
                                                           .DefaultIfEmpty()
                                                           .Max();
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
@@ -640,15 +640,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
                     AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 24, passwordFieldWidth);
 
-                    foreach (var credEntry in userEntry.Value.Value.Credentials)
+                    foreach (var membership in userEntry.Value.Value.Memberships)
                     {
-                        if (!string.IsNullOrEmpty(argument) && argument != credEntry.Key)
+                        if (!string.IsNullOrEmpty(argument) && argument != membership.Key)
                             continue;
 
-                        if (credEntry.Value is null)
-                            replyBuilder.AppendLine($"|{credEntry.Key.PadRight(groupNameFieldWidth)}|{string.Empty,-24}|{string.Empty.PadRight(passwordFieldWidth)}|");
-                        else
-                            replyBuilder.AppendLine($"|{credEntry.Key.PadRight(groupNameFieldWidth)}|{credEntry.Value.Method,-24}|{credEntry.Value.Password.PadRight(passwordFieldWidth)}|");
+                        replyBuilder.AppendLine($"|{membership.Key.PadRight(groupNameFieldWidth)}|{membership.Value.Method,-24}|{membership.Value.Password.PadRight(passwordFieldWidth)}|");
                     }
 
                     AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 24, passwordFieldWidth);

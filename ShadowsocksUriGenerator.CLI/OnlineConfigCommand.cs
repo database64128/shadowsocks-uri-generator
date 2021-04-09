@@ -66,7 +66,7 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine();
                 Console.WriteLine($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json");
                 if (settings.OnlineConfigDeliverByGroup)
-                    foreach (var group in user.Credentials.Keys)
+                    foreach (var group in user.Memberships.Keys)
                         Console.WriteLine($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{Uri.EscapeDataString(group)}.json");
                 Console.WriteLine();
             }

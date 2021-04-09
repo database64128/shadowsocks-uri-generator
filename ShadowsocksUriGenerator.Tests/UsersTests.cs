@@ -71,21 +71,29 @@ namespace ShadowsocksUriGenerator.Tests
         [InlineData("aes-128-gcm", "tK*sk!9N8@86:UVm", "YWVzLTEyOC1nY206dEsqc2shOU44QDg2OlVWbQ")]
         public void New_Credential_MethodPassword(string method, string password, string expectedUserinfoBase64url)
         {
-            var credential = new Credential(method, password);
+            var credential = new MemberInfo(method, password);
 
             Assert.Equal(expectedUserinfoBase64url, credential.UserinfoBase64url);
         }
 
         [Theory]
-        [InlineData("Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTo2JW04RDlhTUI1YkElYTQl", "chacha20-ietf-poly1305", "6%m8D9aMB5bA%a4%")]
-        [InlineData("YWVzLTI1Ni1nY206YnBOZ2sqSjNrYUFZeXhIRQ", "aes-256-gcm", "bpNgk*J3kaAYyxHE")]
-        [InlineData("YWVzLTEyOC1nY206dkFBbiY4a1I6JGlBRTQ", "aes-128-gcm", "vAAn&8kR:$iAE4")]
-        public void New_Credential_UserinfoBase64url(string userinfoBase64url, string expectedMethod, string expectedPassword)
+        [InlineData("dXNlcmluZm9CYXNlNjR1cmw", false, "", "")] // missing :
+        [InlineData("Og", false, "", "")] // only has :
+        [InlineData("Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTo", false, "chacha20-ietf-poly1305", "")] // missing password
+        [InlineData("OjYlbThEOWFNQjViQSVhNCU", false, "", "6%m8D9aMB5bA%a4%")] // missing method
+        [InlineData("Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTo2JW04RDlhTUI1YkElYTQl", true, "chacha20-ietf-poly1305", "6%m8D9aMB5bA%a4%")]
+        [InlineData("YWVzLTI1Ni1nY206YnBOZ2sqSjNrYUFZeXhIRQ", true, "aes-256-gcm", "bpNgk*J3kaAYyxHE")]
+        [InlineData("YWVzLTEyOC1nY206dkFBbiY4a1I6JGlBRTQ", true, "aes-128-gcm", "vAAn&8kR:$iAE4")]
+        public void New_Credential_UserinfoBase64url(string userinfoBase64url, bool expectedParseResult, string expectedMethod, string expectedPassword)
         {
-            var credential = new Credential(userinfoBase64url);
+            var result = MemberInfo.TryParseFromUserinfoBase64url(userinfoBase64url, out var method, out var password);
 
-            Assert.Equal(expectedMethod, credential.Method);
-            Assert.Equal(expectedPassword, credential.Password);
+            Assert.Equal(expectedParseResult, result);
+            if (result)
+            {
+                Assert.Equal(expectedMethod, method);
+                Assert.Equal(expectedPassword, password);
+            }
         }
 
         [Fact]
@@ -109,11 +117,11 @@ namespace ShadowsocksUriGenerator.Tests
             var duplicateAdd = users.AddUserToGroup("root", "MyGroup");
             var badUserAdd = users.AddUserToGroup("nobody", "MyGroup");
 
-            var rootUserCredentials = users.UserDict["root"].Credentials;
-            var httpUserCredentials = users.UserDict["http"].Credentials;
-            var rootMyGroupCredential = rootUserCredentials["MyGroup"];
-            var rootMyGroupWithPluginCredential = rootUserCredentials["MyGroupWithPlugin"];
-            var httpMyGroupCredential = httpUserCredentials["MyGroup"];
+            var rootUserMemberships = users.UserDict["root"].Memberships;
+            var httpUserMemberships = users.UserDict["http"].Memberships;
+            var rootMyGroupMembership = rootUserMemberships["MyGroup"];
+            var rootMyGroupWithPluginMembership = rootUserMemberships["MyGroupWithPlugin"];
+            var httpMyGroupMembership = httpUserMemberships["MyGroup"];
 
             Assert.Equal(0, successAdd);
             Assert.Equal(0, anotherSuccessAdd);
@@ -121,21 +129,21 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(1, duplicateAdd);
             Assert.Equal(-1, badUserAdd);
 
-            Assert.True(rootUserCredentials.ContainsKey("MyGroup"));
-            Assert.True(rootUserCredentials.ContainsKey("MyGroupWithPlugin"));
-            Assert.True(httpUserCredentials.ContainsKey("MyGroup"));
+            Assert.True(rootUserMemberships.ContainsKey("MyGroup"));
+            Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));
+            Assert.True(httpUserMemberships.ContainsKey("MyGroup"));
 
             // Update
             users.UpdateCredentialGroupsForAllUsers("MyGroup", "MyGroupNew");
 
-            Assert.False(rootUserCredentials.ContainsKey("MyGroup"));
-            Assert.False(httpUserCredentials.ContainsKey("MyGroup"));
-            Assert.True(rootUserCredentials.ContainsKey("MyGroupNew"));
-            Assert.True(rootUserCredentials.ContainsKey("MyGroupWithPlugin"));
-            Assert.True(httpUserCredentials.ContainsKey("MyGroupNew"));
-            Assert.Equal(rootMyGroupCredential, rootUserCredentials["MyGroupNew"]);
-            Assert.Equal(rootMyGroupWithPluginCredential, rootUserCredentials["MyGroupWithPlugin"]);
-            Assert.Equal(httpMyGroupCredential, httpUserCredentials["MyGroupNew"]);
+            Assert.False(rootUserMemberships.ContainsKey("MyGroup"));
+            Assert.False(httpUserMemberships.ContainsKey("MyGroup"));
+            Assert.True(rootUserMemberships.ContainsKey("MyGroupNew"));
+            Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));
+            Assert.True(httpUserMemberships.ContainsKey("MyGroupNew"));
+            Assert.Equal(rootMyGroupMembership, rootUserMemberships["MyGroupNew"]);
+            Assert.Equal(rootMyGroupWithPluginMembership, rootUserMemberships["MyGroupWithPlugin"]);
+            Assert.Equal(httpMyGroupMembership, httpUserMemberships["MyGroupNew"]);
 
             // Remove
             var successRemoval = users.RemoveUserFromGroup("root", "MyGroupWithPlugin");
@@ -146,7 +154,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(-2, nonExistingUserRemoval);
             Assert.Equal(1, nonExistingGroupRemoval);
 
-            Assert.Single(rootUserCredentials);
+            Assert.Single(rootUserMemberships);
         }
 
         [Fact]
@@ -171,8 +179,8 @@ namespace ShadowsocksUriGenerator.Tests
             var badUserAdd = users.AddCredentialToUser("nobody", "MyGroup", "aes-256-gcm", "wLhN2STZ");
             var badUserinfoAdd = users.AddCredentialToUser("http", "MyGroupWithPlugin", "PR6Lf9UR22C5LNBhzEcpsWxd6WpsaeSs");
 
-            var rootUserCredentials = users.UserDict["root"].Credentials;
-            var httpUserCredentials = users.UserDict["http"].Credentials;
+            var rootUserMemberships = users.UserDict["root"].Memberships;
+            var httpUserMemberships = users.UserDict["http"].Memberships;
 
             Assert.Equal(0, successAdd);
             Assert.Equal(0, anotherSuccessAdd);
@@ -181,13 +189,13 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(-1, badUserAdd);
             Assert.Equal(-2, badUserinfoAdd);
 
-            Assert.True(rootUserCredentials.ContainsKey("MyGroup"));
-            Assert.True(rootUserCredentials.ContainsKey("MyGroupWithPlugin"));
-            Assert.True(httpUserCredentials.ContainsKey("MyGroup"));
+            Assert.True(rootUserMemberships.ContainsKey("MyGroup"));
+            Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));
+            Assert.True(httpUserMemberships.ContainsKey("MyGroup"));
 
-            Assert.NotNull(rootUserCredentials["MyGroup"]);
-            Assert.NotNull(rootUserCredentials["MyGroupWithPlugin"]);
-            Assert.NotNull(httpUserCredentials["MyGroup"]);
+            Assert.True(rootUserMemberships["MyGroup"].HasCredential);
+            Assert.True(rootUserMemberships["MyGroupWithPlugin"].HasCredential);
+            Assert.True(httpUserMemberships["MyGroup"].HasCredential);
 
             // Remove
             var successRemoval = users.RemoveCredentialFromUser("root", "MyGroupWithPlugin");
@@ -198,15 +206,15 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(-2, nonExistingUserRemoval);
             Assert.Equal(-1, nonExistingGroupRemoval);
 
-            Assert.NotNull(rootUserCredentials["MyGroup"]);
-            Assert.NotNull(httpUserCredentials["MyGroup"]);
-            Assert.Null(rootUserCredentials["MyGroupWithPlugin"]);
+            Assert.True(rootUserMemberships["MyGroup"].HasCredential);
+            Assert.True(httpUserMemberships["MyGroup"].HasCredential);
+            Assert.False(rootUserMemberships["MyGroupWithPlugin"].HasCredential);
 
             // Remove from all
             users.RemoveCredentialsFromAllUsers(new string[] { "MyGroup" });
 
-            Assert.Null(rootUserCredentials["MyGroup"]);
-            Assert.Null(httpUserCredentials["MyGroup"]);
+            Assert.False(rootUserMemberships["MyGroup"].HasCredential);
+            Assert.False(httpUserMemberships["MyGroup"].HasCredential);
         }
 
         [Theory]

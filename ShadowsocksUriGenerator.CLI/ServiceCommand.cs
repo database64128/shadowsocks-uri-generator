@@ -43,7 +43,7 @@ namespace ShadowsocksUriGenerator.CLI
                     {
                         try
                         {
-                            await nodes.UpdateOutlineServerForAllGroups(users, true, cancellationToken);
+                            await nodes.PullFromOutlineServerForAllGroups(users, true, cancellationToken);
                         }
                         catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
                         {

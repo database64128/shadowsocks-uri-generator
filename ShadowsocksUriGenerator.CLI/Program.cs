@@ -22,7 +22,7 @@ namespace ShadowsocksUriGenerator.CLI
             var userListCredentialsCommand = new Command("list-credentials", "List user-group credentials.");
             var userGetSSLinksCommand = new Command("get-ss-links", "Get the user's Shadowsocks URLs.");
             var userGetDataUsageCommand = new Command("get-data-usage", "Get the user's data usage records.");
-            var userSetDataLimitCommand = new Command("set-data-limit", "Set a data limit on the specified users in all or the specified groups.");
+            var userSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-group data limit on the specified users in all or the specified groups.");
 
             var userCommand = new Command("user", "Manage users.")
             {
@@ -68,7 +68,7 @@ namespace ShadowsocksUriGenerator.CLI
             var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
             var groupListCredentialsCommand = new Command("list-credentials", "List credentials in the group.");
             var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
-            var groupSetDataLimitCommand = new Command("set-data-limit", "Set a data limit for specified users and/or groups.");
+            var groupSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
 
             var groupCommand = new Command("group", "Manage groups.")
             {
@@ -166,10 +166,6 @@ namespace ShadowsocksUriGenerator.CLI
                 Arity = ArgumentArity.OneOrMore,
             };
 
-            var dataLimitArgument = new Argument<ulong>("dataLimit", Parsers.ParseDataString)
-            {
-                Description = "The data limit in bytes. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
-            };
             var portStringArgument = new Argument<int>("portString", NodeCommand.ParsePortNumber)
             {
                 Description = "Port number of the new node.",
@@ -181,6 +177,10 @@ namespace ShadowsocksUriGenerator.CLI
             var methodOption = new Option<string?>("--method", "The encryption method. Use with --password.");
             var passwordOption = new Option<string?>("--password", "The password. Use with --method.");
             var userinfoBase64urlOption = new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'.");
+
+            var globalDataLimitOption = new Option<ulong?>("--global", Parsers.ParseDataString, false, "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
+            var perUserDataLimitOption = new Option<ulong?>("--per-user", Parsers.ParseDataString, false, "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
+            var perGroupDataLimitOption = new Option<ulong?>("--per-group", Parsers.ParseDataString, false, "The per-group data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
 
             var namesOnlyOption = new Option<bool>(new string[] { "-s", "--short", "--names-only" }, "Display names only, without a table.");
             var onePerLineOption = new Option<bool>(new string[] { "-1", "--one-per-line" }, "Display one name per line.");
@@ -268,10 +268,12 @@ namespace ShadowsocksUriGenerator.CLI
             userGetDataUsageCommand.Handler = CommandHandler.Create<string, SortBy?, CancellationToken>(UserCommand.GetDataUsage);
 
             userSetDataLimitCommand.AddAlias("limit");
-            userSetDataLimitCommand.AddArgument(dataLimitArgument);
             userSetDataLimitCommand.AddArgument(usernamesArgumentOneOrMore);
+            userSetDataLimitCommand.AddOption(globalDataLimitOption);
+            userSetDataLimitCommand.AddOption(perGroupDataLimitOption);
             userSetDataLimitCommand.AddOption(groupsOption);
-            userSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], string[], CancellationToken>(UserCommand.SetDataLimit);
+            userSetDataLimitCommand.AddValidator(UserCommand.ValidatePerGroupDataLimit);
+            userSetDataLimitCommand.Handler = CommandHandler.Create<string[], ulong?, ulong?, string[], CancellationToken>(UserCommand.SetDataLimit);
 
             nodeAddCommand.AddAlias("a");
             nodeAddCommand.AddArgument(groupArgument);
@@ -384,12 +386,12 @@ namespace ShadowsocksUriGenerator.CLI
             groupGetDataUsageCommand.Handler = CommandHandler.Create<string, SortBy?, CancellationToken>(GroupCommand.GetDataUsage);
 
             groupSetDataLimitCommand.AddAlias("limit");
-            groupSetDataLimitCommand.AddArgument(dataLimitArgument);
             groupSetDataLimitCommand.AddArgument(groupsArgumentOneOrMore);
-            groupSetDataLimitCommand.AddOption(new Option<bool>("--global", "Set the global data limit of the group."));
-            groupSetDataLimitCommand.AddOption(new Option<bool>("--per-user", "Set the same data limit for each user."));
+            groupSetDataLimitCommand.AddOption(globalDataLimitOption);
+            groupSetDataLimitCommand.AddOption(perUserDataLimitOption);
             groupSetDataLimitCommand.AddOption(usernamesOption);
-            groupSetDataLimitCommand.Handler = CommandHandler.Create<ulong, string[], bool, bool, string[], CancellationToken>(GroupCommand.SetDataLimit);
+            groupSetDataLimitCommand.AddValidator(GroupCommand.ValidatePerUserDataLimit);
+            groupSetDataLimitCommand.Handler = CommandHandler.Create<string[], ulong?, ulong?, string[], CancellationToken>(GroupCommand.SetDataLimit);
 
             onlineConfigGenerateCommand.AddAlias("g");
             onlineConfigGenerateCommand.AddAlias("gen");
@@ -460,8 +462,9 @@ namespace ShadowsocksUriGenerator.CLI
             settingsSetCommand.AddOption(new Option<string?>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<string?>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
+            settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-data-limit-on-association", "Whether to apply the group's per-user data limit when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
-            settingsSetCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, bool?, bool?, bool?, string?, string?, bool?, string?, CancellationToken>(SettingsCommand.Set);
+            settingsSetCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, bool?, bool?, bool?, string?, string?, bool?, bool?, string?, CancellationToken>(SettingsCommand.Set);
 
             interactiveCommand.Handler = CommandHandler.Create(
                 async () =>

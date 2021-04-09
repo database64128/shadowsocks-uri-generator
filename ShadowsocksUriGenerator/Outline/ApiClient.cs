@@ -90,7 +90,7 @@ namespace ShadowsocksUriGenerator.Outline
             => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/access-keys/{id}/name", new ServerName(name), Utilities.commonJsonSerializerOptions, cancellationToken);
 
         public Task<HttpResponseMessage> SetAccessKeyDataLimitAsync(string id, ulong dataLimit, CancellationToken cancellationToken = default)
-            => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/access-keys/{id}/data-limit", new DataLimit(dataLimit), Utilities.commonJsonSerializerOptions, cancellationToken);
+            => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/access-keys/{id}/data-limit", new DataLimitContainer(new(dataLimit)), Utilities.commonJsonSerializerOptions, cancellationToken);
 
         public Task<HttpResponseMessage> DeleteAccessKeyDataLimitAsync(string id, CancellationToken cancellationToken = default)
             => _httpClient.DeleteAsync($"{_apiKey.ApiUrl}/access-keys/{id}/data-limit", cancellationToken);
@@ -99,7 +99,7 @@ namespace ShadowsocksUriGenerator.Outline
             => _httpClient.GetFromJsonAsync<DataUsage>($"{_apiKey.ApiUrl}/metrics/transfer", Utilities.commonJsonDeserializerOptions, cancellationToken);
 
         public Task<HttpResponseMessage> SetDataLimitAsync(ulong dataLimit, CancellationToken cancellationToken = default)
-            => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/server/access-key-data-limit", new DataLimit(dataLimit), Utilities.commonJsonSerializerOptions, cancellationToken);
+            => _httpClient.PutAsJsonAsync($"{_apiKey.ApiUrl}/server/access-key-data-limit", new DataLimitContainer(new(dataLimit)), Utilities.commonJsonSerializerOptions, cancellationToken);
 
         public Task<HttpResponseMessage> DeleteDataLimitAsync(CancellationToken cancellationToken = default)
             => _httpClient.DeleteAsync($"{_apiKey.ApiUrl}/server/access-key-data-limit", cancellationToken);

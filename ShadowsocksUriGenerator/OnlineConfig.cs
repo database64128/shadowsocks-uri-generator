@@ -97,32 +97,36 @@ namespace ShadowsocksUriGenerator
             var dataUsageRecords = user.GetDataUsage(username, nodes);
             var OnlineConfigDict = new Dictionary<string, OnlineConfig>();
             var userOnlineConfig = new OnlineConfig(username, user.Uuid, user.BytesUsed, user.BytesRemaining);
-            foreach (var credEntry in user.Credentials)
+            foreach (var membership in user.Memberships)
             {
-                if (credEntry.Value is null)
+                if (!membership.Value.HasCredential)
                     continue;
 
-                if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
+                if (nodes.Groups.TryGetValue(membership.Key, out var group)) // find credEntry's group
                 {
                     // per-group delivery
-                    var filteredDataUsageRecords = dataUsageRecords.Where(x => x.group == credEntry.Key);
+                    var filteredDataUsageRecords = dataUsageRecords.Where(x => x.group == membership.Key);
                     var dataUsageRecord = filteredDataUsageRecords.Any() ? filteredDataUsageRecords.First() : new();
                     var perGroupOnlineConfig = new OnlineConfig(username, user.Uuid, dataUsageRecord.bytesUsed, dataUsageRecord.bytesRemaining);
+
                     // add each node to the Servers list.
                     foreach (var node in group.NodeDict)
                     {
                         if (node.Value.Deactivated)
                             continue;
+
                         var server = new Server(
                             node.Key,
                             node.Value.Uuid,
                             node.Value.Host,
                             node.Value.Port,
-                            credEntry.Value.Password,
-                            credEntry.Value.Method,
+                            membership.Value.Password,
+                            membership.Value.Method,
                             node.Value.Plugin,
                             node.Value.PluginOpts);
+
                         userOnlineConfig.Servers.Add(server);
+
                         if (settings.OnlineConfigDeliverByGroup)
                             perGroupOnlineConfig.Servers.Add(server);
                     }
@@ -131,7 +135,8 @@ namespace ShadowsocksUriGenerator
                     {
                         if (settings.OnlineConfigSortByName)
                             perGroupOnlineConfig.Servers = perGroupOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
-                        OnlineConfigDict.Add($"{user.Uuid}/{credEntry.Key}", perGroupOnlineConfig);
+
+                        OnlineConfigDict.Add($"{user.Uuid}/{membership.Key}", perGroupOnlineConfig);
                     }
                 }
                 else
@@ -140,6 +145,7 @@ namespace ShadowsocksUriGenerator
             // sort and add
             if (settings.OnlineConfigSortByName)
                 userOnlineConfig.Servers = userOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
+
             OnlineConfigDict.Add(user.Uuid, userOnlineConfig);
 
             return OnlineConfigDict;

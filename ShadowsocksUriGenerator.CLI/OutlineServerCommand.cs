@@ -18,26 +18,28 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine("You must specify an API key.");
 
             int result;
+            string? errMsg = null;
 
             try
             {
-                if (settings.OutlineServerApplyDefaultUserOnAssociation)
-                    result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, settings.OutlineServerGlobalDefaultUser, cancellationToken);
-                else
-                    result = await nodes.AssociateOutlineServerWithGroup(group, apiKey, null, cancellationToken);
+                (result, errMsg) = await nodes.AssociateOutlineServerWithGroup(
+                    group,
+                    apiKey,
+                    settings.OutlineServerApplyDefaultUserOnAssociation ? settings.OutlineServerGlobalDefaultUser : null,
+                    settings.OutlineServerApplyDataLimitOnAssociation,
+                    cancellationToken);
 
                 await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
             }
             catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
                 Console.WriteLine(ex.Message);
-                result = 1;
+                return 1;
             }
             catch (Exception ex) // timeout and other errors
             {
-                Console.WriteLine($"An error occurred while connecting to the Outline server.");
-                Console.WriteLine(ex.Message);
-                result = -3;
+                Console.WriteLine($"An error occurred while connecting to the Outline server: {ex.Message}");
+                return -3;
             }
 
             switch (result)
@@ -52,7 +54,13 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"Invalid API key: {apiKey}");
                     break;
                 case -3:
-                    Console.WriteLine($"An error occurred while applying the global default user setting.");
+                    Console.WriteLine($"An error occurred while applying the global default user setting: {errMsg}");
+                    break;
+                case -4:
+                    Console.WriteLine($"An error occurred while applying the group's per-user data limit: {errMsg}");
+                    break;
+                default:
+                    Console.WriteLine($"Unknown error: {result}");
                     break;
             }
 
@@ -99,21 +107,14 @@ namespace ShadowsocksUriGenerator.CLI
 
             try
             {
-                var statusCodes = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
-                if (statusCodes is not null)
+                var errMsg = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
+                if (errMsg is null)
                 {
-                    foreach (var statusCode in statusCodes)
-                    {
-                        if (statusCode != System.Net.HttpStatusCode.NoContent)
-                        {
-                            Console.WriteLine($"{statusCode:D} {statusCode:G}");
-                            commandResult += (int)statusCode;
-                        }
-                    }
+                    Console.WriteLine($"Successfully applied new settings to {group}.");
                 }
                 else
                 {
-                    Console.WriteLine("Error: Group not found or no associated Outline server.");
+                    Console.WriteLine(errMsg);
                     commandResult = -2;
                 }
 
@@ -126,9 +127,8 @@ namespace ShadowsocksUriGenerator.CLI
             }
             catch (Exception ex) // timeout and other errors
             {
-                Console.WriteLine($"An error occurred while applying settings to Outline servers.");
-                Console.WriteLine(ex.Message);
-                commandResult -= 3;
+                Console.WriteLine($"An error occurred while applying settings to Outline servers: {ex.Message}");
+                commandResult = -3;
             }
 
             return commandResult;
@@ -177,11 +177,11 @@ namespace ShadowsocksUriGenerator.CLI
             try
             {
                 if (groups.Length == 0)
-                    await nodes.UpdateOutlineServerForAllGroups(users, !noSync, cancellationToken);
+                    await nodes.PullFromOutlineServerForAllGroups(users, !noSync, cancellationToken);
                 else
                     foreach (var group in groups)
                     {
-                        var result = await nodes.UpdateGroupOutlineServer(group, users, !noSync, cancellationToken);
+                        var result = await nodes.PullFromGroupOutlineServer(group, users, !noSync, cancellationToken);
                         switch (result)
                         {
                             case 0:
@@ -237,20 +237,14 @@ namespace ShadowsocksUriGenerator.CLI
                     {
                         switch (result)
                         {
-                            case 0:
+                            case null:
                                 Console.WriteLine("Success.");
                                 break;
-                            case -1:
-                                Console.WriteLine("Target group doesn't exist.");
-                                break;
-                            case -2:
-                                Console.WriteLine("No associated Outline server.");
-                                break;
                             default:
-                                Console.WriteLine($"Unknown error.");
+                                Console.WriteLine(result);
+                                commandResult--;
                                 break;
                         }
-                        commandResult += result;
                     }
                 }
             }
@@ -261,8 +255,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
             catch (Exception ex) // timeout and other errors
             {
-                Console.WriteLine($"An error occurred while deploying Outline servers.");
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"An error occurred while deploying Outline servers: {ex.Message}");
                 commandResult -= 3;
             }
 
@@ -292,20 +285,22 @@ namespace ShadowsocksUriGenerator.CLI
             // Workaround for https://github.com/dotnet/command-line-api/issues/1233
             groups ??= Array.Empty<string>();
 
+            var errMsgs = Array.Empty<string?>();
+
             try
             {
                 if (groups.Length > 0)
                 {
                     var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
-                    await Task.WhenAll(tasks);
+                    errMsgs = await Task.WhenAll(tasks);
                 }
                 else if (usernames.Length > 0)
                 {
                     var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
-                                                .SelectMany(x => users.UserDict[x].Credentials.Keys)
+                                                .SelectMany(x => users.UserDict[x].Memberships.Keys)
                                                 .Distinct();
                     var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
-                    await Task.WhenAll(tasks);
+                    errMsgs = await Task.WhenAll(tasks);
                 }
                 else
                 {
@@ -323,6 +318,12 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine($"An error occurred while connecting to Outline servers.");
                 Console.WriteLine(ex.Message);
                 commandResult -= 3;
+            }
+
+            foreach (var errMsg in errMsgs)
+            {
+                Console.WriteLine(errMsg);
+                commandResult--;
             }
 
             await JsonHelper.SaveUsersAsync(users, default);

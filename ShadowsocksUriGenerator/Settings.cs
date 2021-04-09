@@ -76,6 +76,13 @@ namespace ShadowsocksUriGenerator
         public bool OutlineServerApplyDefaultUserOnAssociation { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets whether to apply the group's per-user data limit
+        /// to the Outline server when linking.
+        /// Defaults to true.
+        /// </summary>
+        public bool OutlineServerApplyDataLimitOnAssociation { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets the global setting
         /// for Outline server's default access key's user.
         /// Defaults to an empty string.

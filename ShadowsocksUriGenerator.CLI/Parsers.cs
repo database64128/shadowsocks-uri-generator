@@ -9,9 +9,16 @@ namespace ShadowsocksUriGenerator.CLI
     /// </summary>
     public static class Parsers
     {
-        public static ulong ParseDataString(ArgumentResult argumentResult)
+        public static ulong? ParseDataString(ArgumentResult argumentResult)
         {
             var dataString = argumentResult.Tokens.Single().Value;
+
+            // Not specified
+            if (string.IsNullOrEmpty(dataString))
+            {
+                return null;
+            }
+
             if (Utilities.TryParseDataLimitString(dataString, out var dataLimitInBytes))
             {
                 return dataLimitInBytes;

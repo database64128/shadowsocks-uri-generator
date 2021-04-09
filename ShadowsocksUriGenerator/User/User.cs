@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator
     /// <summary>
     /// Each user has a unique name and a list of credentials.
     /// </summary>
-    public class User
+    public class User : IDataUsage, IDataLimit
     {
         /// <summary>
         /// Gets or sets the UUID of the user.
@@ -16,9 +16,14 @@ namespace ShadowsocksUriGenerator
         public string Uuid { get; set; }
 
         /// <summary>
-        /// Gets or sets the data limit of the user in bytes.
+        /// Gets or sets the global data limit of the user in bytes.
         /// </summary>
         public ulong DataLimitInBytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the per-group data limit of the user in bytes.
+        /// </summary>
+        public ulong PerGroupDataLimitInBytes { get; set; }
 
         /// <summary>
         /// Gets or sets the data usage of the user in bytes.
@@ -34,16 +39,21 @@ namespace ShadowsocksUriGenerator
         public ulong BytesRemaining { get; set; }
 
         /// <summary>
-        /// Gets or sets the credential dictionary of the user.
-        /// key is the associated group name.
-        /// value is user's credential to the group's nodes.
+        /// Gets or sets the membership dictionary of the user.
+        /// Key is the associated group name.
+        /// Value is user's member information to the group.
         /// </summary>
-        public Dictionary<string, Credential?> Credentials { get; set; }
+        public Dictionary<string, MemberInfo> Memberships { get; set; }
+
+        /// <summary>
+        /// For compatibility only. Do not use.
+        /// </summary>
+        public Dictionary<string, MemberInfo?>? Credentials { get; set; }
 
         public User()
         {
             Uuid = Guid.NewGuid().ToString();
-            Credentials = new();
+            Memberships = new();
         }
 
         /// <summary>
@@ -51,7 +61,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Name of the group.</param>
         /// <returns><see cref="true"/> if the user was successfully added to the group. Otherwise <see cref="false"/>.</returns>
-        public bool AddToGroup(string group) => Credentials.TryAdd(group, null);
+        public bool AddToGroup(string group) => Memberships.TryAdd(group, new());
 
         /// <summary>
         /// Adds a new credential to the user's credential dictionary.
@@ -62,17 +72,22 @@ namespace ShadowsocksUriGenerator
         /// <returns>0 for success. 2 for duplicated credential.</returns>
         public int AddCredential(string group, string method, string password)
         {
-            if (!Credentials.ContainsKey(group)) // not in group, add user to it
+            if (!Memberships.ContainsKey(group)) // not in group, add user to it
             {
-                var credential = new Credential(method, password);
-                Credentials.Add(group, credential);
+                var memberInfo = new MemberInfo(method, password);
+                Memberships.Add(group, memberInfo);
+                return 0;
             }
-            else if (Credentials[group] is null) // already in group, add credential
-                Credentials[group] = new(method, password);
+            else if (!Memberships[group].HasCredential) // already in group without credential, add credential
+            {
+                Memberships[group].Method = method;
+                Memberships[group].Password = password;
+                return 0;
+            }
             else // already in group with credential
+            {
                 return 2;
-
-            return 0;
+            }
         }
 
         /// <summary>
@@ -83,24 +98,28 @@ namespace ShadowsocksUriGenerator
         /// <returns>0 for success. 2 for duplicated credential. -2 for invalid userinfo base64url.</returns>
         public int AddCredential(string group, string userinfoBase64url)
         {
-            Credential credential;
-            try
+            if (MemberInfo.TryParseFromUserinfoBase64url(userinfoBase64url, out var memberInfo))
             {
-                credential = new(userinfoBase64url);
+                if (!Memberships.ContainsKey(group)) // not in group, add user to it
+                {
+                    Memberships.Add(group, memberInfo);
+                    return 0;
+                }
+                else if (!Memberships[group].HasCredential) // already in group without credential, add credential
+                {
+                    Memberships[group].Method = memberInfo.Method;
+                    Memberships[group].Password = memberInfo.Password;
+                    return 0;
+                }
+                else // already in group with credential
+                {
+                    return 2;
+                }
             }
-            catch
+            else
             {
                 return -2;
             }
-
-            if (!Credentials.ContainsKey(group)) // not in group, add user to it
-                Credentials.Add(group, credential);
-            else if (Credentials[group] is null) // already in group, add credential
-                Credentials[group] = credential;
-            else // already in group with credential
-                return 2;
-
-            return 0;
         }
 
         /// <summary>
@@ -111,60 +130,79 @@ namespace ShadowsocksUriGenerator
         /// <see cref="true"/> if the user successfully left the group.
         /// Otherwise <see cref="false"/>, including already not in the group.
         /// </returns>
-        public bool RemoveFromGroup(string group) => Credentials.Remove(group);
+        public bool RemoveFromGroup(string group) => Memberships.Remove(group);
 
         /// <summary>
         /// Removes the credential associated with the group.
         /// </summary>
         /// <param name="group">Name of the group.</param>
         /// <returns>
-        /// 0 when success.
-        /// 1 when no associated credential.
-        /// -1 when user not in group.
+        /// 0 when the credential is successfully found and removed.
+        /// 1 when the user is in the group but has no associated credential.
+        /// -1 when the user is not in the group.
         /// </returns>
         public int RemoveCredential(string group)
         {
-            if (Credentials.TryGetValue(group, out var credential))
+            if (Memberships.TryGetValue(group, out var memberInfo))
             {
-                if (credential is null)
-                    return 1;
+                if (memberInfo.HasCredential)
+                {
+                    memberInfo.ClearCredential();
+                    return 0;
+                }
                 else
-                    Credentials[group] = null;
+                {
+                    return 1;
+                }
             }
             else
                 return -1;
+        }
 
-            return 0;
+        /// <summary>
+        /// Removes all credentials from the user.
+        /// </summary>
+        public void RemoveAllCredentials()
+        {
+            foreach (var membership in Memberships)
+            {
+                membership.Value.ClearCredential();
+            }
         }
 
         public List<Uri> GetSSUris(Nodes nodes, params string[] groups)
         {
             List<Uri> uris = new();
-            foreach (var credEntry in Credentials)
+
+            foreach (var membership in Memberships)
             {
                 // Skip if either
                 // - User is in group but has no credential.
                 // - Only retrieve ss URIs from specific groups, not including this group.
-                if (credEntry.Value is null || groups.Length > 0 && !groups.Contains(credEntry.Key))
+                if (!membership.Value.HasCredential || groups.Length > 0 && !groups.Contains(membership.Key))
                     continue;
-                var userinfoBase64url = credEntry.Value.UserinfoBase64url;
-                if (nodes.Groups.TryGetValue(credEntry.Key, out Group? group)) // find credEntry's group
+
+                var userinfoBase64url = membership.Value.UserinfoBase64url;
+                if (nodes.Groups.TryGetValue(membership.Key, out Group? group)) // find credEntry's group
                 {
                     foreach (var node in group.NodeDict)
                     {
                         if (node.Value.Deactivated)
                             continue;
+
                         var fragment = node.Key;
                         var host = node.Value.Host;
                         var port = node.Value.Port;
                         var plugin = node.Value.Plugin;
                         var pluginOpts = node.Value.PluginOpts;
+
                         uris.Add(SSUriBuilder(userinfoBase64url, host, port, fragment, plugin, pluginOpts));
                     }
                 }
                 else
                     continue; // ignoring is intentional, as groups may get removed.
             }
+
             return uris;
         }
 
@@ -188,12 +226,23 @@ namespace ShadowsocksUriGenerator
                     foreach (var id in filteredAccessKeyIds)
                     {
                         if (int.TryParse(id, out var keyId)
-                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) is bool hasDataUsage
-                            && hasDataUsage)
+                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) == true)
                             BytesUsed += bytesUsedInGroup;
                     }
                 }
             }
+
+            UpdateDataRemaining();
+        }
+
+        /// <summary>
+        /// Updates the data remaining counter
+        /// with respect to data limit and data used.
+        /// Call this method when updating data limit and data used.
+        /// </summary>
+        public void UpdateDataRemaining()
+        {
+            BytesRemaining = DataLimitInBytes > 0UL ? DataLimitInBytes - BytesUsed : 0UL;
         }
 
         /// <summary>
@@ -234,24 +283,34 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Sets the data limit.
+        /// Gets the data limit of the user in the specified group.
+        /// Group existence is not checked.
         /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <returns>The data limit in bytes.</returns>
+        public ulong GetDataLimitInGroup(string group)
+            => Memberships.TryGetValue(group, out var memberInfo) && memberInfo.DataLimitInBytes > 0UL
+                ? memberInfo.DataLimitInBytes
+                : PerGroupDataLimitInBytes;
+
+        /// <summary>
+        /// Sets the data limit of the user in the specified group.
+        /// </summary>
+        /// <param name="group">Target group.</param>
         /// <param name="dataLimit">The data limit in bytes.</param>
-        /// <param name="groups">Only set for these groups.</param>
-        /// <returns>0 on success. -2 on group not found.</returns>
-        public int SetDataLimit(ulong dataLimit, params string[] groups)
+        /// <returns>
+        /// 0 if the user is in the group and the data limit is set.
+        /// -2 if the user is not in the group.
+        /// </returns>
+        public int SetDataLimitInGroup(string group, ulong dataLimit)
         {
-            if (groups.Length == 0)
-                DataLimitInBytes = dataLimit;
+            if (Memberships.TryGetValue(group, out var memberInfo))
+            {
+                memberInfo.DataLimitInBytes = dataLimit;
+                return 0;
+            }
             else
-                foreach (var group in groups)
-                    if (Credentials.ContainsKey(group))
-                    {
-                        // TODO: set data limit to group.
-                    }
-                    else
-                        return -2;
-            return 0;
+                return -2;
         }
 
         public static Uri SSUriBuilder(string userinfoBase64url, string host, int port, string fragment, string? plugin = null, string? pluginOpts = null)

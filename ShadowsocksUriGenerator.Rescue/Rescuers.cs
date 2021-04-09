@@ -171,7 +171,7 @@ namespace ShadowsocksUriGenerator.Rescue
                 };
 
                 // group servers by credential
-                var groupedServers = userCreds.Servers.GroupBy(server => new Credential(server.Method, server.Password));
+                var groupedServers = userCreds.Servers.GroupBy(server => new MemberInfo(server.Method, server.Password));
 
                 // find belonging group by node name
                 foreach (var credGroup in groupedServers)
@@ -209,7 +209,7 @@ namespace ShadowsocksUriGenerator.Rescue
                     }
 
                     // save credential
-                    user.Credentials.Add(matchedGroup, credGroup.Key);
+                    user.Memberships.Add(matchedGroup, credGroup.Key);
                 }
 
                 // save user

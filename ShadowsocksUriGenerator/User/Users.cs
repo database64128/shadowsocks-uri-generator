@@ -16,7 +16,7 @@ namespace ShadowsocksUriGenerator
         /// Gets the default configuration version
         /// used by this version of the app.
         /// </summary>
-        public static int DefaultVersion => 2;
+        public static int DefaultVersion => 3;
 
         /// <summary>
         /// Gets or sets the configuration version number.
@@ -66,20 +66,22 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="oldName">The existing username.</param>
         /// <param name="newName">The new username.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// 0 when success.
         /// -1 when old username is not found.
         /// -2 when new username already exists.
         /// -3 when an error occurred while deploying the change to Outline server.
         /// </returns>
-        public async Task<int> RenameUser(string oldName, string newName, Nodes nodes)
+        public async Task<int> RenameUser(string oldName, string newName, Nodes nodes, CancellationToken cancellationToken = default)
         {
             if (UserDict.ContainsKey(newName))
                 return -2;
             if (!UserDict.Remove(oldName, out var user))
                 return -1;
             UserDict.Add(newName, user);
-            var tasks = user.Credentials.Select(async x => await nodes.RenameUserInGroup(x.Key, oldName, newName));
+            var tasks = user.Memberships.Select(async x => await nodes.RenameUserInGroup(x.Key, oldName, newName, cancellationToken));
             var results = await Task.WhenAll(tasks);
             if (results.Any(x => x < 0))
                 return -3;
@@ -148,9 +150,10 @@ namespace ShadowsocksUriGenerator
         {
             foreach (var userEntry in UserDict)
             {
-                var credentials = userEntry.Value.Credentials;
-                if (credentials.Remove(oldGroupName, out var credential))
-                    credentials.Add(newGroupName, credential);
+                var memberships = userEntry.Value.Memberships;
+
+                if (memberships.Remove(oldGroupName, out var memberinfo))
+                    memberships.Add(newGroupName, memberinfo);
             }
         }
 
@@ -177,7 +180,7 @@ namespace ShadowsocksUriGenerator
         {
             if (UserDict.TryGetValue(user, out var targetUser))
             {
-                targetUser.Credentials.Clear();
+                targetUser.Memberships.Clear();
                 return 0;
             }
             else
@@ -233,8 +236,7 @@ namespace ShadowsocksUriGenerator
         {
             if (UserDict.TryGetValue(user, out var targetUser))
             {
-                foreach (var credEntry in targetUser.Credentials)
-                    targetUser.Credentials[credEntry.Key] = null;
+                targetUser.RemoveAllCredentials();
                 return 0;
             }
             else
@@ -326,19 +328,71 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Sets the data limit to the specified user.
+        /// Sets the global data limit on the specified user.
         /// </summary>
-        /// <param name="dataLimit">The data limit in bytes.</param>
         /// <param name="username">Target user.</param>
-        /// <param name="groups">Only set for these groups.</param>
-        /// <returns>0 on success. -1 on user not found. -2 on group not found.</returns>
-        public int SetDataLimitToUser(ulong dataLimit, string username, params string[] groups)
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <returns>
+        /// 0 if the global data limit is successfully set on the user.
+        /// -1 if the user doesn't exist.
+        /// </returns>
+        public int SetUserGlobalDataLimit(string username, ulong dataLimit)
         {
             if (UserDict.TryGetValue(username, out var user))
-                return user.SetDataLimit(dataLimit, groups);
+            {
+                user.DataLimitInBytes = dataLimit;
+                user.UpdateDataRemaining();
+                return 0;
+            }
             else
                 return -1;
         }
+
+        /// <summary>
+        /// Sets the per-group data limit on the user.
+        /// </summary>
+        /// <param name="username">Target user.</param>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <returns>
+        /// 0 if the per-group data limit is successfully set on the user.
+        /// -1 if the user doesn't exist.
+        /// </returns>
+        public int SetUserPerGroupDataLimit(string username, ulong dataLimit)
+        {
+            if (UserDict.TryGetValue(username, out var user))
+            {
+                user.PerGroupDataLimitInBytes = dataLimit;
+                return 0;
+            }
+            else
+                return -1;
+        }
+
+        /// <summary>
+        /// Gets the data limit in effect on the user in the group.
+        /// Group existence is not checked.
+        /// </summary>
+        /// <param name="username">Target user.</param>
+        /// <param name="group">Target group.</param>
+        /// <returns>The data limit in bytes.</returns>
+        public ulong GetUserDataLimitInGroup(string username, string group)
+            => UserDict.TryGetValue(username, out var user)
+                ? user.GetDataLimitInGroup(group)
+                : 0UL;
+
+        /// <summary>
+        /// Sets a custom data limit on the user in the group.
+        /// </summary>
+        /// <param name="username">Target user.</param>
+        /// <param name="group">Target group.</param>
+        /// <param name="dataLimit">The data limit in bytes.</param>
+        /// <returns>
+        /// 0 if the data limit is successfully set on the user in the group.
+        /// -1 if the user doesn't exist.
+        /// -2 if the user is not in the group.
+        /// </returns>
+        public int SetUserDataLimitInGroup(string username, string group, ulong dataLimit)
+            => UserDict.TryGetValue(username, out var user) ? user.SetDataLimitInGroup(group, dataLimit) : -1;
 
         /// <summary>
         /// Loads users from Users.json.
@@ -379,10 +433,28 @@ namespace ShadowsocksUriGenerator
                     // already generated by the constructor
                     users.Version++;
                     goto case 1;
+
                 case 1: // Userinfo_base64url => UserinfoBase64url
                     // not needed anymore
                     users.Version++;
-                    goto default; // go to the next update path
+                    goto case 2;
+
+                case 2: // Credentials => Memberships, Credential? => MemberInfo
+                    foreach (var userEntry in users.UserDict)
+                    {
+                        if (userEntry.Value.Credentials is not null)
+                        {
+                            foreach (var credEntry in userEntry.Value.Credentials)
+                            {
+                                userEntry.Value.Memberships.Add(credEntry.Key, credEntry.Value ?? new());
+                            }
+
+                            userEntry.Value.Credentials = null;
+                        }
+                    }
+                    users.Version++;
+                    goto default;
+
                 default:
                     break;
             }
