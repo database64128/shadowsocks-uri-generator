@@ -198,9 +198,6 @@ namespace ShadowsocksUriGenerator.CLI
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            groups ??= Array.Empty<string>();
-
             if (allGroups)
                 groups = nodes.Groups.Keys.ToArray();
 

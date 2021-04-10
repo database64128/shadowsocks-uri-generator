@@ -13,9 +13,6 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            usernames ??= Array.Empty<string>();
-
             var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken, usernames);
             if (errMsg is not null)
             {
@@ -31,9 +28,6 @@ namespace ShadowsocksUriGenerator.CLI
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
-
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            usernames ??= Array.Empty<string>();
 
             if (usernames.Length == 0)
             {
@@ -76,9 +70,6 @@ namespace ShadowsocksUriGenerator.CLI
         {
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
-
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            usernames ??= Array.Empty<string>();
 
             OnlineConfig.Remove(users, settings, usernames);
 

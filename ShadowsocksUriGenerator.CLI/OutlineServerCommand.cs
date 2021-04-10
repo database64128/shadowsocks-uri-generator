@@ -171,9 +171,6 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
 
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            groups ??= Array.Empty<string>();
-
             try
             {
                 if (groups.Length == 0)
@@ -221,9 +218,6 @@ namespace ShadowsocksUriGenerator.CLI
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            groups ??= Array.Empty<string>();
 
             try
             {
@@ -278,12 +272,6 @@ namespace ShadowsocksUriGenerator.CLI
             var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            usernames ??= Array.Empty<string>();
-
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1233
-            groups ??= Array.Empty<string>();
 
             var errMsgs = Array.Empty<string?>();
 
