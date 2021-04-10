@@ -15,6 +15,23 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 {
     public static class BotCommandHandler
     {
+        public static BotCommand[] BotCommands => new BotCommand[]
+        {
+            new() { Command = "start", Description = "Cleared for takeoff!", },
+            new() { Command = "link", Description = "Link your Telegram account to a user", },
+            new() { Command = "unlink", Description = "Unlink your Telegram account from the user", },
+            new() { Command = "list_users", Description = "List all users", },
+            new() { Command = "list_nodes", Description = "List all nodes or nodes from the specified group", },
+            new() { Command = "list_groups", Description = "List all groups", },
+            new() { Command = "list_group_members", Description = "List members of the specified group", },
+            new() { Command = "get_user_data_usage", Description = "Get data usage statistics of the associated user or the specified user", },
+            new() { Command = "get_group_data_usage", Description = "Get data usage statistics of the specified group", },
+            new() { Command = "get_ss_links", Description = "Get your ss:// links to all servers or servers from the specified group", },
+            new() { Command = "get_sip008_links", Description = "Get your SIP008 links", },
+            new() { Command = "get_credentials", Description = "Get your credentials to all servers or servers from the specified group", },
+            new() { Command = "report", Description = "Generate server usage report", },
+        };
+
         public static Task Handle(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             var text = message.Text;

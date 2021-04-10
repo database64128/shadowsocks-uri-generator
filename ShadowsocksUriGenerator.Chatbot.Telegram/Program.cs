@@ -97,6 +97,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     try
                     {
                         var bot = new TelegramBotClient(botToken);
+                        Console.WriteLine("Created Telegram bot instance with API token");
+                        await bot.SetMyCommandsAsync(BotCommandHandler.BotCommands, cancellationToken);
+                        Console.WriteLine($"Registered {BotCommandHandler.BotCommands.Length} bot commands");
                         var me = await bot.GetMeAsync(cancellationToken);
                         Console.WriteLine($"Started Telegram bot: @{me.Username} ({me.Id})");
                         await bot.ReceiveAsync(new DefaultUpdateHandler(HandleUpdateAsync, HandleErrorAsync), cancellationToken);
