@@ -58,7 +58,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         /// Key is Telegram user ID.
         /// Value is user UUID.
         /// </summary>
-        public Dictionary<int, string> ChatAssociations { get; set; }
+        public Dictionary<long, string> ChatAssociations { get; set; }
 
         public BotConfig()
         {
