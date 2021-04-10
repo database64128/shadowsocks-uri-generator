@@ -430,6 +430,54 @@ namespace ShadowsocksUriGenerator.CLI
             return 0;
         }
 
+        public static async Task<int> GetDataLimit(string username, CancellationToken cancellationToken = default)
+        {
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+
+            if (users.UserDict.TryGetValue(username, out var user))
+            {
+                Console.WriteLine($"{"User",-24}{username,-32}");
+                if (user.DataLimitInBytes != 0UL)
+                    Console.WriteLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString(user.DataLimitInBytes),-32}");
+                if (user.PerGroupDataLimitInBytes != 0UL)
+                    Console.WriteLine($"{"Per-group data limit",-24}{Utilities.HumanReadableDataString(user.PerGroupDataLimitInBytes),-32}");
+
+                var customLimits = user.Memberships.Where(x => x.Value.DataLimitInBytes > 0UL).Select(x => (x.Key, x.Value.DataLimitInBytes));
+
+                if (!customLimits.Any())
+                {
+                    return 0;
+                }
+
+                var maxNameLength = customLimits.Select(x => x.Key.Length)
+                                                .DefaultIfEmpty()
+                                                .Max();
+                var nameFieldWidth = maxNameLength > 5 ? maxNameLength + 2 : 7;
+
+                Console.WriteLine();
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
+
+                Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
+
+                foreach ((var group, var dataLimitInBytes) in customLimits)
+                {
+                    Console.WriteLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
+                }
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
+
+                return 0;
+            }
+            else
+            {
+                Console.WriteLine($"Error: user {username} doesn't exist.");
+                return -2;
+            }
+        }
+
         public static string? ValidatePerGroupDataLimit(CommandResult commandResult)
         {
             var hasPerGroup = commandResult.Children.Contains("--per-group");

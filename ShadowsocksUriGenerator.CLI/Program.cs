@@ -22,6 +22,7 @@ namespace ShadowsocksUriGenerator.CLI
             var userListCredentialsCommand = new Command("list-credentials", "List user-group credentials.");
             var userGetSSLinksCommand = new Command("get-ss-links", "Get the user's Shadowsocks URLs.");
             var userGetDataUsageCommand = new Command("get-data-usage", "Get the user's data usage records.");
+            var userGetDataLimitCommand = new Command("get-data-limit", "Get the user's data limit settings.");
             var userSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-group data limit on the specified users in all or the specified groups.");
 
             var userCommand = new Command("user", "Manage users.")
@@ -37,6 +38,7 @@ namespace ShadowsocksUriGenerator.CLI
                 userListCredentialsCommand,
                 userGetSSLinksCommand,
                 userGetDataUsageCommand,
+                userGetDataLimitCommand,
                 userSetDataLimitCommand,
             };
 
@@ -68,6 +70,7 @@ namespace ShadowsocksUriGenerator.CLI
             var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
             var groupListCredentialsCommand = new Command("list-credentials", "List credentials in the group.");
             var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
+            var groupGetDataLimitCommand = new Command("get-data-limit", "Get the group's data limit settings.");
             var groupSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
 
             var groupCommand = new Command("group", "Manage groups.")
@@ -83,6 +86,7 @@ namespace ShadowsocksUriGenerator.CLI
                 groupRemoveCredentialsCommand,
                 groupListCredentialsCommand,
                 groupGetDataUsageCommand,
+                groupGetDataLimitCommand,
                 groupSetDataLimitCommand,
             };
 
@@ -267,7 +271,16 @@ namespace ShadowsocksUriGenerator.CLI
             userGetDataUsageCommand.AddOption(sortByOption);
             userGetDataUsageCommand.Handler = CommandHandler.Create<string, SortBy?, CancellationToken>(UserCommand.GetDataUsage);
 
-            userSetDataLimitCommand.AddAlias("limit");
+            userGetDataLimitCommand.AddAlias("gl");
+            userGetDataLimitCommand.AddAlias("gdl");
+            userGetDataLimitCommand.AddAlias("limit");
+            userGetDataLimitCommand.AddAlias("get-limit");
+            userGetDataLimitCommand.AddArgument(usernameArgument);
+            userGetDataLimitCommand.Handler = CommandHandler.Create<string, CancellationToken>(UserCommand.GetDataLimit);
+
+            userSetDataLimitCommand.AddAlias("sl");
+            userSetDataLimitCommand.AddAlias("sdl");
+            userSetDataLimitCommand.AddAlias("set-limit");
             userSetDataLimitCommand.AddArgument(usernamesArgumentOneOrMore);
             userSetDataLimitCommand.AddOption(globalDataLimitOption);
             userSetDataLimitCommand.AddOption(perGroupDataLimitOption);
@@ -385,7 +398,16 @@ namespace ShadowsocksUriGenerator.CLI
             groupGetDataUsageCommand.AddOption(sortByOption);
             groupGetDataUsageCommand.Handler = CommandHandler.Create<string, SortBy?, CancellationToken>(GroupCommand.GetDataUsage);
 
-            groupSetDataLimitCommand.AddAlias("limit");
+            groupGetDataLimitCommand.AddAlias("gl");
+            groupGetDataLimitCommand.AddAlias("gdl");
+            groupGetDataLimitCommand.AddAlias("limit");
+            groupGetDataLimitCommand.AddAlias("get-limit");
+            groupGetDataLimitCommand.AddArgument(groupArgument);
+            groupGetDataLimitCommand.Handler = CommandHandler.Create<string, CancellationToken>(GroupCommand.GetDataLimit);
+
+            groupSetDataLimitCommand.AddAlias("sl");
+            groupSetDataLimitCommand.AddAlias("sdl");
+            groupSetDataLimitCommand.AddAlias("set-limit");
             groupSetDataLimitCommand.AddArgument(groupsArgumentOneOrMore);
             groupSetDataLimitCommand.AddOption(globalDataLimitOption);
             groupSetDataLimitCommand.AddOption(perUserDataLimitOption);

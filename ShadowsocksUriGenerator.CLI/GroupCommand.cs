@@ -512,6 +512,54 @@ namespace ShadowsocksUriGenerator.CLI
             return 0;
         }
 
+        public static async Task<int> GetDataLimit(string group, CancellationToken cancellationToken = default)
+        {
+            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            if (nodes.Groups.TryGetValue(group, out var targetGroup))
+            {
+                Console.WriteLine($"{"Group",-24}{group,-32}");
+                if (targetGroup.DataLimitInBytes != 0UL)
+                    Console.WriteLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString(targetGroup.DataLimitInBytes),-32}");
+                if (targetGroup.PerUserDataLimitInBytes != 0UL)
+                    Console.WriteLine($"{"Per-user data limit",-24}{Utilities.HumanReadableDataString(targetGroup.PerUserDataLimitInBytes),-32}");
+
+                var outlineAccessKeyCustomLimits = targetGroup.OutlineAccessKeys?.Where(x => x.DataLimit is not null).Select(x => (x.Name, x.DataLimit!.Bytes));
+
+                if (outlineAccessKeyCustomLimits is null || !outlineAccessKeyCustomLimits.Any())
+                {
+                    return 0;
+                }
+
+                var maxNameLength = outlineAccessKeyCustomLimits.Select(x => x.Name.Length)
+                                                                .DefaultIfEmpty()
+                                                                .Max();
+                var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
+
+                Console.WriteLine();
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
+
+                Console.WriteLine($"|{"User".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
+
+                foreach ((var username, var dataLimitInBytes) in outlineAccessKeyCustomLimits)
+                {
+                    Console.WriteLine($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
+                }
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
+
+                return 0;
+            }
+            else
+            {
+                Console.WriteLine($"Error: group {group} doesn't exist.");
+                return -2;
+            }
+        }
+
         public static string? ValidatePerUserDataLimit(CommandResult commandResult)
         {
             var hasPerUser = commandResult.Children.Contains("--per-user");
