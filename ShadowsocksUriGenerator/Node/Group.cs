@@ -495,8 +495,8 @@ namespace ShadowsocksUriGenerator
             var existingUsernamesOnOutlineServer = OutlineAccessKeys.Select(x => x.Name);
             var existingAccessKeysOnOutlineServerWithDataLimit = OutlineAccessKeys.Where(x => x.DataLimit is not null);
             var existingUsersInGroup = users.UserDict.Where(x => x.Value.Memberships.ContainsKey(group));
-            var existingUsersInGroupWithDataLimit = existingUsersInGroup.Where(x => x.Value.DataLimitInBytes > 0UL);
-            var existingUsersInGroupWithNoDataLimit = existingUsersInGroup.Where(x => x.Value.DataLimitInBytes == 0UL);
+            var existingUsersInGroupWithDataLimit = existingUsersInGroup.Where(x => x.Value.Memberships[group].DataLimitInBytes > 0UL);
+            var existingUsersInGroupWithNoDataLimit = existingUsersInGroup.Where(x => x.Value.Memberships[group].DataLimitInBytes == 0UL);
             var existingUsernamesInGroup = existingUsersInGroup.Select(x => x.Key);
             var existingUsernamesInGroupWithNoDataLimit = existingUsersInGroupWithNoDataLimit.Select(x => x.Key);
 
