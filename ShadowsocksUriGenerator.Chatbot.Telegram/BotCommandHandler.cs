@@ -212,14 +212,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
                 replyBuilder.AppendLine("```");
-                AppendTableBorder(ref replyBuilder, nameFieldWidth, 18);
+                replyBuilder.AppendTableBorder(nameFieldWidth, 18);
                 replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Associated Groups",18}|");
-                AppendTableBorder(ref replyBuilder, nameFieldWidth, 18);
+                replyBuilder.AppendTableBorder(nameFieldWidth, 18);
 
                 foreach (var user in users.UserDict)
                     replyBuilder.AppendLine($"|{user.Key.PadRight(nameFieldWidth)}|{user.Value.Memberships.Count,18}|");
 
-                AppendTableBorder(ref replyBuilder, nameFieldWidth, 18);
+                replyBuilder.AppendTableBorder(nameFieldWidth, 18);
                 replyBuilder.AppendLine("```");
 
                 reply = replyBuilder.ToString();
@@ -271,16 +271,16 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength + 2 : 16;
 
                 replyBuilder.AppendLine("```");
-                AppendTableBorder(ref replyBuilder, 7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
                 replyBuilder.AppendLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
-                AppendTableBorder(ref replyBuilder, 7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
                 foreach (var groupEntry in nodes.Groups)
                     if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key)))
                         foreach (var node in groupEntry.Value.NodeDict)
                             replyBuilder.AppendLine($"|{(node.Value.Deactivated ? "🛑" : "✔"),7}|{node.Key.PadRight(nodeNameFieldWidth)}|{groupEntry.Key.PadRight(groupNameFieldWidth)}|{node.Value.Uuid,36}|{node.Value.Host.PadLeft(hostnameFieldWidth)}|{node.Value.Port,5}|{(node.Value.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{(node.Value.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
 
-                AppendTableBorder(ref replyBuilder, 7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
                 replyBuilder.AppendLine("```");
 
                 reply = replyBuilder.ToString();
@@ -316,15 +316,15 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
 
                 replyBuilder.AppendLine("```");
-                AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                replyBuilder.AppendTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
                 replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
-                AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                replyBuilder.AppendTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
 
                 foreach (var groupEntry in nodes.Groups)
                     if (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key))
                         replyBuilder.AppendLine($"|{groupEntry.Key.PadRight(groupNameFieldWidth)}|{groupEntry.Value.NodeDict.Count,16}|{(groupEntry.Value.OutlineServerInfo?.Name ?? "No").PadLeft(outlineServerNameFieldWidth)}|");
 
-                AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                replyBuilder.AppendTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
                 replyBuilder.AppendLine("```");
                 reply = replyBuilder.ToString();
                 Console.WriteLine(" Response: successful query.");
@@ -441,11 +441,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
                     replyBuilder.AppendLine();
 
-                    AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+                    replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
 
                     replyBuilder.AppendLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                    AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+                    replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
 
                     foreach (var (group, bytesUsed, bytesRemaining) in records)
                     {
@@ -456,7 +456,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                             replyBuilder.AppendLine($"{string.Empty,16}|");
                     }
 
-                    AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+                    replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
                     replyBuilder.AppendLine("```");
 
                     reply = replyBuilder.ToString();
@@ -528,18 +528,18 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
                         replyBuilder.AppendLine();
 
-                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                        replyBuilder.AppendTableBorder(nameFieldWidth, 19);
 
                         replyBuilder.AppendLine($"|{"Group".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
 
-                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                        replyBuilder.AppendTableBorder(nameFieldWidth, 19);
 
                         foreach ((var group, var dataLimitInBytes) in customLimits)
                         {
                             replyBuilder.AppendLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
                         }
 
-                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                        replyBuilder.AppendTableBorder(nameFieldWidth, 19);
                     }
 
                     replyBuilder.AppendLine("```");
@@ -613,11 +613,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
                         replyBuilder.AppendLine();
 
-                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+                        replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
 
                         replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
 
-                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+                        replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
 
                         foreach (var (username, bytesUsed, bytesRemaining) in records)
                         {
@@ -628,7 +628,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                                 replyBuilder.AppendLine($"{string.Empty,16}|");
                         }
 
-                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+                        replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
                         replyBuilder.AppendLine("```");
 
                         reply = replyBuilder.ToString();
@@ -702,18 +702,18 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
                             replyBuilder.AppendLine();
 
-                            AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                            replyBuilder.AppendTableBorder(nameFieldWidth, 19);
 
                             replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
 
-                            AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                            replyBuilder.AppendTableBorder(nameFieldWidth, 19);
 
                             foreach ((var username, var dataLimitInBytes) in outlineAccessKeyCustomLimits)
                             {
                                 replyBuilder.AppendLine($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
                             }
 
-                            AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                            replyBuilder.AppendTableBorder(nameFieldWidth, 19);
                         }
 
                         replyBuilder.AppendLine("```");
@@ -851,9 +851,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     replyBuilder.AppendLine($"{"User",-16}{username,-32}");
                     replyBuilder.AppendLine();
 
-                    AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 24, passwordFieldWidth);
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 24, passwordFieldWidth);
                     replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
-                    AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 24, passwordFieldWidth);
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 24, passwordFieldWidth);
 
                     foreach (var membership in userEntry.Value.Value.Memberships)
                     {
@@ -863,7 +863,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         replyBuilder.AppendLine($"|{membership.Key.PadRight(groupNameFieldWidth)}|{membership.Value.Method,-24}|{membership.Value.Password.PadRight(passwordFieldWidth)}|");
                     }
 
-                    AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 24, passwordFieldWidth);
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 24, passwordFieldWidth);
                     replyBuilder.AppendLine("```");
 
                     reply = replyBuilder.ToString();
@@ -929,9 +929,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 // by group
                 replyBuilder.AppendLine("Data usage by group");
                 replyBuilder.AppendLine("```");
-                AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 11, 16);
+                replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
                 replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 11, 16);
+                replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
                 foreach (var (group, bytesUsed, bytesRemaining) in recordsByGroup)
                 {
                     replyBuilder.Append($"|{group.PadRight(groupNameFieldWidth)}|");
@@ -944,16 +944,16 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     else
                         replyBuilder.AppendLine($"{string.Empty,16}|");
                 }
-                AppendTableBorder(ref replyBuilder, groupNameFieldWidth, 11, 16);
+                replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
                 replyBuilder.AppendLine("```");
                 replyBuilder.AppendLine();
 
                 // by user
                 replyBuilder.AppendLine("Data usage by user");
                 replyBuilder.AppendLine("```");
-                AppendTableBorder(ref replyBuilder, usernameFieldWidth, 11, 16);
+                replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
                 replyBuilder.AppendLine($"|{"User".PadRight(usernameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                AppendTableBorder(ref replyBuilder, usernameFieldWidth, 11, 16);
+                replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
                 foreach (var (username, bytesUsed, bytesRemaining) in recordsByUser)
                 {
                     replyBuilder.Append($"|{username.PadRight(usernameFieldWidth)}|");
@@ -966,7 +966,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     else
                         replyBuilder.AppendLine($"{string.Empty,16}|");
                 }
-                AppendTableBorder(ref replyBuilder, usernameFieldWidth, 11, 16);
+                replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
                 replyBuilder.AppendLine("```");
 
                 reply = replyBuilder.ToString();
@@ -1027,17 +1027,6 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 userEntry = null;
                 return false;
             }
-        }
-
-        public static void AppendTableBorder(ref StringBuilder message, params int[] columnWidths)
-        {
-            foreach (var columnWidth in columnWidths)
-            {
-                message.Append('+');
-                for (var i = 0; i < columnWidth; i++)
-                    message.Append('-');
-            }
-            message.Append("+\n");
         }
     }
 }
