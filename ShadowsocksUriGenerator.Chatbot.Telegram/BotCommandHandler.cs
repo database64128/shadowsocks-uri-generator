@@ -25,7 +25,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             new() { Command = "list_groups", Description = "List all groups", },
             new() { Command = "list_group_members", Description = "List members of the specified group", },
             new() { Command = "get_user_data_usage", Description = "Get data usage statistics of the associated user or the specified user", },
+            new() { Command = "get_user_data_limit", Description = "Get data limit settings of the associated user or the specified user", },
             new() { Command = "get_group_data_usage", Description = "Get data usage statistics of the specified group", },
+            new() { Command = "get_group_data_limit", Description = "Get data limit settings of the specified group", },
             new() { Command = "get_ss_links", Description = "Get your ss:// links to all servers or servers from the specified group", },
             new() { Command = "get_sip008_links", Description = "Get your SIP008 links", },
             new() { Command = "get_credentials", Description = "Get your credentials to all servers or servers from the specified group", },
@@ -86,7 +88,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 "list_groups" => HandleListGroupsCommand(botClient, message, cancellationToken),
                 "list_group_members" => HandleListGroupMembersCommand(botClient, message, argument, cancellationToken),
                 "get_user_data_usage" => HandleGetUserDataUsageCommand(botClient, message, argument, cancellationToken),
+                "get_user_data_limit" => HandleGetUserDataLimitCommand(botClient, message, argument, cancellationToken),
                 "get_group_data_usage" => HandleGetGroupDataUsageCommand(botClient, message, argument, cancellationToken),
+                "get_group_data_limit" => HandleGetGroupDataLimitCommand(botClient, message, argument, cancellationToken),
                 "get_ss_links" => HandleGetSsLinksCommand(botClient, message, argument, cancellationToken),
                 "get_sip008_links" => HandleGetSip008LinksCommand(botClient, message, cancellationToken),
                 "get_credentials" => HandleGetCredentialsCommand(botClient, message, argument, cancellationToken),
@@ -382,32 +386,44 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         public static async Task HandleGetUserDataUsageCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
             string reply = @"An error occurred\."; // the initial value is only used when there's an error in the logic
+
             var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+
             if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 if (argument is not null && userEntry.Value.Key != argument) // look up specified user
+                {
                     if (!botConfig.UsersCanSeeAllUsers)
                     {
                         reply = @"The admin won't let you view other user's data usage\.";
                         Console.WriteLine(" Response: permission denied.");
                     }
                     else if (users.UserDict.TryGetValue(argument, out var user))
+                    {
                         userEntry = new(argument, user);
+                    }
                     else
                     {
                         reply = @"The specified user doesn't exist\.";
                         Console.WriteLine(" Response: target user not found.");
                     }
+                }
+
                 if (argument is null || userEntry.Value.Key == argument) // no argument or successful lookup
                 {
                     using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
                     var username = userEntry.Value.Key;
                     var user = userEntry.Value.Value;
+
                     var records = userEntry.Value.Value.GetDataUsage(username, nodes);
+
                     // sort records
                     records = records.OrderByDescending(x => x.bytesUsed).ToList();
+
                     var maxNameLength = records.Select(x => x.group.Length)
                                                .DefaultIfEmpty()
                                                .Max();
@@ -426,7 +442,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     replyBuilder.AppendLine();
 
                     AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+
                     replyBuilder.AppendLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
+
                     AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
 
                     foreach (var (group, bytesUsed, bytesRemaining) in records)
@@ -450,15 +468,104 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
+
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
+        }
+
+        public static async Task HandleGetUserDataLimitCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
+        {
+            Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
+            string reply = @"An error occurred\."; // the initial value is only used when there's an error in the logic
+
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+
+            if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            {
+                if (argument is not null && userEntry.Value.Key != argument) // look up specified user
+                {
+                    if (!botConfig.UsersCanSeeAllUsers)
+                    {
+                        reply = @"The admin won't let you view other user's data limit\.";
+                        Console.WriteLine(" Response: permission denied.");
+                    }
+                    else if (users.UserDict.TryGetValue(argument, out var user))
+                    {
+                        userEntry = new(argument, user);
+                    }
+                    else
+                    {
+                        reply = @"The specified user doesn't exist\.";
+                        Console.WriteLine(" Response: target user not found.");
+                    }
+                }
+
+                if (argument is null || userEntry.Value.Key == argument) // no argument or successful lookup
+                {
+                    using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+                    var username = userEntry.Value.Key;
+                    var user = userEntry.Value.Value;
+
+                    var replyBuilder = new StringBuilder();
+
+                    replyBuilder.AppendLine("```");
+                    replyBuilder.AppendLine($"{"User",-24}{username,-32}");
+                    if (user.DataLimitInBytes != 0UL)
+                        replyBuilder.AppendLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString(user.DataLimitInBytes),-32}");
+                    if (user.PerGroupDataLimitInBytes != 0UL)
+                        replyBuilder.AppendLine($"{"Per-group data limit",-24}{Utilities.HumanReadableDataString(user.PerGroupDataLimitInBytes),-32}");
+
+                    var customLimits = user.Memberships.Where(x => x.Value.DataLimitInBytes > 0UL).Select(x => (x.Key, x.Value.DataLimitInBytes));
+
+                    if (customLimits.Any())
+                    {
+                        var maxNameLength = customLimits.Select(x => x.Key.Length)
+                                                        .DefaultIfEmpty()
+                                                        .Max();
+                        var nameFieldWidth = maxNameLength > 5 ? maxNameLength + 2 : 7;
+
+                        replyBuilder.AppendLine();
+
+                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+
+                        replyBuilder.AppendLine($"|{"Group".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
+
+                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+
+                        foreach ((var group, var dataLimitInBytes) in customLimits)
+                        {
+                            replyBuilder.AppendLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
+                        }
+
+                        AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                    }
+
+                    replyBuilder.AppendLine("```");
+
+                    reply = replyBuilder.ToString();
+                    Console.WriteLine(" Response: successful query.");
+                }
+            }
+            else
+            {
+                reply = @"You must link your Telegram account to your user first\.";
+                Console.WriteLine(" Response: user not linked.");
+            }
+
             await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 
         public static async Task HandleGetGroupDataUsageCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
             string reply;
+
             var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+
             if (!botConfig.UsersCanSeeGroupDataUsage)
             {
                 reply = @"The admin has disabled the command\.";
@@ -471,10 +578,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
-                if (userGroups.Contains(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
+                if (userEntry.Value.Value.Memberships.ContainsKey(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
                 {
                     using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
                     var records = nodes.GetGroupDataUsage(argument);
                     if (records is null)
                     {
@@ -485,6 +592,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                     {
                         // sort records
                         records = records.OrderByDescending(x => x.bytesUsed).ToList();
+
                         var maxNameLength = records.Select(x => x.username.Length)
                                                    .DefaultIfEmpty()
                                                    .Max();
@@ -506,7 +614,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         replyBuilder.AppendLine();
 
                         AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
+
                         replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
+
                         AppendTableBorder(ref replyBuilder, nameFieldWidth, 11, 16);
 
                         foreach (var (username, bytesUsed, bytesRemaining) in records)
@@ -541,6 +651,94 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 reply = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
+
+            await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
+        }
+
+        public static async Task HandleGetGroupDataLimitCommand(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
+        {
+            Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
+            string reply;
+
+            var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+
+            if (!botConfig.UsersCanSeeGroupDataLimit)
+            {
+                reply = @"The admin has disabled the command\.";
+                Console.WriteLine(" Response: permission denied.");
+            }
+            else if (string.IsNullOrEmpty(argument))
+            {
+                reply = @"Please specify a group\.";
+                Console.WriteLine(" Response: missing argument.");
+            }
+            else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            {
+                if (userEntry.Value.Value.Memberships.ContainsKey(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
+                {
+                    using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+                    if (nodes.Groups.TryGetValue(argument, out var targetGroup))
+                    {
+                        var replyBuilder = new StringBuilder();
+
+                        replyBuilder.AppendLine("```");
+                        replyBuilder.AppendLine($"{"Group",-24}{argument,-32}");
+                        if (targetGroup.DataLimitInBytes != 0UL)
+                            replyBuilder.AppendLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString(targetGroup.DataLimitInBytes),-32}");
+                        if (targetGroup.PerUserDataLimitInBytes != 0UL)
+                            replyBuilder.AppendLine($"{"Per-user data limit",-24}{Utilities.HumanReadableDataString(targetGroup.PerUserDataLimitInBytes),-32}");
+
+                        var outlineAccessKeyCustomLimits = targetGroup.OutlineAccessKeys?.Where(x => x.DataLimit is not null).Select(x => (x.Name, x.DataLimit!.Bytes));
+
+                        if (outlineAccessKeyCustomLimits?.Any() ?? false)
+                        {
+                            var maxNameLength = outlineAccessKeyCustomLimits.Select(x => x.Name.Length)
+                                                                            .DefaultIfEmpty()
+                                                                            .Max();
+                            var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
+
+                            replyBuilder.AppendLine();
+
+                            AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+
+                            replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
+
+                            AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+
+                            foreach ((var username, var dataLimitInBytes) in outlineAccessKeyCustomLimits)
+                            {
+                                replyBuilder.AppendLine($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
+                            }
+
+                            AppendTableBorder(ref replyBuilder, nameFieldWidth, 19);
+                        }
+
+                        replyBuilder.AppendLine("```");
+
+                        reply = replyBuilder.ToString();
+                        Console.WriteLine(" Response: successful query.");
+                    }
+                    else
+                    {
+                        reply = @"The specified group doesn't exist\.";
+                        Console.WriteLine(" Response: nonexistent group.");
+                    }
+                }
+                else
+                {
+                    reply = @"You are not authorized to access the information\.";
+                    Console.WriteLine(" Response: permission denied.");
+                }
+            }
+            else
+            {
+                reply = @"You must link your Telegram account to your user first\.";
+                Console.WriteLine(" Response: user not linked.");
+            }
+
             await ReplyToMessage(botClient, message, reply, ParseMode.MarkdownV2, cancellationToken: cancellationToken);
         }
 

@@ -34,6 +34,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         Console.WriteLine($"|{"UsersCanSeeAllUsers",-28}|{botConfig.UsersCanSeeAllUsers,50}|");
                         Console.WriteLine($"|{"UsersCanSeeAllGroups",-28}|{botConfig.UsersCanSeeAllGroups,50}|");
                         Console.WriteLine($"|{"UsersCanSeeGroupDataUsage",-28}|{botConfig.UsersCanSeeGroupDataUsage,50}|");
+                        Console.WriteLine($"|{"UsersCanSeeGroupDataLimit",-28}|{botConfig.UsersCanSeeGroupDataLimit,50}|");
                         Console.WriteLine($"|{"AllowChatAssociation",-28}|{botConfig.AllowChatAssociation,50}|");
 
                         ConsoleHelper.PrintTableBorder(28, 50);
@@ -43,7 +44,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             var configSetCommand = new Command("set", "Change bot config.")
             {
                 Handler = CommandHandler.Create(
-                    async (string? botToken, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? allowChatAssociation, CancellationToken cancellationToken) =>
+                    async (string? botToken, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? usersCanSeeGroupDataLimit, bool? allowChatAssociation, CancellationToken cancellationToken) =>
                     {
                         var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
 
@@ -55,6 +56,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                             botConfig.UsersCanSeeAllGroups = canSeeGroups;
                         if (usersCanSeeGroupDataUsage is bool canSeeGroupDataUsage)
                             botConfig.UsersCanSeeGroupDataUsage = canSeeGroupDataUsage;
+                        if (usersCanSeeGroupDataLimit is bool canSeeGroupDataLimit)
+                            botConfig.UsersCanSeeGroupDataLimit = canSeeGroupDataLimit;
                         if (allowChatAssociation is bool allowLinking)
                             botConfig.AllowChatAssociation = allowLinking;
 
@@ -65,6 +68,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             configSetCommand.AddOption(new Option<bool?>("--users-can-see-all-users", "Whether anyone is allowed to see every registered user."));
             configSetCommand.AddOption(new Option<bool?>("--users-can-see-all-groups", "Whether anyone is allowed to see every group."));
             configSetCommand.AddOption(new Option<bool?>("--users-can-see-group-data-usage", "Whether users are allowed to query group data usage metrics."));
+            configSetCommand.AddOption(new Option<bool?>("--users-can-see-group-data-limit", "Whether users are allowed to see other group member's data limit."));
             configSetCommand.AddOption(new Option<bool?>("--allow-chat-association", "Whether Telegram association through /link in chat is allowed."));
 
             var configCommand = new Command("config", "Print or change bot config.")

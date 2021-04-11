@@ -15,12 +15,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         /// <summary>
         /// Gets or sets the bot config version number.
         /// </summary>
-        public int Version { get; set; }
+        public int Version { get; set; } = DefaultVersion;
 
         /// <summary>
         /// Gets or sets the Telegram bot token.
         /// </summary>
-        public string BotToken { get; set; }
+        public string BotToken { get; set; } = "";
 
         /// <summary>
         /// Gets or sets whether to allow any user to
@@ -46,30 +46,26 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         public bool UsersCanSeeGroupDataUsage { get; set; }
 
         /// <summary>
+        /// Gets or sets whether users are allowed
+        /// to see other group member's data limit.
+        /// Defaults to false;
+        /// </summary>
+        public bool UsersCanSeeGroupDataLimit { get; set; }
+
+        /// <summary>
         /// Gets or sets whether to allow users to associate with
         /// their Telegram account. Authentication is done using
         /// user's UUID.
         /// Defaults to true.
         /// </summary>
-        public bool AllowChatAssociation { get; set; }
+        public bool AllowChatAssociation { get; set; } = true;
 
         /// <summary>
         /// Gets or sets the dictionary to store chat association data.
         /// Key is Telegram user ID.
         /// Value is user UUID.
         /// </summary>
-        public Dictionary<long, string> ChatAssociations { get; set; }
-
-        public BotConfig()
-        {
-            Version = DefaultVersion;
-            BotToken = "";
-            UsersCanSeeAllUsers = false;
-            UsersCanSeeAllGroups = false;
-            UsersCanSeeGroupDataUsage = false;
-            AllowChatAssociation = true;
-            ChatAssociations = new();
-        }
+        public Dictionary<long, string> ChatAssociations { get; set; } = new();
 
         /// <summary>
         /// Loads bot config from TelegramBotConfig.json.
