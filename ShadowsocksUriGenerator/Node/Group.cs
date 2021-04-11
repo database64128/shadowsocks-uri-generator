@@ -264,9 +264,8 @@ namespace ShadowsocksUriGenerator
         /// A ValueTuple of the result value and an optional error message.
         /// 0 for success.
         /// -2 for invalid JSON string.
-        /// -3 when applying default user failed.
-        /// -4 when applying data limit failed.
-        /// Only return values of -3 and -4 have an error message.
+        /// -3 when applying data limit failed.
+        /// Only the return value of -3 is accompanied by an error message.
         /// </returns>
         public async Task<(int result, string? errMsg)> AssociateOutlineServer(string apiKey, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
@@ -286,16 +285,14 @@ namespace ShadowsocksUriGenerator
 
             if (!string.IsNullOrEmpty(globalDefaultUser))
             {
-                var result = await SetOutlineDefaultUser(globalDefaultUser, cancellationToken);
-                if (!result.IsSuccessStatusCode)
-                    return (-3, await result.Content.ReadAsStringAsync(cancellationToken));
+                _ = await SetOutlineDefaultUser(globalDefaultUser, cancellationToken); // silently ignore the failure
             }
 
             if (applyDataLimit)
             {
                 var result = await _apiClient.SetDataLimitAsync(PerUserDataLimitInBytes, cancellationToken);
                 if (!result.IsSuccessStatusCode)
-                    return (-4, await result.Content.ReadAsStringAsync(cancellationToken));
+                    return (-3, await result.Content.ReadAsStringAsync(cancellationToken));
             }
 
             return (0, null);
@@ -303,18 +300,22 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Sets and applies the Outline server default user setting.
+        /// The response may be 404 if the admin key doesn't exist.
         /// </summary>
         /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the asynchronous operation.</returns>
-        public Task<HttpResponseMessage> SetOutlineDefaultUser(string defaultUser, CancellationToken cancellationToken = default)
+        public async Task<HttpResponseMessage> SetOutlineDefaultUser(string defaultUser, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
             _apiClient ??= new(OutlineApiKey);
 
-            OutlineDefaultUser = defaultUser;
-            return _apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken);
+            var responseMessage = await _apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken);
+            if (responseMessage.IsSuccessStatusCode)
+                OutlineDefaultUser = defaultUser;
+
+            return responseMessage;
         }
 
         /// <summary>

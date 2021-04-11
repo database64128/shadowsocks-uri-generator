@@ -54,9 +54,6 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"Invalid API key: {apiKey}");
                     break;
                 case -3:
-                    Console.WriteLine($"An error occurred while applying the global default user setting: {errMsg}");
-                    break;
-                case -4:
                     Console.WriteLine($"An error occurred while applying the group's per-user data limit: {errMsg}");
                     break;
                 default:

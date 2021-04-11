@@ -338,9 +338,8 @@ namespace ShadowsocksUriGenerator
         /// 0 when success.
         /// -1 when target group doesn't exist.
         /// -2 when the API key is not a valid JSON string.
-        /// -3 when applying default user failed.
-        /// -4 when applying data limit failed.
-        /// Only return values of -3 and -4 have an error message.
+        /// -3 when applying data limit failed.
+        /// Only the return value of -3 is accompanied by an error message.
         /// </returns>
         public Task<(int result, string? errMsg)> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
