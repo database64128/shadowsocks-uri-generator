@@ -478,10 +478,14 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static string? ValidatePerGroupDataLimit(CommandResult commandResult)
+        public static string? ValidateSetDataLimit(CommandResult commandResult)
         {
+            var hasGlobal = commandResult.Children.Contains("--global");
             var hasPerGroup = commandResult.Children.Contains("--per-group");
             var hasGroups = commandResult.Children.Contains("--groups");
+
+            if (!hasGlobal && !hasPerGroup)
+                return "Please specify either a global data limit with `--global`, or a per-group data limit with `--per-group`.";
 
             if (!hasPerGroup && hasGroups)
                 return "Custom group targets must be used with per-group limits.";

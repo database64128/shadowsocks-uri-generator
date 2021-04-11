@@ -285,7 +285,7 @@ namespace ShadowsocksUriGenerator.CLI
             userSetDataLimitCommand.AddOption(globalDataLimitOption);
             userSetDataLimitCommand.AddOption(perGroupDataLimitOption);
             userSetDataLimitCommand.AddOption(groupsOption);
-            userSetDataLimitCommand.AddValidator(UserCommand.ValidatePerGroupDataLimit);
+            userSetDataLimitCommand.AddValidator(UserCommand.ValidateSetDataLimit);
             userSetDataLimitCommand.Handler = CommandHandler.Create<string[], ulong?, ulong?, string[], CancellationToken>(UserCommand.SetDataLimit);
 
             nodeAddCommand.AddAlias("a");
@@ -412,7 +412,7 @@ namespace ShadowsocksUriGenerator.CLI
             groupSetDataLimitCommand.AddOption(globalDataLimitOption);
             groupSetDataLimitCommand.AddOption(perUserDataLimitOption);
             groupSetDataLimitCommand.AddOption(usernamesOption);
-            groupSetDataLimitCommand.AddValidator(GroupCommand.ValidatePerUserDataLimit);
+            groupSetDataLimitCommand.AddValidator(GroupCommand.ValidateSetDataLimit);
             groupSetDataLimitCommand.Handler = CommandHandler.Create<string[], ulong?, ulong?, string[], CancellationToken>(GroupCommand.SetDataLimit);
 
             onlineConfigGenerateCommand.AddAlias("g");
@@ -499,7 +499,7 @@ namespace ShadowsocksUriGenerator.CLI
                         // Verify input
                         if (inputLine is null or "exit" or "quit")
                             break;
-                        if (inputLine is "i" or "interactive")
+                        if (inputLine is "i" or "interactive" or "repl")
                         {
                             Console.WriteLine("🛑 I see what you're trying to do!");
                             continue;

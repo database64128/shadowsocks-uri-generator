@@ -560,10 +560,14 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static string? ValidatePerUserDataLimit(CommandResult commandResult)
+        public static string? ValidateSetDataLimit(CommandResult commandResult)
         {
+            var hasGlobal = commandResult.Children.Contains("--global");
             var hasPerUser = commandResult.Children.Contains("--per-user");
             var hasUsernames = commandResult.Children.Contains("--usernames");
+
+            if (!hasGlobal && !hasPerUser)
+                return "Please specify either a global data limit with `--global`, or a per-user data limit with `--per-user`.";
 
             if (!hasPerUser && hasUsernames)
                 return "Custom user targets must be used with per-user limits.";
