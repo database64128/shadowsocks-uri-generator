@@ -101,7 +101,7 @@ namespace ShadowsocksUriGenerator
             var (settings, errMsg) = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
             if (errMsg is null && settings.Version != DefaultVersion)
             {
-                UpdateSettings(ref settings);
+                settings.UpdateSettings();
                 errMsg = await SaveSettingsAsync(settings, cancellationToken);
             }
             return (settings, errMsg);
@@ -117,15 +117,14 @@ namespace ShadowsocksUriGenerator
             => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
-        /// Updates the settings version.
+        /// Updates the current object to the latest version.
         /// </summary>
-        /// <param name="settings">The <see cref="Settings"/> object to update.</param>
-        public static void UpdateSettings(ref Settings settings)
+        public void UpdateSettings()
         {
-            switch (settings.Version)
+            switch (Version)
             {
                 case 0: // nothing to do
-                    settings.Version++;
+                    Version++;
                     goto default; // go to the next update path
                 default:
                     break;

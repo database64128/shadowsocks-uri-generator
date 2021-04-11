@@ -77,7 +77,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             var botConfig = await JsonHelper.LoadJsonAsync<BotConfig>("TelegramBotConfig.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
             if (botConfig.Version != DefaultVersion)
             {
-                UpdateBotConfig(ref botConfig);
+                botConfig.UpdateBotConfig();
                 await SaveBotConfigAsync(botConfig, cancellationToken);
             }
             return botConfig;
@@ -93,15 +93,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             => JsonHelper.SaveJsonAsync("TelegramBotConfig.json", botConfig, Utilities.commonJsonSerializerOptions, cancellationToken);
 
         /// <summary>
-        /// Updates the bot config version.
+        /// Updates the current object to the latest version.
         /// </summary>
-        /// <param name="botConfig">The <see cref="BotConfig"/> object to update.</param>
-        public static void UpdateBotConfig(ref BotConfig botConfig)
+        public void UpdateBotConfig()
         {
-            switch (botConfig.Version)
+            switch (Version)
             {
                 case 0: // nothing to do
-                    botConfig.Version++;
+                    Version++;
                     goto default; // go to the next update path
                 default:
                     break;
