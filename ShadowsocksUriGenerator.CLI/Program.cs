@@ -170,11 +170,6 @@ namespace ShadowsocksUriGenerator.CLI
                 Arity = ArgumentArity.OneOrMore,
             };
 
-            var portStringArgument = new Argument<int>("portString", NodeCommand.ParsePortNumber)
-            {
-                Description = "Port number of the new node.",
-            };
-
             var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
             var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
 
@@ -292,7 +287,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddCommand.AddArgument(groupArgument);
             nodeAddCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             nodeAddCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
-            nodeAddCommand.AddArgument(portStringArgument);
+            nodeAddCommand.AddArgument(new Argument<int>("portString", NodeCommand.ParsePortNumber, false, "Port number of the new node."));
             nodeAddCommand.AddOption(new Option<string?>("--plugin", "Plugin binary name of the new node."));
             nodeAddCommand.AddOption(new Option<string?>("--plugin-opts", "Plugin options of the new node."));
             nodeAddCommand.AddValidator(NodeCommand.ValidateAdd);
