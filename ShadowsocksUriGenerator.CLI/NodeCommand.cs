@@ -54,7 +54,7 @@ namespace ShadowsocksUriGenerator.CLI
         {
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            // Workaround for https://github.com/dotnet/command-line-api/issues/1244
+            // Turn empty strings into null
             if (string.IsNullOrEmpty(plugin))
                 plugin = null;
             if (string.IsNullOrEmpty(pluginOpts))

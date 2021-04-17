@@ -328,7 +328,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the operation. An optional error message.</returns>
-        public async Task<string?> SetOutlineServer(string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken = default)
+        public async Task<string?> SetOutlineServer(string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 return "Error: the group is not linked to any Outline server.";

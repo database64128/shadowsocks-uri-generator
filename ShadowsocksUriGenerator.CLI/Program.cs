@@ -173,9 +173,9 @@ namespace ShadowsocksUriGenerator.CLI
             var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
             var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
 
-            var methodOption = new Option<string?>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
-            var passwordOption = new Option<string?>("--password", "The password. Use with --method.");
-            var userinfoBase64urlOption = new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'.");
+            var methodOption = new Option<string>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
+            var passwordOption = new Option<string>("--password", "The password. Use with --method.");
+            var userinfoBase64urlOption = new Option<string>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'.");
 
             var globalDataLimitOption = new Option<ulong?>("--global", Parsers.ParseDataString, false, "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
             var perUserDataLimitOption = new Option<ulong?>("--per-user", Parsers.ParseDataString, false, "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
@@ -242,7 +242,7 @@ namespace ShadowsocksUriGenerator.CLI
             userAddCredentialCommand.AddOption(allGroupsOption);
             userAddCredentialCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            userAddCredentialCommand.Handler = CommandHandler.Create<string, string[], string?, string?, string?, bool, CancellationToken>(UserCommand.AddCredential);
+            userAddCredentialCommand.Handler = CommandHandler.Create<string, string[], string, string, string, bool, CancellationToken>(UserCommand.AddCredential);
 
             userRemoveCredentialsCommand.AddAlias("rc");
             userRemoveCredentialsCommand.AddArgument(usernameArgument);
@@ -288,10 +288,10 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
             nodeAddCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
             nodeAddCommand.AddArgument(new Argument<int>("portString", NodeCommand.ParsePortNumber, false, "Port number of the new node."));
-            nodeAddCommand.AddOption(new Option<string?>("--plugin", "Plugin binary name of the new node."));
-            nodeAddCommand.AddOption(new Option<string?>("--plugin-opts", "Plugin options of the new node."));
+            nodeAddCommand.AddOption(new Option<string>("--plugin", "Plugin binary name of the new node."));
+            nodeAddCommand.AddOption(new Option<string>("--plugin-opts", "Plugin options of the new node."));
             nodeAddCommand.AddValidator(NodeCommand.ValidateAdd);
-            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string?, string?, CancellationToken>(NodeCommand.Add);
+            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, CancellationToken>(NodeCommand.Add);
 
             nodeRenameCommand.AddArgument(groupArgument);
             nodeRenameCommand.AddArgument(oldNameArgument);
@@ -375,7 +375,7 @@ namespace ShadowsocksUriGenerator.CLI
             groupAddCredentialCommand.AddOption(allUsersOption);
             groupAddCredentialCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            groupAddCredentialCommand.Handler = CommandHandler.Create<string, string[], string?, string?, string?, bool, CancellationToken>(GroupCommand.AddCredential);
+            groupAddCredentialCommand.Handler = CommandHandler.Create<string, string[], string, string, string, bool, CancellationToken>(GroupCommand.AddCredential);
 
             groupRemoveCredentialsCommand.AddAlias("rc");
             groupRemoveCredentialsCommand.AddArgument(groupArgument);
@@ -439,12 +439,12 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerGetCommand.Handler = CommandHandler.Create<string, CancellationToken>(OutlineServerCommand.Get);
 
             outlineServerSetCommand.AddArgument(groupArgument);
-            outlineServerSetCommand.AddOption(new Option<string?>("--name", "Name of the Outline server."));
-            outlineServerSetCommand.AddOption(new Option<string?>("--hostname", "Hostname of the Outline server."));
+            outlineServerSetCommand.AddOption(new Option<string>("--name", "Name of the Outline server."));
+            outlineServerSetCommand.AddOption(new Option<string>("--hostname", "Hostname of the Outline server."));
             outlineServerSetCommand.AddOption(new Option<int?>("--port", "Port number for new access keys on the Outline server."));
             outlineServerSetCommand.AddOption(new Option<bool?>("--metrics", "Enable or disable telemetry on the Outline server."));
-            outlineServerSetCommand.AddOption(new Option<string?>("--default-user", "The default user for Outline server's default access key (id: 0)."));
-            outlineServerSetCommand.Handler = CommandHandler.Create<string, string?, string?, int?, bool?, string?, CancellationToken>(OutlineServerCommand.Set);
+            outlineServerSetCommand.AddOption(new Option<string>("--default-user", "The default user for Outline server's default access key (id: 0)."));
+            outlineServerSetCommand.Handler = CommandHandler.Create<string, string, string, int?, bool?, string, CancellationToken>(OutlineServerCommand.Set);
 
             outlineServerRemoveCommand.AddAlias("rm");
             outlineServerRemoveCommand.AddArgument(groupsArgumentOneOrMore);
@@ -476,12 +476,12 @@ namespace ShadowsocksUriGenerator.CLI
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-deliver-by-group", "Whether online config should be delivered to each user by group. Turning this on will generate one online config JSON for each group associated with the user, in addition to the single JSON that contains all associated servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
-            settingsSetCommand.AddOption(new Option<string?>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
-            settingsSetCommand.AddOption(new Option<string?>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-data-limit-on-association", "Whether to apply the group's per-user data limit when associating with Outline servers."));
-            settingsSetCommand.AddOption(new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
-            settingsSetCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, bool?, bool?, bool?, string?, string?, bool?, bool?, string?, CancellationToken>(SettingsCommand.Set);
+            settingsSetCommand.AddOption(new Option<string>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
+            settingsSetCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, bool?, bool?, bool?, string, string, bool?, bool?, string, CancellationToken>(SettingsCommand.Set);
 
             interactiveCommand.Handler = CommandHandler.Create(
                 async () =>
