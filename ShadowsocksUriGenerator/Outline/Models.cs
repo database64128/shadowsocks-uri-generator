@@ -2,6 +2,7 @@
 
 namespace ShadowsocksUriGenerator.Outline
 {
+    public record ApiKey(string ApiUrl, string CertSha256);
     public record ServerName(string Name);
     public record ServerHostname(string Hostname);
     public record DataLimit(ulong Bytes);
