@@ -9,6 +9,12 @@ namespace ShadowsocksUriGenerator.CLI
     /// </summary>
     public static class Parsers
     {
+        /// <summary>
+        /// Parses the Shadowsocks AEAD method string
+        /// into the unified form.
+        /// </summary>
+        /// <param name="argumentResult">The argument result.</param>
+        /// <returns>The Shadowsocks AEAD method string in the unified form.</returns>
         public static string ParseShadowsocksAEADMethod(ArgumentResult argumentResult)
         {
             var method = argumentResult.Tokens.Single().Value;
@@ -27,6 +33,12 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
+        /// <summary>
+        /// Parses the string representation of an amount of data
+        /// into the number of bytes it represents.
+        /// </summary>
+        /// <param name="argumentResult">The argument result.</param>
+        /// <returns>The number of bytes. Null if not specified.</returns>
         public static ulong? ParseDataString(ArgumentResult argumentResult)
         {
             var dataString = argumentResult.Tokens.Single().Value;

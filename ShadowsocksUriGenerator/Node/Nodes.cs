@@ -29,20 +29,14 @@ namespace ShadowsocksUriGenerator
         /// Update if older config is present.
         /// Throw error if config is newer than supported.
         /// </summary>
-        public int Version { get; set; }
+        public int Version { get; set; } = DefaultVersion;
 
         /// <summary>
         /// Gets or sets the group dictionary.
         /// key is group name.
         /// value is group info.
         /// </summary>
-        public Dictionary<string, Group> Groups { get; set; }
-
-        public Nodes()
-        {
-            Version = DefaultVersion;
-            Groups = new();
-        }
+        public Dictionary<string, Group> Groups { get; set; } = new();
 
         /// <summary>
         /// Adds a new node group to the group dictionary.

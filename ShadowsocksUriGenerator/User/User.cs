@@ -13,7 +13,7 @@ namespace ShadowsocksUriGenerator
         /// Gets or sets the UUID of the user.
         /// Used for online configuration delivery (SIP008).
         /// </summary>
-        public string Uuid { get; set; }
+        public string Uuid { get; set; } = Guid.NewGuid().ToString();
 
         /// <summary>
         /// Gets or sets the global data limit of the user in bytes.
@@ -43,18 +43,12 @@ namespace ShadowsocksUriGenerator
         /// Key is the associated group name.
         /// Value is user's member information to the group.
         /// </summary>
-        public Dictionary<string, MemberInfo> Memberships { get; set; }
+        public Dictionary<string, MemberInfo> Memberships { get; set; } = new();
 
         /// <summary>
         /// For compatibility only. Do not use.
         /// </summary>
         public Dictionary<string, MemberInfo?>? Credentials { get; set; }
-
-        public User()
-        {
-            Uuid = Guid.NewGuid().ToString();
-            Memberships = new();
-        }
 
         /// <summary>
         /// Adds the user to a group with empty credential.

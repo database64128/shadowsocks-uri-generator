@@ -75,18 +75,13 @@ namespace ShadowsocksUriGenerator
         /// 1.1.1.1:853
         /// </summary>
         [JsonPropertyName("Nodes")]
-        public Dictionary<string, Node> NodeDict { get; set; }
+        public Dictionary<string, Node> NodeDict { get; set; } = new();
 
         /// <summary>
         /// The Outline API client instance.
         /// </summary>
         private ApiClient? _apiClient;
         private bool disposedValue;
-
-        public Group()
-        {
-            NodeDict = new();
-        }
 
         /// <summary>
         /// Adds a node to <see cref="NodeDict"/>
