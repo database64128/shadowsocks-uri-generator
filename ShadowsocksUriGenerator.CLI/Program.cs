@@ -173,7 +173,7 @@ namespace ShadowsocksUriGenerator.CLI
             var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
             var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
 
-            var methodOption = new Option<string?>("--method", "The encryption method. Use with --password.");
+            var methodOption = new Option<string?>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
             var passwordOption = new Option<string?>("--password", "The password. Use with --method.");
             var userinfoBase64urlOption = new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'.");
 
