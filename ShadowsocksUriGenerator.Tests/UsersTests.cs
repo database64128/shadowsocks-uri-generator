@@ -37,14 +37,14 @@ namespace ShadowsocksUriGenerator.Tests
         }
 
         [Theory]
-        [InlineData(new string[] { "A", }, "A", "B", 0)]
-        [InlineData(new string[] { "B", }, "B", "C", 0)]
-        [InlineData(new string[] { "A", }, "B", "C", -1)]
-        [InlineData(new string[] { "C", }, "B", "D", -1)]
-        [InlineData(new string[] { "A", }, "A", "A", -2)]
-        [InlineData(new string[] { "A", "B", }, "B", "A", -2)]
-        [InlineData(new string[] { "A", "B", }, "A", "B", -2)]
-        public async Task Rename_User_ReturnsResult(string[] usersToAdd, string oldName, string newName, int expectedResult)
+        [InlineData(new string[] { "A", }, "A", "B", null)]
+        [InlineData(new string[] { "B", }, "B", "C", null)]
+        [InlineData(new string[] { "A", }, "B", "C", "Error: user B doesn't exist.")]
+        [InlineData(new string[] { "C", }, "B", "D", "Error: user B doesn't exist.")]
+        [InlineData(new string[] { "A", }, "A", "A", "Error: the new username A is already used. Please choose another username.")]
+        [InlineData(new string[] { "A", "B", }, "B", "A", "Error: the new username A is already used. Please choose another username.")]
+        [InlineData(new string[] { "A", "B", }, "A", "B", "Error: the new username B is already used. Please choose another username.")]
+        public async Task Rename_User_ReturnsResult(string[] usersToAdd, string oldName, string newName, string? expectedResult)
         {
             var users = new Users();
             foreach (var username in usersToAdd)
@@ -57,10 +57,11 @@ namespace ShadowsocksUriGenerator.Tests
 
             Assert.Equal(expectedResult, result);
             Assert.Equal(count, users.UserDict.Count);
+
             // Verify User object
             if (oldNameExists)
             {
-                var currentName = result == 0 ? newName : oldName;
+                var currentName = result is null ? newName : oldName;
                 Assert.Equal(user, users.UserDict[currentName]);
             }
         }

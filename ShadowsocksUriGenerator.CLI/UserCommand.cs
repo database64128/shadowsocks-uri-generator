@@ -30,28 +30,23 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static async Task<int> Rename(string oldName, string newName, CancellationToken cancellationToken = default)
         {
+            var commandResult = 0;
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
             var result = await users.RenameUser(oldName, newName, nodes, cancellationToken);
-            switch (result)
+            if (result is null)
             {
-                case -1:
-                    Console.WriteLine($"User not found: {oldName}");
-                    break;
-                case -2:
-                    Console.WriteLine($"A user with the same name already exists: {newName}");
-                    break;
-                case -3:
-                    Console.WriteLine("An error occurred while sending renaming requests to Outline server.");
-                    break;
-                default:
-                    Console.WriteLine($"Unknown error.");
-                    break;
+                Console.WriteLine($"Successfully renamed {oldName} to {newName}.");
+            }
+            else
+            {
+                Console.WriteLine(result);
+                commandResult--;
             }
 
             await JsonHelper.SaveUsersAsync(users, cancellationToken);
-            return result;
+            return commandResult;
         }
 
         public static async Task<int> Remove(string[] usernames, CancellationToken cancellationToken = default)

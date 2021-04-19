@@ -11,57 +11,30 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static async Task<int> Add(string group, string apiKey, CancellationToken cancellationToken = default)
         {
+            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
             var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
 
-            if (string.IsNullOrEmpty(apiKey))
-                Console.WriteLine("You must specify an API key.");
+            var errMsg = await nodes.AssociateOutlineServerWithGroup(
+                group,
+                apiKey,
+                users,
+                settings.OutlineServerApplyDefaultUserOnAssociation ? settings.OutlineServerGlobalDefaultUser : null,
+                settings.OutlineServerApplyDataLimitOnAssociation,
+                cancellationToken);
 
-            int result;
-            string? errMsg = null;
-
-            try
+            if (errMsg is null)
             {
-                (result, errMsg) = await nodes.AssociateOutlineServerWithGroup(
-                    group,
-                    apiKey,
-                    settings.OutlineServerApplyDefaultUserOnAssociation ? settings.OutlineServerGlobalDefaultUser : null,
-                    settings.OutlineServerApplyDataLimitOnAssociation,
-                    cancellationToken);
-
+                Console.WriteLine($"Successfully associated the Outline server with {group}");
+                await JsonHelper.SaveUsersAsync(users, cancellationToken);
                 await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+                return 0;
             }
-            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            else
             {
-                Console.WriteLine(ex.Message);
-                return 1;
+                Console.WriteLine(errMsg);
+                return -1;
             }
-            catch (Exception ex) // timeout and other errors
-            {
-                Console.WriteLine($"An error occurred while connecting to the Outline server: {ex.Message}");
-                return -3;
-            }
-
-            switch (result)
-            {
-                case 0:
-                    Console.WriteLine($"Successfully associated the Outline server with {group}");
-                    break;
-                case -1:
-                    Console.WriteLine($"Group not found: {group}");
-                    break;
-                case -2:
-                    Console.WriteLine($"Invalid API key: {apiKey}");
-                    break;
-                case -3:
-                    Console.WriteLine($"An error occurred while applying the group's per-user data limit: {errMsg}");
-                    break;
-                default:
-                    Console.WriteLine($"Unknown error: {result}");
-                    break;
-            }
-
-            return result;
         }
 
         public static async Task<int> Get(string group, CancellationToken cancellationToken = default)
@@ -70,6 +43,8 @@ namespace ShadowsocksUriGenerator.CLI
 
             var outlineApiKeyString = nodes.GetOutlineApiKeyStringFromGroup(group);
             var outlineServerInfo = nodes.GetOutlineServerInfoFromGroup(group);
+            var outlineDefaultUser = nodes.GetOutlineDefaultUserFromGroup(group);
+
             if (outlineApiKeyString is not null && outlineServerInfo is not null)
             {
                 Console.WriteLine($"{"Name",-32}{outlineServerInfo.Name,-36}");
@@ -80,6 +55,9 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine($"{"Hostname",-32}{outlineServerInfo.HostnameForAccessKeys,-36}");
                 Console.WriteLine($"{"Port for new keys",-32}{outlineServerInfo.PortForNewAccessKeys,-36}");
                 Console.WriteLine($"{"Telemetry enabled",-32}{outlineServerInfo.MetricsEnabled,-36}");
+
+                if (outlineDefaultUser is not null)
+                    Console.WriteLine($"{"Admin key username",-32}{outlineDefaultUser,-36}");
 
                 return 0;
             }
@@ -102,31 +80,18 @@ namespace ShadowsocksUriGenerator.CLI
             var commandResult = 0;
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            try
+            var errMsg = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
+            if (errMsg is null)
             {
-                var errMsg = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
-                if (errMsg is null)
-                {
-                    Console.WriteLine($"Successfully applied new settings to {group}.");
-                }
-                else
-                {
-                    Console.WriteLine(errMsg);
-                    commandResult = -2;
-                }
+                Console.WriteLine($"Successfully applied new settings to {group}.");
+            }
+            else
+            {
+                Console.WriteLine(errMsg);
+                commandResult = -2;
+            }
 
-                await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
-            }
-            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
-            {
-                Console.WriteLine(ex.Message);
-                commandResult = 1;
-            }
-            catch (Exception ex) // timeout and other errors
-            {
-                Console.WriteLine($"An error occurred while applying settings to Outline servers: {ex.Message}");
-                commandResult = -3;
-            }
+            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
 
             return commandResult;
         }
@@ -168,41 +133,25 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
 
-            try
+            string?[] results;
+
+            if (groups.Length == 0)
             {
-                if (groups.Length == 0)
-                    await nodes.PullFromOutlineServerForAllGroups(users, !noSync, cancellationToken);
-                else
-                    foreach (var group in groups)
-                    {
-                        var result = await nodes.PullFromGroupOutlineServer(group, users, !noSync, cancellationToken);
-                        switch (result)
-                        {
-                            case 0:
-                                break;
-                            case -1:
-                                Console.WriteLine($"Error: Group {group} doesn't exist.");
-                                break;
-                            case -2:
-                                Console.WriteLine($"Error: Group {group} is not associated with any Outline server.");
-                                break;
-                            default:
-                                Console.WriteLine($"Unknown error.");
-                                break;
-                        }
-                        commandResult += result;
-                    }
+                results = await nodes.PullFromOutlineServerForAllGroups(users, !noSync, cancellationToken);
             }
-            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            else
             {
-                Console.WriteLine(ex.Message);
-                commandResult = 1;
+                var tasks = groups.Select(async group => await nodes.PullFromGroupOutlineServer(group, users, !noSync, cancellationToken));
+                results = await Task.WhenAll(tasks);
             }
-            catch (Exception ex) // timeout and other errors
+
+            foreach (var result in results)
             {
-                Console.WriteLine($"An error occurred while pulling from Outline servers.");
-                Console.WriteLine(ex.Message);
-                commandResult -= 3;
+                if (result is not null)
+                {
+                    Console.WriteLine(result);
+                    commandResult--;
+                }
             }
 
             await JsonHelper.SaveUsersAsync(users, default);
@@ -216,38 +165,25 @@ namespace ShadowsocksUriGenerator.CLI
             var users = await JsonHelper.LoadUsersAsync(cancellationToken);
             using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
 
-            try
+            string?[] results;
+
+            if (groups.Length == 0)
             {
-                if (groups.Length == 0)
-                    await nodes.DeployAllOutlineServers(users, cancellationToken);
-                else
+                results = await nodes.DeployAllOutlineServers(users, cancellationToken);
+            }
+            else
+            {
+                var tasks = groups.Select(async group => await nodes.DeployGroupOutlineServer(group, users, cancellationToken));
+                results = await Task.WhenAll(tasks);
+            }
+
+            foreach (var result in results)
+            {
+                if (result is not null)
                 {
-                    var tasks = groups.Select(async x => await nodes.DeployGroupOutlineServer(x, users, cancellationToken));
-                    var results = await Task.WhenAll(tasks);
-                    foreach (var result in results)
-                    {
-                        switch (result)
-                        {
-                            case null:
-                                Console.WriteLine("Success.");
-                                break;
-                            default:
-                                Console.WriteLine(result);
-                                commandResult--;
-                                break;
-                        }
-                    }
+                    Console.WriteLine(result);
+                    commandResult--;
                 }
-            }
-            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
-            {
-                Console.WriteLine(ex.Message);
-                commandResult = 1;
-            }
-            catch (Exception ex) // timeout and other errors
-            {
-                Console.WriteLine($"An error occurred while deploying Outline servers: {ex.Message}");
-                commandResult -= 3;
             }
 
             await JsonHelper.SaveUsersAsync(users, default);
@@ -272,43 +208,32 @@ namespace ShadowsocksUriGenerator.CLI
 
             var errMsgs = Array.Empty<string?>();
 
-            try
+            if (groups.Length > 0)
             {
-                if (groups.Length > 0)
-                {
-                    var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
-                    errMsgs = await Task.WhenAll(tasks);
-                }
-                else if (usernames.Length > 0)
-                {
-                    var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
-                                                .SelectMany(x => users.UserDict[x].Memberships.Keys)
-                                                .Distinct();
-                    var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
-                    errMsgs = await Task.WhenAll(tasks);
-                }
-                else
-                {
-                    Console.WriteLine("Please provide either a username or a group, or both.");
-                    commandResult = -3;
-                }
+                var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
+                errMsgs = await Task.WhenAll(tasks);
             }
-            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            else if (usernames.Length > 0)
             {
-                Console.WriteLine(ex.Message);
-                commandResult = 1;
+                var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
+                                            .SelectMany(x => users.UserDict[x].Memberships.Keys)
+                                            .Distinct();
+                var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
+                errMsgs = await Task.WhenAll(tasks);
             }
-            catch (Exception ex) // timeout and other errors
+            else
             {
-                Console.WriteLine($"An error occurred while connecting to Outline servers.");
-                Console.WriteLine(ex.Message);
-                commandResult -= 3;
+                Console.WriteLine("Please provide either a username or a group, or both.");
+                commandResult = -3;
             }
 
             foreach (var errMsg in errMsgs)
             {
-                Console.WriteLine(errMsg);
-                commandResult--;
+                if (errMsg is not null)
+                {
+                    Console.WriteLine(errMsg);
+                    commandResult--;
+                }
             }
 
             await JsonHelper.SaveUsersAsync(users, default);

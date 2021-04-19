@@ -325,32 +325,30 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="apiKey">Outline server API key.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="globalDefaultUser">The global default user setting.</param>
         /// <param name="applyDataLimit">Whether to apply the per-user data limit.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// 0 when success.
-        /// -1 when target group doesn't exist.
-        /// -2 when the API key is not a valid JSON string.
-        /// -3 when applying data limit failed.
-        /// Only the return value of -3 is accompanied by an error message.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public Task<(int result, string? errMsg)> AssociateOutlineServerWithGroup(string group, string apiKey, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
+        public Task<string?> AssociateOutlineServerWithGroup(string group, string apiKey, Users users, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.AssociateOutlineServer(apiKey, globalDefaultUser, applyDataLimit, cancellationToken);
+                return targetGroup.AssociateOutlineServer(group, apiKey, users, globalDefaultUser, applyDataLimit, cancellationToken);
             else
-                return Task.FromResult<(int result, string? errMsg)>((-1, null));
+                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>
         /// Gets the Outline API key
         /// associated with the group.
         /// </summary>
-        /// <param name="group">Name of the group.</param>
+        /// <param name="group">Target group.</param>
         /// <returns>
         /// The Outline API key object.
-        /// Null if group not found or no associated API key.
+        /// Null if the group doesn't exist or has no associated API key.
         /// </returns>
         public ApiKey? GetOutlineApiKeyFromGroup(string group)
             => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.OutlineApiKey : null;
@@ -360,10 +358,10 @@ namespace ShadowsocksUriGenerator
         /// associated with the group
         /// as a string.
         /// </summary>
-        /// <param name="group">Name of the group.</param>
+        /// <param name="group">Target group.</param>
         /// <returns>
         /// The Outline API key string.
-        /// Null if group not found or no associated API key.
+        /// Null if the group doesn't exist or has no associated API key.
         /// </returns>
         public string? GetOutlineApiKeyStringFromGroup(string group)
             => GetOutlineApiKeyFromGroup(group) is ApiKey apiKey ? JsonSerializer.Serialize(apiKey, Outline.Utilities.apiKeyJsonSerializerOptions) : null;
@@ -371,13 +369,25 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Gets the Outline server information object.
         /// </summary>
-        /// <param name="group">Name of the group.</param>
+        /// <param name="group">Target group.</param>
         /// <returns>
         /// The Outline server information object.
-        /// Null if group not found or no associated information.
+        /// Null if the group doesn't exist or has no associated information.
         /// </returns>
         public ServerInfo? GetOutlineServerInfoFromGroup(string group)
             => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.OutlineServerInfo : null;
+
+        /// <summary>
+        /// Gets the group's Outline server's admin key username.
+        /// </summary>
+        /// <param name="group">Target group.</param>
+        /// <returns>
+        /// A string if the admin key exists.
+        /// The string may be an empty string.
+        /// Null if the group or the admin key doesn't exist.
+        /// </returns>
+        public string? GetOutlineDefaultUserFromGroup(string group)
+            => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.GetOutlineDefaultUser() : null;
 
         /// <summary>
         /// Changes settings for the group's associated Outline server.
@@ -423,15 +433,15 @@ namespace ShadowsocksUriGenerator
         /// information, access keys, and data usage.
         /// </summary>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalCredentials">
-        /// Whether to update user credential dictionary.
+        /// <param name="updateLocalUserDB">
+        /// Whether to update local user database from the retrieved access keys.
         /// Defaults to true.
         /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>A task representing the update process.</returns>
-        public Task PullFromOutlineServerForAllGroups(Users users, bool updateLocalCredentials = true, CancellationToken cancellationToken = default)
+        /// <returns>A task representing the update process. An array of optional error messages.</returns>
+        public Task<string?[]> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
         {
-            var tasks = Groups.Select(async x => await x.Value.PullFromOutlineServer(x.Key, users, updateLocalCredentials, cancellationToken));
+            var tasks = Groups.Select(async x => await x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserDB, cancellationToken));
             return Task.WhenAll(tasks);
         }
 
@@ -441,22 +451,21 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalCredentials">
-        /// Whether to update user credential dictionary.
+        /// <param name="updateLocalUserDB">
+        /// Whether to update local user database from the retrieved access keys.
         /// Defaults to true.
         /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// 0 on success.
-        /// -1 when target group doesn't exist.
-        /// -2 when no associated Outline server.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public Task<int> PullFromGroupOutlineServer(string group, Users users, bool updateLocalCredentials = true, CancellationToken cancellationToken = default)
+        public Task<string?> PullFromGroupOutlineServer(string group, Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.PullFromOutlineServer(group, users, updateLocalCredentials, cancellationToken);
+                return targetGroup.PullFromOutlineServer(group, users, updateLocalUserDB, cancellationToken);
             else
-                return Task.FromResult(-1);
+                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>
@@ -482,8 +491,8 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="users">The object which contains all users' information.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>The task that represents the completion of all deployments.</returns>
-        public Task DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
+        /// <returns>The task that represents the completion of all deployments. An array of optional error messages.</returns>
+        public Task<string?[]> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
         {
             var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users, cancellationToken));
             return Task.WhenAll(tasks);
@@ -497,19 +506,15 @@ namespace ShadowsocksUriGenerator
         /// <param name="newName">The new username.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// 0 on success.
-        /// 1 when not an Outline user.
-        /// 2 when not on the Outline server.
-        /// -1 when target group doesn't exist.
-        /// -2 when no associated Outline server.
-        /// -3 when an error occurred while sending the request.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public Task<int> RenameUserInGroup(string group, string oldName, string newName, CancellationToken cancellationToken = default)
+        public Task<string?> RenameUserInGroup(string group, string oldName, string newName, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.RenameUser(oldName, newName, cancellationToken);
             else
-                return Task.FromResult(-1);
+                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>

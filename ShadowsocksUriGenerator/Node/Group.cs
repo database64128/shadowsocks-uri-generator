@@ -39,11 +39,6 @@ namespace ShadowsocksUriGenerator
         public DataUsage? OutlineDataUsage { get; set; }
 
         /// <summary>
-        /// Gets or sets the default user for Outline server's default access key (id: 0).
-        /// </summary>
-        public string? OutlineDefaultUser { get; set; }
-
-        /// <summary>
         /// Gets or sets the global data limit of the group in bytes.
         /// </summary>
         public ulong DataLimitInBytes { get; set; }
@@ -248,21 +243,22 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Associates the Outline server
-        /// by adding the API key.
+        /// Associates the Outline server with the group.
+        /// Saves the API key. Pulls from the Outline server.
+        /// Optionally sets the admin key username.
+        /// Optionally sets the per-user data limit.
         /// </summary>
+        /// <param name="group">Group name.</param>
         /// <param name="apiKey">The Outline server API key.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="globalDefaultUser">The global default user setting.</param>
         /// <param name="applyDataLimit">Whether to apply the per-user data limit.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// A ValueTuple of the result value and an optional error message.
-        /// 0 for success.
-        /// -2 for invalid JSON string.
-        /// -3 when applying data limit failed.
-        /// Only the return value of -3 is accompanied by an error message.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public async Task<(int result, string? errMsg)> AssociateOutlineServer(string apiKey, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
+        public async Task<string?> AssociateOutlineServer(string group, string apiKey, Users users, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -270,47 +266,119 @@ namespace ShadowsocksUriGenerator
             }
             catch (JsonException)
             {
-                return (-2, null);
+                return "Error: Invalid API key: deserialization failed.";
             }
 
             if (OutlineApiKey is null)
-                return (-2, null);
+                return "Error: Invalid API key: deserialization returned null.";
+
+            // Validate ApiUrl
+            if (Uri.TryCreate(OutlineApiKey.ApiUrl, UriKind.Absolute, out var apiUri))
+            {
+                if (apiUri.Scheme != "https")
+                    return "Error: The API URL must use HTTPS.";
+
+                // Remove trailing '/'
+                if (OutlineApiKey.ApiUrl.EndsWith('/'))
+                    OutlineApiKey = OutlineApiKey with { ApiUrl = OutlineApiKey.ApiUrl[..^1] };
+            }
+            else
+            {
+                return "Error: The API URL is not a valid URI.";
+            }
+
+            // Validate CertSha256
+            if (OutlineApiKey.CertSha256.Length != 64)
+                return "Error: Malformed CertSha256: length is not 64.";
+
+            // Clean up potential leftover API client
             _apiClient?.Dispose();
             _apiClient = new(OutlineApiKey);
 
+            // Pull from Outline server without syncing with local user db
+            var errMsg = await PullFromOutlineServer(group, users, false, cancellationToken);
+            if (errMsg is not null)
+                return errMsg;
+
+            // Apply default username
             if (!string.IsNullOrEmpty(globalDefaultUser))
             {
-                _ = await SetOutlineDefaultUser(globalDefaultUser, cancellationToken); // silently ignore the failure
+                var defaultUserErrMsg = await SetOutlineDefaultUser(globalDefaultUser, cancellationToken);
+                if (defaultUserErrMsg is not null)
+                    return defaultUserErrMsg;
             }
 
+            // Apply per-user data limit
             if (applyDataLimit)
             {
-                var result = await _apiClient.SetDataLimitAsync(PerUserDataLimitInBytes, cancellationToken);
-                if (!result.IsSuccessStatusCode)
-                    return (-3, await result.Content.ReadAsStringAsync(cancellationToken));
+                var dataLimitErrMsg = await ApplyPerUserDataLimitToOutlineServer(group, cancellationToken);
+                if (dataLimitErrMsg is not null)
+                    return dataLimitErrMsg;
             }
 
-            return (0, null);
+            // Sync with local user db
+            UpdateLocalUserDB(group, users);
+
+            return null;
         }
 
         /// <summary>
-        /// Sets and applies the Outline server default user setting.
-        /// The response may be 404 if the admin key doesn't exist.
+        /// Gets the linked Outline server's admin key username.
+        /// </summary>
+        /// <returns>
+        /// A string if the admin key exists.
+        /// The string may be an empty string.
+        /// Null if the admin key doesn't exist.
+        /// </returns>
+        public string? GetOutlineDefaultUser()
+        {
+            if (OutlineAccessKeys is null)
+                return null;
+
+            var adminKey = OutlineAccessKeys.Where(x => x.Id == "0");
+
+            if (adminKey.Any())
+                return adminKey.First().Name;
+            else
+                return null;
+        }
+
+        /// <summary>
+        /// Checks if the admin key exists on the Outline server.
+        /// If it does, set a username on it.
+        /// Otherwise, do nothing and don't return error.
+        /// Make sure you have pulled from Outline server before calling this method.
         /// </summary>
         /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>The task that represents the asynchronous operation.</returns>
-        public async Task<HttpResponseMessage> SetOutlineDefaultUser(string defaultUser, CancellationToken cancellationToken = default)
+        /// <returns>The task that represents the operation. An optional error message.</returns>
+        public async Task<string?> SetOutlineDefaultUser(string defaultUser, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
+
             _apiClient ??= new(OutlineApiKey);
 
-            var responseMessage = await _apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken);
-            if (responseMessage.IsSuccessStatusCode)
-                OutlineDefaultUser = defaultUser;
+            try
+            {
+                var currentDefaultUser = GetOutlineDefaultUser();
+                if (currentDefaultUser is not null && currentDefaultUser != defaultUser)
+                {
+                    var responseMessage = await _apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken);
+                    if (!responseMessage.IsSuccessStatusCode)
+                        return $"Error when setting admin key username to Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+                }
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            {
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when setting admin key username to Outline server: {ex.Message}";
+            }
 
-            return responseMessage;
+            return null;
         }
 
         /// <summary>
@@ -327,36 +395,52 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey is null)
                 return "Error: the group is not linked to any Outline server.";
+
             _apiClient ??= new(OutlineApiKey);
 
             var tasks = new List<Task<HttpResponseMessage>>();
             var errMsgSB = new StringBuilder();
 
-            if (!string.IsNullOrEmpty(name))
-                tasks.Add(_apiClient.SetServerNameAsync(name, cancellationToken));
-            if (!string.IsNullOrEmpty(hostname))
-                tasks.Add(_apiClient.SetServerHostnameAsync(hostname, cancellationToken));
-            if (port is int portForNewAccessKeys)
-                tasks.Add(_apiClient.SetAccessKeysPortAsync(portForNewAccessKeys, cancellationToken));
-            if (metrics is bool enableMetrics)
-                tasks.Add(_apiClient.SetServerMetricsAsync(enableMetrics, cancellationToken));
-            if (!string.IsNullOrEmpty(defaultUser))
-                tasks.Add(SetOutlineDefaultUser(defaultUser, cancellationToken));
-
-            while (tasks.Count > 0)
+            try
             {
-                var finishedTask = await Task.WhenAny(tasks);
-                var responseMessage = await finishedTask;
-
-                if (!responseMessage.IsSuccessStatusCode)
+                if (!string.IsNullOrEmpty(name))
+                    tasks.Add(_apiClient.SetServerNameAsync(name, cancellationToken));
+                if (!string.IsNullOrEmpty(hostname))
+                    tasks.Add(_apiClient.SetServerHostnameAsync(hostname, cancellationToken));
+                if (port is int portForNewAccessKeys)
+                    tasks.Add(_apiClient.SetAccessKeysPortAsync(portForNewAccessKeys, cancellationToken));
+                if (metrics is bool enableMetrics)
+                    tasks.Add(_apiClient.SetServerMetricsAsync(enableMetrics, cancellationToken));
+                if (!string.IsNullOrEmpty(defaultUser))
                 {
-                    errMsgSB.AppendLine(await responseMessage.Content.ReadAsStringAsync(cancellationToken));
+                    var currentDefaultUser = GetOutlineDefaultUser();
+                    if (currentDefaultUser is null)
+                        errMsgSB.AppendLine("Warning: the admin key doesn't exist. Skipping.");
+                    else if (currentDefaultUser == defaultUser)
+                        errMsgSB.AppendLine($"Warning: the default user is already {defaultUser}. Skipping.");
+                    else
+                        tasks.Add(_apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken));
                 }
 
-                tasks.Remove(finishedTask);
-            }
+                var results = await Task.WhenAll(tasks);
+                foreach (var responseMessage in results)
+                {
+                    if (!responseMessage.IsSuccessStatusCode)
+                    {
+                        errMsgSB.AppendLine(await responseMessage.Content.ReadAsStringAsync(cancellationToken));
+                    }
+                }
 
-            OutlineServerInfo = await _apiClient.GetServerInfoAsync(cancellationToken);
+                OutlineServerInfo = await _apiClient.GetServerInfoAsync(cancellationToken);
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            {
+                errMsgSB.AppendLine(ex.Message);
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                errMsgSB.AppendLine($"Error when applying settings to Outline server: {ex.Message}");
+            }
 
             if (errMsgSB.Length > 0)
                 return errMsgSB.ToString();
@@ -374,7 +458,6 @@ namespace ShadowsocksUriGenerator
             OutlineServerInfo = null;
             OutlineAccessKeys = null;
             OutlineDataUsage = null;
-            OutlineDefaultUser = null;
         }
 
         /// <summary>
@@ -385,54 +468,73 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Group name.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalCredentials">
-        /// Whether to update user credential dictionary.
+        /// <param name="updateLocalUserDB">
+        /// Whether to update local user database from the retrieved access keys.
         /// Defaults to true.
         /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>0 on success. -2 when no associated Outline server.</returns>
-        public async Task<int> PullFromOutlineServer(string group, Users users, bool updateLocalCredentials = true, CancellationToken cancellationToken = default)
+        /// <returns>
+        /// The task that represents the operation.
+        /// An optional error message.
+        /// </returns>
+        public async Task<string?> PullFromOutlineServer(string group, Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
-                return -2;
+                return "Error: the group is not linked to any Outline server.";
+
             _apiClient ??= new(OutlineApiKey);
 
-            var serverInfoTask = _apiClient.GetServerInfoAsync(cancellationToken);
-            var accessKeysTask = _apiClient.GetAccessKeysAsync(cancellationToken);
-            var dataUsageTask = _apiClient.GetDataUsageAsync(cancellationToken);
-            var tasks = new List<Task>()
+            try
             {
-                serverInfoTask,
-                accessKeysTask,
-                dataUsageTask,
-            };
+                var serverInfoTask = _apiClient.GetServerInfoAsync(cancellationToken);
+                var accessKeysTask = _apiClient.GetAccessKeysAsync(cancellationToken);
+                var dataUsageTask = _apiClient.GetDataUsageAsync(cancellationToken);
 
-            while (tasks.Count > 0)
+                var tasks = new List<Task>()
+                {
+                    serverInfoTask,
+                    accessKeysTask,
+                    dataUsageTask,
+                };
+
+                while (tasks.Count > 0)
+                {
+                    var finishedTask = await Task.WhenAny(tasks);
+                    if (finishedTask == serverInfoTask)
+                        OutlineServerInfo = await (Task<ServerInfo?>)finishedTask;
+                    else if (finishedTask == accessKeysTask)
+                        OutlineAccessKeys = (await (Task<AccessKeysResponse?>)finishedTask)?.AccessKeys;
+                    else if (finishedTask == dataUsageTask)
+                        OutlineDataUsage = await (Task<DataUsage?>)finishedTask;
+                    tasks.Remove(finishedTask);
+                }
+
+                if (updateLocalUserDB)
+                    UpdateLocalUserDB(group, users);
+
+                CalculateTotalDataUsage();
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
-                var finishedTask = await Task.WhenAny(tasks);
-                if (finishedTask == serverInfoTask)
-                    OutlineServerInfo = await (Task<ServerInfo?>)finishedTask;
-                else if (finishedTask == accessKeysTask)
-                    OutlineAccessKeys = (await (Task<AccessKeysResponse?>)finishedTask)?.AccessKeys;
-                else if (finishedTask == dataUsageTask)
-                    OutlineDataUsage = await (Task<DataUsage?>)finishedTask;
-                tasks.Remove(finishedTask);
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when pulling from group {group}'s Outline server: {ex.Message}";
             }
 
-            if (updateLocalCredentials)
-                UpdateLocalCredentials(group, users);
-
-            CalculateTotalDataUsage();
-
-            return 0;
+            return null;
         }
 
         /// <summary>
-        /// Syncs <see cref="OutlineAccessKeys"/> with user credential dictionary.
+        /// Reads information from <see cref="OutlineAccessKeys"/>
+        /// and saves to local user database.
+        /// This method updates membership status, credential, and custom in-group data limit
+        /// for each username matched in <see cref="OutlineAccessKeys"/>.
         /// </summary>
         /// <param name="group">Group name.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        private void UpdateLocalCredentials(string group, Users users)
+        private void UpdateLocalUserDB(string group, Users users)
         {
             if (OutlineAccessKeys is null)
                 return;
@@ -478,8 +580,14 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey is null)
                 return "Error: the group is not linked to any Outline server.";
+
             if (OutlineAccessKeys is null)
-                await PullFromOutlineServer(group, users, true, cancellationToken);
+            {
+                var errMsg = await PullFromOutlineServer(group, users, true, cancellationToken);
+                if (errMsg is not null)
+                    return errMsg;
+            }
+
             OutlineAccessKeys ??= new();
             _apiClient ??= new(OutlineApiKey);
 
@@ -541,29 +649,42 @@ namespace ShadowsocksUriGenerator
         /// <param name="newName">The new username.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// 0 on success.
-        /// 1 when not an Outline user.
-        /// 2 when not on the Outline server.
-        /// -3 when an error occurred while sending the request.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public async Task<int> RenameUser(string oldName, string newName, CancellationToken cancellationToken = default)
+        public async Task<string?> RenameUser(string oldName, string newName, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null || OutlineAccessKeys is null)
-                return 1;
+                return "Error: the group is not linked to any Outline server.";
+
             _apiClient ??= new(OutlineApiKey);
 
-            // find user id
-            var filteredUserIds = OutlineAccessKeys.Where(x => x.Name == oldName).Select(x => x.Id);
-            var userId = filteredUserIds.Any() ? filteredUserIds.First() : null;
-            if (userId is null)
-                return 2;
+            // Find access key
+            var filteredAccessKeys = OutlineAccessKeys.Where(x => x.Name == oldName);
+            if (!filteredAccessKeys.Any())
+                return $"Error: found no access keys with the name {oldName}.";
+            var accessKey = filteredAccessKeys.First();
 
-            // send request
-            var response = await _apiClient.SetAccessKeyNameAsync(userId, newName, cancellationToken);
-            if (response.IsSuccessStatusCode)
-                return 0;
-            else
-                return -3;
+            try
+            {
+                // Apply to Outline server
+                var response = await _apiClient.SetAccessKeyNameAsync(accessKey.Id, newName, cancellationToken);
+                if (response.IsSuccessStatusCode)
+                    return $"Error when changing access key username from {oldName} to {newName} on Outline server: {await response.Content.ReadAsStringAsync(cancellationToken)}";
+
+                // Save new name to local access key
+                accessKey.Name = newName;
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            {
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when changing access key username from {oldName} to {newName} on Outline server: {ex.Message}";
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -581,8 +702,14 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey is null)
                 return "Error: the group is not linked to any Outline server.";
+
             if (OutlineAccessKeys is null)
-                await PullFromOutlineServer(group, users, true, cancellationToken);
+            {
+                var errMsg = await PullFromOutlineServer(group, users, true, cancellationToken);
+                if (errMsg is not null)
+                    return errMsg;
+            }
+
             OutlineAccessKeys ??= new();
             _apiClient ??= new(OutlineApiKey);
 
@@ -640,52 +767,66 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
+
             _apiClient ??= new(OutlineApiKey);
             OutlineAccessKeys ??= new();
 
-            // Create
-            var response = await _apiClient.CreateAccessKeyAsync(cancellationToken);
-            if (!response.IsSuccessStatusCode)
-                return $"Error when creating user for {username} on group {group}'s Outline server: {await response.Content.ReadAsStringAsync(cancellationToken)}";
-
-            // Deserialize access key
-            var accessKey = await HttpContentJsonExtensions.ReadFromJsonAsync<AccessKey>(response.Content, Outline.Utilities.commonJsonDeserializerOptions, cancellationToken);
-            if (accessKey is null)
-                throw new Exception("An error occurred while creating the user.");
-
-            // Set username
-            var setNameResponse = await _apiClient.SetAccessKeyNameAsync(accessKey.Id, username, cancellationToken);
-            if (!setNameResponse.IsSuccessStatusCode)
-                return $"Error when setting username for user {username} on group {group}'s Outline server: {await setNameResponse.Content.ReadAsStringAsync(cancellationToken)}";
-            accessKey.Name = username;
-
-            // Set data limit
-            var dataLimit = user.GetDataLimitInGroup(group);
-            if (dataLimit > 0UL)
+            try
             {
-                var setLimitResponse = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, dataLimit, cancellationToken);
-                if (!setLimitResponse.IsSuccessStatusCode)
-                    return $"Error when setting data limit for user {username} on group {group}'s Outline server: {await setLimitResponse.Content.ReadAsStringAsync(cancellationToken)}";
-                accessKey.DataLimit = new(dataLimit);
+                // Create
+                var response = await _apiClient.CreateAccessKeyAsync(cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                    return $"Error when creating user for {username} on group {group}'s Outline server: {await response.Content.ReadAsStringAsync(cancellationToken)}";
+
+                // Deserialize access key
+                var accessKey = await HttpContentJsonExtensions.ReadFromJsonAsync<AccessKey>(response.Content, Outline.Utilities.commonJsonDeserializerOptions, cancellationToken);
+                if (accessKey is null)
+                    throw new Exception($"Error when deserializing access key for user {username} on group {group}'s Outline server: the result is null.");
+
+                // Set username
+                var setNameResponse = await _apiClient.SetAccessKeyNameAsync(accessKey.Id, username, cancellationToken);
+                if (!setNameResponse.IsSuccessStatusCode)
+                    return $"Error when setting username for user {username} on group {group}'s Outline server: {await setNameResponse.Content.ReadAsStringAsync(cancellationToken)}";
+
+                accessKey.Name = username;
+
+                // Set data limit
+                var dataLimit = user.GetDataLimitInGroup(group);
+                if (dataLimit > 0UL)
+                {
+                    var setLimitResponse = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, dataLimit, cancellationToken);
+                    if (!setLimitResponse.IsSuccessStatusCode)
+                        return $"Error when setting data limit for user {username} on group {group}'s Outline server: {await setLimitResponse.Content.ReadAsStringAsync(cancellationToken)}";
+
+                    accessKey.DataLimit = new(dataLimit);
+                }
+
+                // Save the new key to access key list
+                var index = OutlineAccessKeys.IndexOf(accessKey);
+                if (index != -1)
+                    OutlineAccessKeys[index] = accessKey;
+                else
+                    OutlineAccessKeys.Add(accessKey);
+
+                // Update existing member info or create a new one if nonexistent
+                // Do not update/save data limit since it could be user per-group limit
+                if (user.Memberships.TryGetValue(group, out var memberInfo))
+                {
+                    memberInfo.Method = accessKey.Method;
+                    memberInfo.Password = accessKey.Password;
+                }
+                else
+                {
+                    user.Memberships[group] = new(accessKey.Method, accessKey.Password);
+                }
             }
-
-            // Save the new key to access key list
-            var index = OutlineAccessKeys.IndexOf(accessKey);
-            if (index != -1)
-                OutlineAccessKeys[index] = accessKey;
-            else
-                OutlineAccessKeys.Add(accessKey);
-
-            // Update existing member info or create a new one if nonexistent
-            // Do not update/save data limit since it could be user per-group limit
-            if (user.Memberships.TryGetValue(group, out var memberInfo))
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
-                memberInfo.Method = accessKey.Method;
-                memberInfo.Password = accessKey.Password;
+                return ex.Message;
             }
-            else
+            catch (Exception ex) // timeout and other errors
             {
-                user.Memberships[group] = new(accessKey.Method, accessKey.Password);
+                return $"Error when adding user {username} to group {group}'s Outline server: {ex.Message}";
             }
 
             return null;
@@ -708,18 +849,30 @@ namespace ShadowsocksUriGenerator
         {
             if (OutlineApiKey is null || OutlineAccessKeys is null)
                 throw new InvalidOperationException("Outline API key is not found.");
+
             _apiClient ??= new(OutlineApiKey);
 
-            // Remove
-            var response = await _apiClient.DeleteAccessKeyAsync(accessKey.Id, cancellationToken);
-            if (!response.IsSuccessStatusCode)
-                return $"Error when removing key of user {accessKey.Name} from group {group}: {await response.Content.ReadAsStringAsync(cancellationToken)}";
+            try
+            {
+                // Remove
+                var response = await _apiClient.DeleteAccessKeyAsync(accessKey.Id, cancellationToken);
+                if (!response.IsSuccessStatusCode)
+                    return $"Error when removing key of user {accessKey.Name} from group {group}'s Outline server: {await response.Content.ReadAsStringAsync(cancellationToken)}";
 
-            // Remove from access key list
-            OutlineAccessKeys.Remove(accessKey);
+                // Remove from access key list
+                OutlineAccessKeys.Remove(accessKey);
 
-            // Remove credential from local storage
-            _ = users.RemoveCredentialFromUser(accessKey.Name, group);
+                // Remove credential from local storage
+                _ = users.RemoveCredentialFromUser(accessKey.Name, group);
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            {
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when removing key of user {accessKey.Name} from group {group}'s Outline server: {ex.Message}";
+            }
 
             return null;
         }
@@ -736,31 +889,43 @@ namespace ShadowsocksUriGenerator
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        public async Task<string?> ApplyPerUserDataLimitToOutlineServer(string group, CancellationToken cancellationToken = default)
+        private async Task<string?> ApplyPerUserDataLimitToOutlineServer(string group, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
             if (OutlineServerInfo is null)
                 throw new InvalidOperationException("Outline server information is not found.");
+
             _apiClient ??= new(OutlineApiKey);
 
-            if (PerUserDataLimitInBytes == 0UL && OutlineServerInfo.AccessKeyDataLimit is not null)
+            try
             {
-                // delete data limit from server
-                var responseMessage = await _apiClient.DeleteDataLimitAsync(cancellationToken);
-                if (!responseMessage.IsSuccessStatusCode)
-                    return $"Error when deleting per-user data limit from group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+                if (PerUserDataLimitInBytes == 0UL && OutlineServerInfo.AccessKeyDataLimit is not null)
+                {
+                    // delete data limit from server
+                    var responseMessage = await _apiClient.DeleteDataLimitAsync(cancellationToken);
+                    if (!responseMessage.IsSuccessStatusCode)
+                        return $"Error when deleting per-user data limit from group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
 
-                OutlineServerInfo.AccessKeyDataLimit = null;
+                    OutlineServerInfo.AccessKeyDataLimit = null;
+                }
+                else if (PerUserDataLimitInBytes != (OutlineServerInfo.AccessKeyDataLimit?.Bytes ?? 0UL))
+                {
+                    // update server data limit
+                    var responseMessage = await _apiClient.SetDataLimitAsync(PerUserDataLimitInBytes, cancellationToken);
+                    if (!responseMessage.IsSuccessStatusCode)
+                        return $"Error when applying per-user data limit {Utilities.HumanReadableDataString(PerUserDataLimitInBytes)} to group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+
+                    OutlineServerInfo.AccessKeyDataLimit = new(PerUserDataLimitInBytes);
+                }
             }
-            else if (PerUserDataLimitInBytes != (OutlineServerInfo.AccessKeyDataLimit?.Bytes ?? 0UL))
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
             {
-                // update server data limit
-                var responseMessage = await _apiClient.SetDataLimitAsync(PerUserDataLimitInBytes, cancellationToken);
-                if (!responseMessage.IsSuccessStatusCode)
-                    return $"Error when applying per-user data limit {Utilities.HumanReadableDataString(PerUserDataLimitInBytes)} to group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
-
-                OutlineServerInfo.AccessKeyDataLimit = new(PerUserDataLimitInBytes);
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when updating per-user data limit setting for group {group}'s Outline server: {ex.Message}";
             }
 
             return null;
@@ -780,17 +945,29 @@ namespace ShadowsocksUriGenerator
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        public async Task<string?> SetAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, ulong dataLimitInBytes, string group, CancellationToken cancellationToken = default)
+        private async Task<string?> SetAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, ulong dataLimitInBytes, string group, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
+
             _apiClient ??= new(OutlineApiKey);
 
-            var responseMessage = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, dataLimitInBytes, cancellationToken);
-            if (!responseMessage.IsSuccessStatusCode)
-                return $"Error when applying the custom data limit {Utilities.HumanReadableDataString(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+            try
+            {
+                var responseMessage = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, dataLimitInBytes, cancellationToken);
+                if (!responseMessage.IsSuccessStatusCode)
+                    return $"Error when applying the custom data limit {Utilities.HumanReadableDataString(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
 
-            accessKey.DataLimit = new(dataLimitInBytes);
+                accessKey.DataLimit = new(dataLimitInBytes);
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            {
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when applying the custom data limit {Utilities.HumanReadableDataString(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {ex.Message}";
+            }
 
             return null;
         }
@@ -808,17 +985,29 @@ namespace ShadowsocksUriGenerator
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        public async Task<string?> DeleteAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, string group, CancellationToken cancellationToken = default)
+        private async Task<string?> DeleteAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, string group, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
+
             _apiClient ??= new(OutlineApiKey);
 
-            var responseMessage = await _apiClient.DeleteAccessKeyDataLimitAsync(accessKey.Id, cancellationToken);
-            if (!responseMessage.IsSuccessStatusCode)
-                return $"Error when deleting the custom data limit from user {accessKey.Name}'s access key on group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+            try
+            {
+                var responseMessage = await _apiClient.DeleteAccessKeyDataLimitAsync(accessKey.Id, cancellationToken);
+                if (!responseMessage.IsSuccessStatusCode)
+                    return $"Error when deleting the custom data limit from user {accessKey.Name}'s access key on group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
 
-            accessKey.DataLimit = null;
+                accessKey.DataLimit = null;
+            }
+            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            {
+                return ex.Message;
+            }
+            catch (Exception ex) // timeout and other errors
+            {
+                return $"Error when deleting the custom data limit from user {accessKey.Name}'s access key on group {group}'s Outline server: {ex.Message}";
+            }
 
             return null;
         }

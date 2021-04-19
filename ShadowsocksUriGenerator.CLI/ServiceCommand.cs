@@ -43,7 +43,15 @@ namespace ShadowsocksUriGenerator.CLI
                     {
                         try
                         {
-                            await nodes.PullFromOutlineServerForAllGroups(users, true, cancellationToken);
+                            var results = await nodes.PullFromOutlineServerForAllGroups(users, true, cancellationToken);
+
+                            foreach (var result in results)
+                            {
+                                if (result is not null)
+                                {
+                                    Console.WriteLine(result);
+                                }
+                            }
                         }
                         catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
                         {
@@ -61,7 +69,15 @@ namespace ShadowsocksUriGenerator.CLI
                     {
                         try
                         {
-                            await nodes.DeployAllOutlineServers(users, cancellationToken);
+                            var results = await nodes.DeployAllOutlineServers(users, cancellationToken);
+
+                            foreach (var result in results)
+                            {
+                                if (result is not null)
+                                {
+                                    Console.WriteLine(result);
+                                }
+                            }
                         }
                         catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
                         {
@@ -86,6 +102,7 @@ namespace ShadowsocksUriGenerator.CLI
                     {
                         OnlineConfig.Remove(users, settings);
                         Console.WriteLine("Cleaned online config.");
+
                         var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
                         if (errMsg is not null)
                             Console.Write(errMsg);

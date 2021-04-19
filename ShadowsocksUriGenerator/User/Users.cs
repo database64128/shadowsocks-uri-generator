@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,7 +27,7 @@ namespace ShadowsocksUriGenerator
         /// Update if older config is present.
         /// Throw error if config is newer than supported.
         /// </summary>
-        public int Version { get; set; }
+        public int Version { get; set; } = DefaultVersion;
 
         /// <summary>
         /// Gets or sets the user dictionary.
@@ -34,13 +35,7 @@ namespace ShadowsocksUriGenerator
         /// value is user info.
         /// </summary>
         [JsonPropertyName("Users")]
-        public Dictionary<string, User> UserDict { get; set; }
-
-        public Users()
-        {
-            Version = DefaultVersion;
-            UserDict = new();
-        }
+        public Dictionary<string, User> UserDict { get; set; } = new();
 
         /// <summary>
         /// Adds a new user to UserDict.
@@ -69,24 +64,35 @@ namespace ShadowsocksUriGenerator
         /// <param name="nodes">The <see cref="Nodes"/> object.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// 0 when success.
-        /// -1 when old username is not found.
-        /// -2 when new username already exists.
-        /// -3 when an error occurred while deploying the change to Outline server.
+        /// The task that represents the operation.
+        /// An optional error message.
         /// </returns>
-        public async Task<int> RenameUser(string oldName, string newName, Nodes nodes, CancellationToken cancellationToken = default)
+        public async Task<string?> RenameUser(string oldName, string newName, Nodes nodes, CancellationToken cancellationToken = default)
         {
             if (UserDict.ContainsKey(newName))
-                return -2;
+                return $"Error: the new username {newName} is already used. Please choose another username.";
+
             if (!UserDict.Remove(oldName, out var user))
-                return -1;
+                return $"Error: user {oldName} doesn't exist.";
+
             UserDict.Add(newName, user);
+
             var tasks = user.Memberships.Select(async x => await nodes.RenameUserInGroup(x.Key, oldName, newName, cancellationToken));
             var results = await Task.WhenAll(tasks);
-            if (results.Any(x => x < 0))
-                return -3;
+            var errMsgSB = new StringBuilder();
+
+            foreach (var result in results)
+            {
+                if (result is not null)
+                {
+                    errMsgSB.AppendLine(result);
+                }
+            }
+
+            if (errMsgSB.Length > 0)
+                return errMsgSB.ToString();
             else
-                return 0;
+                return null;
         }
 
         /// <summary>
