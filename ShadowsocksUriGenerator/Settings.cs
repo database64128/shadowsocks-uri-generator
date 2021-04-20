@@ -94,9 +94,9 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
         /// <returns>
-        /// A ValueTuple containing a <see cref="Settings"/> object and an error message.
+        /// A ValueTuple containing a <see cref="Settings"/> object and an optional error message.
         /// </returns>
-        public static async Task<(Settings, string? errMsg)> LoadSettingsAsync(CancellationToken cancellationToken = default)
+        public static async Task<(Settings settings, string? errMsg)> LoadSettingsAsync(CancellationToken cancellationToken = default)
         {
             var (settings, errMsg) = await Utilities.LoadJsonAsync<Settings>("Settings.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
             if (errMsg is null && settings.Version != DefaultVersion)
@@ -112,7 +112,10 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="settings">The <see cref="Settings"/> object to save.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
-        /// <returns>An error message. Null if no errors occurred.</returns>
+        /// <returns>
+        /// An optional error message.
+        /// Null if no errors occurred.
+        /// </returns>
         public static Task<string?> SaveSettingsAsync(Settings settings, CancellationToken cancellationToken = default)
             => Utilities.SaveJsonAsync("Settings.json", settings, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
 

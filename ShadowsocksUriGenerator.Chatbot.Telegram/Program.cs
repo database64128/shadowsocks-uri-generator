@@ -23,7 +23,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 Handler = CommandHandler.Create(
                     async (CancellationToken cancellationToken) =>
                     {
-                        var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+                        var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
+                        if (loadBotConfigErrMsg is not null)
+                        {
+                            Console.WriteLine(loadBotConfigErrMsg);
+                            return 1;
+                        }
 
                         ConsoleHelper.PrintTableBorder(28, 50);
                         Console.WriteLine($"|{"Key",-28}|{"Value",50}|");
@@ -38,6 +43,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         Console.WriteLine($"|{"AllowChatAssociation",-28}|{botConfig.AllowChatAssociation,50}|");
 
                         ConsoleHelper.PrintTableBorder(28, 50);
+
+                        return 0;
                     }),
             };
 
@@ -46,7 +53,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 Handler = CommandHandler.Create(
                     async (string? botToken, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? usersCanSeeGroupDataLimit, bool? allowChatAssociation, CancellationToken cancellationToken) =>
                     {
-                        var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+                        var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
+                        if (loadBotConfigErrMsg is not null)
+                        {
+                            Console.WriteLine(loadBotConfigErrMsg);
+                            return 1;
+                        }
 
                         if (!string.IsNullOrEmpty(botToken))
                             botConfig.BotToken = botToken;
@@ -61,7 +73,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                         if (allowChatAssociation is bool allowLinking)
                             botConfig.AllowChatAssociation = allowLinking;
 
-                        await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
+                        var saveBotConfigErrMsg = await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
+                        if (saveBotConfigErrMsg is not null)
+                        {
+                            Console.WriteLine(loadBotConfigErrMsg);
+                            return 1;
+                        }
+
+                        return 0;
                     }),
             };
             configSetCommand.AddOption(new Option<string?>("--bot-token", "The Telegram bot token."));
@@ -85,7 +104,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             rootCommand.Handler = CommandHandler.Create(
                 async (string? botToken, CancellationToken cancellationToken) =>
                 {
-                    var botConfig = await BotConfig.LoadBotConfigAsync(cancellationToken);
+                    var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
+                    if (loadBotConfigErrMsg is not null)
+                    {
+                        Console.WriteLine(loadBotConfigErrMsg);
+                        return 1;
+                    }
 
                     // Priority: commandline option > environment variable > config file
                     if (string.IsNullOrEmpty(botToken))

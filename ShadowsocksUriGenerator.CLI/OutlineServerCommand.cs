@@ -1,5 +1,4 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
-using System;
+﻿using System;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
@@ -11,9 +10,27 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static async Task<int> Add(string group, string apiKey, CancellationToken cancellationToken = default)
         {
-            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
+            if (loadSettingsErrMsg is not null)
+            {
+                Console.WriteLine(loadSettingsErrMsg);
+                return 1;
+            }
 
             var errMsg = await nodes.AssociateOutlineServerWithGroup(
                 group,
@@ -23,23 +40,40 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.OutlineServerApplyDataLimitOnAssociation,
                 cancellationToken);
 
-            if (errMsg is null)
-            {
-                Console.WriteLine($"Successfully associated the Outline server with {group}");
-                await JsonHelper.SaveUsersAsync(users, cancellationToken);
-                await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
-                return 0;
-            }
-            else
+            if (errMsg is not null)
             {
                 Console.WriteLine(errMsg);
                 return -1;
             }
+
+            Console.WriteLine($"Successfully associated the Outline server with {group}");
+
+            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+            if (saveUsersErrMsg is not null)
+            {
+                Console.WriteLine(saveUsersErrMsg);
+                return 1;
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
+            return 0;
         }
 
         public static async Task<int> Get(string group, CancellationToken cancellationToken = default)
         {
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
 
             var outlineApiKeyString = nodes.GetOutlineApiKeyStringFromGroup(group);
             var outlineServerInfo = nodes.GetOutlineServerInfoFromGroup(group);
@@ -78,20 +112,32 @@ namespace ShadowsocksUriGenerator.CLI
             CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
 
             var errMsg = await nodes.SetOutlineServerInGroup(group, name, hostname, port, metrics, defaultUser, cancellationToken);
-            if (errMsg is null)
-            {
-                Console.WriteLine($"Successfully applied new settings to {group}.");
-            }
-            else
+            if (errMsg is not null)
             {
                 Console.WriteLine(errMsg);
                 commandResult = -2;
             }
+            else
+            {
+                Console.WriteLine($"Successfully applied new settings to {group}.");
+            }
 
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
 
             return commandResult;
         }
@@ -99,8 +145,21 @@ namespace ShadowsocksUriGenerator.CLI
         public static async Task<int> Remove(string[] groups, bool removeCreds, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
 
             foreach (var group in groups)
             {
@@ -122,16 +181,41 @@ namespace ShadowsocksUriGenerator.CLI
             if (removeCreds)
                 users.RemoveCredentialsFromAllUsers(groups);
 
-            await JsonHelper.SaveUsersAsync(users, cancellationToken);
-            await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+            if (saveUsersErrMsg is not null)
+            {
+                Console.WriteLine(saveUsersErrMsg);
+                return 1;
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
             return commandResult;
         }
 
         public static async Task<int> Pull(string[] groups, bool noSync, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
 
             string?[] results;
 
@@ -154,16 +238,41 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            await JsonHelper.SaveUsersAsync(users, default);
-            await JsonHelper.SaveNodesAsync(nodes, default);
+            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+            if (saveUsersErrMsg is not null)
+            {
+                Console.WriteLine(saveUsersErrMsg);
+                return 1;
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
             return commandResult;
         }
 
         public static async Task<int> Deploy(string[] groups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
 
             string?[] results;
 
@@ -186,8 +295,20 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            await JsonHelper.SaveUsersAsync(users, default);
-            await JsonHelper.SaveNodesAsync(nodes, default);
+            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+            if (saveUsersErrMsg is not null)
+            {
+                Console.WriteLine(saveUsersErrMsg);
+                return 1;
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
             return commandResult;
         }
 
@@ -203,8 +324,21 @@ namespace ShadowsocksUriGenerator.CLI
         public static async Task<int> RotatePassword(string[] usernames, string[] groups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
-            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
 
             var errMsgs = Array.Empty<string?>();
 
@@ -236,8 +370,20 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            await JsonHelper.SaveUsersAsync(users, default);
-            await JsonHelper.SaveNodesAsync(nodes, default);
+            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+            if (saveUsersErrMsg is not null)
+            {
+                Console.WriteLine(saveUsersErrMsg);
+                return 1;
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
             return commandResult;
         }
     }

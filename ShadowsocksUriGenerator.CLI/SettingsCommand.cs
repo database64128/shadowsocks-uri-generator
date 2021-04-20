@@ -7,9 +7,14 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class SettingsCommand
     {
-        public static async Task Get(CancellationToken cancellationToken = default)
+        public static async Task<int> Get(CancellationToken cancellationToken = default)
         {
-            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
+            var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
+            if (loadSettingsErrMsg is not null)
+            {
+                Console.WriteLine(loadSettingsErrMsg);
+                return 1;
+            }
 
             ConsoleHelper.PrintTableBorder(42, 40);
             Console.WriteLine($"|{"Key",-42}|{"Value",40}|");
@@ -28,9 +33,11 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
 
             ConsoleHelper.PrintTableBorder(42, 40);
+
+            return 0;
         }
 
-        public static async Task Set(
+        public static async Task<int> Set(
             SortBy? userDataUsageDefaultSortBy,
             SortBy? groupDataUsageDefaultSortBy,
             bool? onlineConfigSortByName,
@@ -43,7 +50,12 @@ namespace ShadowsocksUriGenerator.CLI
             string outlineServerGlobalDefaultUser,
             CancellationToken cancellationToken = default)
         {
-            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
+            var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
+            if (loadSettingsErrMsg is not null)
+            {
+                Console.WriteLine(loadSettingsErrMsg);
+                return 1;
+            }
 
             if (userDataUsageDefaultSortBy is SortBy userSortBy)
                 settings.UserDataUsageDefaultSortBy = userSortBy;
@@ -66,7 +78,14 @@ namespace ShadowsocksUriGenerator.CLI
             if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                 settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
 
-            await JsonHelper.SaveSettingsAsync(settings, cancellationToken);
+            var saveSettingsErrMsg = await Settings.SaveSettingsAsync(settings, cancellationToken);
+            if (saveSettingsErrMsg is not null)
+            {
+                Console.WriteLine(saveSettingsErrMsg);
+                return 1;
+            }
+
+            return 0;
         }
     }
 }

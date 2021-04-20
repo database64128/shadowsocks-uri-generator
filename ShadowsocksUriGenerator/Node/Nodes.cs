@@ -541,9 +541,9 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>
         /// <returns>
-        /// A ValueTuple containing a <see cref="Nodes"/> object and an error message.
+        /// A ValueTuple containing a <see cref="Nodes"/> object and an optional error message.
         /// </returns>
-        public static async Task<(Nodes, string? errMsg)> LoadNodesAsync(CancellationToken cancellationToken = default)
+        public static async Task<(Nodes nodes, string? errMsg)> LoadNodesAsync(CancellationToken cancellationToken = default)
         {
             var (nodes, errMsg) = await Utilities.LoadJsonAsync<Nodes>("Nodes.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
             if (errMsg is null && nodes.Version != DefaultVersion)
@@ -559,7 +559,10 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="nodes">The <see cref="Nodes"/> object to save.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
-        /// <returns>An error message. Null if no errors occurred.</returns>
+        /// <returns>
+        /// An optional error message.
+        /// Null if no errors occurred.
+        /// </returns>
         public static Task<string?> SaveNodesAsync(Nodes nodes, CancellationToken cancellationToken = default)
             => Utilities.SaveJsonAsync("Nodes.json", nodes, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
 

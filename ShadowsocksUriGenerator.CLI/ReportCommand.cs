@@ -8,11 +8,29 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class ReportCommand
     {
-        public static async Task Generate(SortBy? groupSortBy, SortBy? userSortBy, CancellationToken cancellationToken = default)
+        public static async Task<int> Generate(SortBy? groupSortBy, SortBy? userSortBy, CancellationToken cancellationToken = default)
         {
-            var users = await JsonHelper.LoadUsersAsync(cancellationToken);
-            using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-            var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
+            if (loadSettingsErrMsg is not null)
+            {
+                Console.WriteLine(loadSettingsErrMsg);
+                return 1;
+            }
 
             // collect data
             var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);
@@ -137,6 +155,8 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"{string.Empty,16}|");
             }
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11, 16);
+
+            return 0;
         }
     }
 }

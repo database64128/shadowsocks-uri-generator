@@ -1,5 +1,4 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
-using System;
+﻿using System;
 using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return null;
         }
 
-        public static async Task Run(
+        public static async Task<int> Run(
             int interval,
             bool pullOutlineServer,
             bool deployOutlineServer,
@@ -28,16 +27,34 @@ namespace ShadowsocksUriGenerator.CLI
             if (interval < 60 || interval > int.MaxValue / 1000)
             {
                 Console.WriteLine($"Interval can't be shorter than 60 seconds or longer than {int.MaxValue / 1000} seconds.");
-                return;
+                return 1;
             }
 
             try
             {
                 while (true)
                 {
-                    var users = await JsonHelper.LoadUsersAsync(cancellationToken);
-                    using var nodes = await JsonHelper.LoadNodesAsync(cancellationToken);
-                    var settings = await JsonHelper.LoadSettingsAsync(cancellationToken);
+                    var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+                    if (loadUsersErrMsg is not null)
+                    {
+                        Console.WriteLine(loadUsersErrMsg);
+                        return 1;
+                    }
+
+                    var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+                    if (loadNodesErrMsg is not null)
+                    {
+                        Console.WriteLine(loadNodesErrMsg);
+                        return 1;
+                    }
+                    using var nodes = loadedNodes;
+
+                    var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
+                    if (loadSettingsErrMsg is not null)
+                    {
+                        Console.WriteLine(loadSettingsErrMsg);
+                        return 1;
+                    }
 
                     if (pullOutlineServer)
                     {
@@ -109,8 +126,20 @@ namespace ShadowsocksUriGenerator.CLI
                         Console.WriteLine("Generated online config.");
                     }
 
-                    await JsonHelper.SaveUsersAsync(users, cancellationToken);
-                    await JsonHelper.SaveNodesAsync(nodes, cancellationToken);
+                    var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+                    if (saveUsersErrMsg is not null)
+                    {
+                        Console.WriteLine(saveUsersErrMsg);
+                        return 1;
+                    }
+
+                    var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+                    if (saveNodesErrMsg is not null)
+                    {
+                        Console.WriteLine(saveNodesErrMsg);
+                        return 1;
+                    }
+
                     await Task.Delay(interval * 1000, cancellationToken);
                 }
             }
@@ -122,6 +151,8 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine($"An error occurred while executing one of the scheduled tasks.");
                 Console.WriteLine(ex.Message);
             }
+
+            return 0;
         }
     }
 }

@@ -144,6 +144,9 @@ namespace ShadowsocksUriGenerator
             if (!File.Exists(filename))
                 return (new(), null);
 
+            if (cancellationToken.IsCancellationRequested)
+                return (new(), "The operation was canceled.");
+
             T? jsonData = null;
             string? errMsg = null;
             FileStream? jsonFile = null;
@@ -194,8 +197,14 @@ namespace ShadowsocksUriGenerator
 
             try
             {
+                if (cancellationToken.IsCancellationRequested)
+                    return "The operation was canceled.";
+
                 // create directory
-                var directoryPath = Path.GetDirectoryName(filename) ?? throw new ArgumentException("Invalid path", nameof(filename));
+                var directoryPath = Path.GetDirectoryName(filename);
+                if (directoryPath is null)
+                    return $"Error: invalid path: {filename}";
+
                 Directory.CreateDirectory(directoryPath);
 
                 // save JSON
@@ -211,10 +220,6 @@ namespace ShadowsocksUriGenerator
                     jsonFile.Close();
                     File.Replace($"{filename}.new", filename, noBackup ? null : $"{filename}.old");
                 }
-            }
-            catch (ArgumentException)
-            {
-                errMsg = $"Error: invalid path: {filename}";
             }
             catch (Exception ex)
             {

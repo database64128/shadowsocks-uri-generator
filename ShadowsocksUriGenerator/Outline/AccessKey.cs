@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ShadowsocksUriGenerator.Outline
+﻿namespace ShadowsocksUriGenerator.Outline
 {
     /// <summary>
     /// The mutable record type that stores an Outline access key.
