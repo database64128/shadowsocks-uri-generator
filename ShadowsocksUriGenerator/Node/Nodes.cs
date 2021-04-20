@@ -441,7 +441,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>A task representing the update process. An array of optional error messages.</returns>
         public Task<string?[]> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
         {
-            var tasks = Groups.Select(async x => await x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserDB, cancellationToken));
+            var tasks = Groups.Select(async x => await x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserDB, true, cancellationToken));
             return Task.WhenAll(tasks);
         }
 
@@ -463,7 +463,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> PullFromGroupOutlineServer(string group, Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.PullFromOutlineServer(group, users, updateLocalUserDB, cancellationToken);
+                return targetGroup.PullFromOutlineServer(group, users, updateLocalUserDB, false, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -481,7 +481,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.DeployToOutlineServer(group, users, cancellationToken);
+                return targetGroup.DeployToOutlineServer(group, users, false, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -494,7 +494,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>The task that represents the completion of all deployments. An array of optional error messages.</returns>
         public Task<string?[]> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
         {
-            var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users, cancellationToken));
+            var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users, true, cancellationToken));
             return Task.WhenAll(tasks);
         }
 
@@ -531,7 +531,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.RotatePassword(group, users, cancellationToken, usernames);
+                return targetGroup.RotatePassword(group, users, false, cancellationToken, usernames);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }

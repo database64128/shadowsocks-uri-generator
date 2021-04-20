@@ -296,7 +296,7 @@ namespace ShadowsocksUriGenerator
             _apiClient = new(OutlineApiKey);
 
             // Pull from Outline server without syncing with local user db
-            var errMsg = await PullFromOutlineServer(group, users, false, cancellationToken);
+            var errMsg = await PullFromOutlineServer(group, users, false, false, cancellationToken);
             if (errMsg is not null)
                 return errMsg;
 
@@ -477,10 +477,15 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> PullFromOutlineServer(string group, Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
+        public async Task<string?> PullFromOutlineServer(string group, Users users, bool updateLocalUserDB = true, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
-                return "Error: the group is not linked to any Outline server.";
+            {
+                if (silentlySkipNonOutline)
+                    return null;
+                else
+                    return "Error: the group is not linked to any Outline server.";
+            }
 
             _apiClient ??= new(OutlineApiKey);
 
@@ -576,14 +581,19 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> DeployToOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
+        public async Task<string?> DeployToOutlineServer(string group, Users users, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
-                return "Error: the group is not linked to any Outline server.";
+            {
+                if (silentlySkipNonOutline)
+                    return null;
+                else
+                    return "Error: the group is not linked to any Outline server.";
+            }
 
             if (OutlineAccessKeys is null)
             {
-                var errMsg = await PullFromOutlineServer(group, users, true, cancellationToken);
+                var errMsg = await PullFromOutlineServer(group, users, true, false, cancellationToken);
                 if (errMsg is not null)
                     return errMsg;
             }
@@ -698,14 +708,19 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> RotatePassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
+        public async Task<string?> RotatePassword(string group, Users users, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (OutlineApiKey is null)
-                return "Error: the group is not linked to any Outline server.";
+            {
+                if (silentlySkipNonOutline)
+                    return null;
+                else
+                    return "Error: the group is not linked to any Outline server.";
+            }
 
             if (OutlineAccessKeys is null)
             {
-                var errMsg = await PullFromOutlineServer(group, users, true, cancellationToken);
+                var errMsg = await PullFromOutlineServer(group, users, true, false, cancellationToken);
                 if (errMsg is not null)
                     return errMsg;
             }
