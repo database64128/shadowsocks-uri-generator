@@ -1,12 +1,16 @@
-# 🌐 `shadowsocks-uri-generator`
+# 🌐 Shadowsocks URI Generator
 
 [![Build](https://github.com/database64128/shadowsocks-uri-generator/workflows/Build/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ABuild)
 [![Release](https://github.com/database64128/shadowsocks-uri-generator/workflows/Release/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ARelease)
+
 <a href="https://aur.archlinux.org/packages/ss-uri-gen-git/">
-    <img alt="AUR badge for ss-uri-gen-git" src="https://img.shields.io/aur/version/ss-uri-gen-git?label=AUR%20git" />
+    <img alt="AUR badge for ss-uri-gen-git" src="https://img.shields.io/aur/version/ss-uri-gen-git?label=AUR%20ss-uri-gen-git" />
 </a>
 <a href="https://aur.archlinux.org/packages/ss-uri-gen-chatbot-telegram-git/">
-    <img alt="AUR badge for ss-uri-gen-chatbot-telegram-git" src="https://img.shields.io/aur/version/ss-uri-gen-chatbot-telegram-git?label=AUR%20git" />
+    <img alt="AUR badge for ss-uri-gen-chatbot-telegram-git" src="https://img.shields.io/aur/version/ss-uri-gen-chatbot-telegram-git?label=AUR%20ss-uri-gen-chatbot-telegram-git" />
+</a>
+<a href="https://aur.archlinux.org/packages/ss-uri-gen-rescue-git/">
+    <img alt="AUR badge for ss-uri-gen-rescue-git" src="https://img.shields.io/aur/version/ss-uri-gen-rescue-git?label=AUR%20ss-uri-gen-rescue-git" />
 </a>
 
 A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of [Outline servers](https://github.com/Jigsaw-Code/outline-server). Deliver configurations to users with [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89).
@@ -16,11 +20,11 @@ A light-weight command line automation tool for managing federated Shadowsocks s
 - Manage users, nodes, and groups with intuitive commands.
 - Deploy and manage [Outline servers](https://github.com/Jigsaw-Code/outline-server).
 - Retrieve user credentials automatically from Outline servers, or add credentials manually in plaintext or `base64url`.
-- Gather user data usage statistics from Outline servers.
-- Export user's associated nodes as [SIP002](https://shadowsocks.org/en/spec/SIP002-URI-Scheme.html) `ss://` URLs.
-- Support [SIP003](https://shadowsocks.org/en/spec/Plugin.html) plugins.
-- Generate SIP008-compliant online configuration files.
-- Generate and print SIP008 delivery URL.
+- Gather data usage statistics from Outline servers.
+- Manage data usage limit on users and groups. Enforce data limit on Outline servers.
+- Generate [SIP002](https://shadowsocks.org/en/spec/SIP002-URI-Scheme.html) `ss://` URLs for users.
+- Support for [SIP003](https://shadowsocks.org/en/spec/Plugin.html) plugins.
+- Generate SIP008 online config files and delivery URLs.
 - Run as a service to execute scheduled tasks.
 - Easy user interactions via [Telegram bots](https://core.telegram.org/bots).
 
@@ -115,7 +119,7 @@ $ ss-uri-gen group get-data-usage MyGroupA
 $ ss-uri-gen online-config generate
 
 # Print all users' SIP008 delivery URLs.
-$ ss-uri-gen online-config get-link
+$ ss-uri-gen online-config get-links
 
 # Associate a group with an Outline server.
 $ ss-uri-gen outline-server add MyGroupA '{"apiUrl":"https://localhost/example","certSha256":"EXAMPLE"}'
@@ -123,8 +127,8 @@ $ ss-uri-gen outline-server add MyGroupA '{"apiUrl":"https://localhost/example",
 # Change Outline server settings.
 $ ss-uri-gen outline-server set MyGroupA --name MyOutlineA --hostname github.com --metrics true
 
-# Update Outline server information.
-$ ss-uri-gen outline-server update MyGroupA
+# Pull updates from Outline server.
+$ ss-uri-gen outline-server pull MyGroupA
 
 # Deploy local configuration to Outline server.
 $ ss-uri-gen outline-server deploy MyGroupA
@@ -140,6 +144,9 @@ $ ss-uri-gen-chatbot-telegram config set --bot-token "1234567:4TT8bAc8GHUspu3ERY
 
 # Telegram bot: run as a service.
 $ ss-uri-gen-chatbot-telegram
+
+# Rescue tool: rebuild database from generated online config.
+$ ss-uri-gen-rescue --online-config-dir /path/to/online/config
 ```
 
 ## License
@@ -147,7 +154,8 @@ $ ss-uri-gen-chatbot-telegram
 - This project is licensed under [GPLv3](LICENSE).
 - The icons are from [Material Design Icons](https://materialdesignicons.com/) and are licensed under the [Pictogrammers Free License](https://dev.materialdesignicons.com/license).
 - [`System.CommandLine`](https://github.com/dotnet/command-line-api) is licensed under the MIT license.
-- [`JsonSnakeCaseNamingPolicy`](https://github.com/dotnet/corefx/pull/40003) is licensed under the MIT license.
+- `System.Linq.Async` and `System.Interactive.Async` are from [dotnet/reactive](https://github.com/dotnet/reactive). They are licensed under the MIT license.
+- `JsonSnakeCaseNamingPolicy` is adopted from [dotnet/corefx#40003](https://github.com/dotnet/corefx/pull/40003). It's licensed under the MIT license.
 - [`Telegram.Bot`](https://github.com/TelegramBots/Telegram.Bot) and [`Telegram.Bot.Extensions.Polling`](https://github.com/TelegramBots/Telegram.Bot.Extensions.Polling) are licensed under the MIT license.
 
 © 2021 database64128
