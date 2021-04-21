@@ -438,12 +438,15 @@ namespace ShadowsocksUriGenerator
         /// Defaults to true.
         /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>A task representing the update process. An array of optional error messages.</returns>
-        public Task<string?[]> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
-        {
-            var tasks = Groups.Select(async x => await x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserDB, true, cancellationToken));
-            return Task.WhenAll(tasks);
-        }
+        /// <returns>
+        /// An async-enumerable sequence whose elements are error messages.
+        /// </returns>
+        public IAsyncEnumerable<string> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+            => Groups.Select(x => x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserDB, true, cancellationToken).ToAsyncEnumerable())
+                     .ConcurrentMerge()
+                     .Where(errMsg => errMsg is not null);
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
 
         /// <summary>
         /// Pulls server information, access keys, and data usage
@@ -475,15 +478,14 @@ namespace ShadowsocksUriGenerator
         /// <param name="users">The object which contains all users' information.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// The task that represents the operation.
-        /// An optional error message.
+        /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public Task<string?> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<string> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.DeployToOutlineServer(group, users, false, cancellationToken);
             else
-                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
+                return AsyncEnumerableEx.Return($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>
@@ -491,12 +493,11 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="users">The object which contains all users' information.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>The task that represents the completion of all deployments. An array of optional error messages.</returns>
-        public Task<string?[]> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
-        {
-            var tasks = Groups.Select(async x => await x.Value.DeployToOutlineServer(x.Key, users, true, cancellationToken));
-            return Task.WhenAll(tasks);
-        }
+        /// <returns>
+        /// An async-enumerable sequence whose elements are error messages.
+        /// </returns>
+        public IAsyncEnumerable<string> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
+            => Groups.Select(x => x.Value.DeployToOutlineServer(x.Key, users, true, cancellationToken)).ConcurrentMerge();
 
         /// <summary>
         /// Renames the user and syncs with Outline server in the group.
@@ -518,23 +519,34 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Rotate the specified group's user password.
+        /// Rotates the specified group's user password.
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The object which contains all users' information.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <param name="usernames">Optional. The list of target users.</param>
         /// <returns>
-        /// The task that represents the operation.
-        /// An optional error message.
+        /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public Task<string?> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
+        public IAsyncEnumerable<string> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.RotatePassword(group, users, false, cancellationToken, usernames);
             else
-                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
+                return AsyncEnumerableEx.Return($"Error: Group {group} doesn't exist.");
         }
+
+        /// <summary>
+        /// Rotates password in all supported groups for the specified or all users.
+        /// </summary>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        /// <param name="usernames">Only target these members in group if specified.</param>
+        /// <returns>
+        /// An async-enumerable sequence whose elements are error messages.
+        /// </returns>
+        public IAsyncEnumerable<string> RotatePasswordForAllGroups(Users users, CancellationToken cancellationToken = default, params string[] usernames)
+            => Groups.Select(x => x.Value.RotatePassword(x.Key, users, true, cancellationToken, usernames)).ConcurrentMerge();
 
         /// <summary>
         /// Loads nodes from Nodes.json.

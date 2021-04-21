@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
@@ -217,25 +218,25 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            string?[] results;
+            IAsyncEnumerable<string> errMsgs;
 
             if (groups.Length == 0)
             {
-                results = await nodes.PullFromOutlineServerForAllGroups(users, !noSync, cancellationToken);
+                errMsgs = nodes.PullFromOutlineServerForAllGroups(users, !noSync, cancellationToken);
             }
             else
             {
-                var tasks = groups.Select(async group => await nodes.PullFromGroupOutlineServer(group, users, !noSync, cancellationToken));
-                results = await Task.WhenAll(tasks);
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
+                errMsgs = groups.Select(group => nodes.PullFromGroupOutlineServer(group, users, !noSync, cancellationToken).ToAsyncEnumerable())
+                                .ConcurrentMerge()
+                                .Where(errMsg => errMsg is not null);
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
             }
 
-            foreach (var result in results)
+            await foreach (var errMsg in errMsgs)
             {
-                if (result is not null)
-                {
-                    Console.WriteLine(result);
-                    commandResult--;
-                }
+                Console.WriteLine(errMsg);
+                commandResult--;
             }
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
@@ -274,25 +275,21 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            string?[] results;
+            IAsyncEnumerable<string> errMsgs;
 
             if (groups.Length == 0)
             {
-                results = await nodes.DeployAllOutlineServers(users, cancellationToken);
+                errMsgs = nodes.DeployAllOutlineServers(users, cancellationToken);
             }
             else
             {
-                var tasks = groups.Select(async group => await nodes.DeployGroupOutlineServer(group, users, cancellationToken));
-                results = await Task.WhenAll(tasks);
+                errMsgs = groups.Select(group => nodes.DeployGroupOutlineServer(group, users, cancellationToken)).ConcurrentMerge();
             }
 
-            foreach (var result in results)
+            await foreach (var errMsg in errMsgs)
             {
-                if (result is not null)
-                {
-                    Console.WriteLine(result);
-                    commandResult--;
-                }
+                Console.WriteLine(errMsg);
+                commandResult--;
             }
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
@@ -340,34 +337,29 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            var errMsgs = Array.Empty<string?>();
+            IAsyncEnumerable<string> errMsgs;
 
             if (groups.Length > 0)
             {
-                var tasks = groups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
-                errMsgs = await Task.WhenAll(tasks);
+                errMsgs = groups.Select(x => nodes.RotateGroupPassword(x, users, cancellationToken, usernames)).ConcurrentMerge();
             }
             else if (usernames.Length > 0)
             {
                 var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
                                             .SelectMany(x => users.UserDict[x].Memberships.Keys)
                                             .Distinct();
-                var tasks = targetGroups.Select(async x => await nodes.RotateGroupPassword(x, users, cancellationToken, usernames));
-                errMsgs = await Task.WhenAll(tasks);
+                errMsgs = targetGroups.Select(x => nodes.RotateGroupPassword(x, users, cancellationToken, usernames)).ConcurrentMerge();
             }
             else
             {
                 Console.WriteLine("Please provide either a username or a group, or both.");
-                commandResult = -3;
+                return -3;
             }
 
-            foreach (var errMsg in errMsgs)
+            await foreach (var errMsg in errMsgs)
             {
-                if (errMsg is not null)
-                {
-                    Console.WriteLine(errMsg);
-                    commandResult--;
-                }
+                Console.WriteLine(errMsg);
+                commandResult--;
             }
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);

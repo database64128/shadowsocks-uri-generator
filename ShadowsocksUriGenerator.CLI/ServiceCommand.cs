@@ -58,54 +58,24 @@ namespace ShadowsocksUriGenerator.CLI
 
                     if (pullOutlineServer)
                     {
-                        try
-                        {
-                            var results = await nodes.PullFromOutlineServerForAllGroups(users, true, cancellationToken);
+                        var errMsgs = nodes.PullFromOutlineServerForAllGroups(users, true, cancellationToken);
 
-                            foreach (var result in results)
-                            {
-                                if (result is not null)
-                                {
-                                    Console.WriteLine(result);
-                                }
-                            }
-                        }
-                        catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+                        await foreach (var errMsg in errMsgs)
                         {
-                            Console.WriteLine(ex.Message);
-                            throw;
+                            Console.WriteLine(errMsg);
                         }
-                        catch (Exception ex) // timeout and other errors
-                        {
-                            Console.WriteLine($"An error occurred while pulling from Outline servers.");
-                            Console.WriteLine(ex.Message);
-                        }
+
                         Console.WriteLine("Pulled from Outline servers.");
                     }
                     if (deployOutlineServer)
                     {
-                        try
-                        {
-                            var results = await nodes.DeployAllOutlineServers(users, cancellationToken);
+                        var errMsgs = nodes.DeployAllOutlineServers(users, cancellationToken);
 
-                            foreach (var result in results)
-                            {
-                                if (result is not null)
-                                {
-                                    Console.WriteLine(result);
-                                }
-                            }
-                        }
-                        catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+                        await foreach (var errMsg in errMsgs)
                         {
-                            Console.WriteLine(ex.Message);
-                            throw;
+                            Console.WriteLine(errMsg);
                         }
-                        catch (Exception ex) // timeout and other errors
-                        {
-                            Console.WriteLine($"An error occurred while deploying Outline servers.");
-                            Console.WriteLine(ex.Message);
-                        }
+
                         Console.WriteLine("Deployed to Outline servers.");
                     }
                     if (generateOnlineConfig)
@@ -113,16 +83,19 @@ namespace ShadowsocksUriGenerator.CLI
                         var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
                         if (errMsg is not null)
                             Console.Write(errMsg);
+
                         Console.WriteLine("Generated online config.");
                     }
                     if (regenerateOnlineConfig)
                     {
                         OnlineConfig.Remove(users, settings);
+
                         Console.WriteLine("Cleaned online config.");
 
                         var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
                         if (errMsg is not null)
                             Console.Write(errMsg);
+
                         Console.WriteLine("Generated online config.");
                     }
 
@@ -143,13 +116,13 @@ namespace ShadowsocksUriGenerator.CLI
                     await Task.Delay(interval * 1000, cancellationToken);
                 }
             }
-            catch (OperationCanceledException) // Task.Delay() or HttpClient canceled
+            catch (OperationCanceledException) // Task.Delay() canceled
             {
             }
             catch (Exception ex) // other unhandled
             {
-                Console.WriteLine($"An error occurred while executing one of the scheduled tasks.");
-                Console.WriteLine(ex.Message);
+                Console.WriteLine($"An error occurred while executing one of the scheduled tasks: {ex.Message}");
+                return -1;
             }
 
             return 0;

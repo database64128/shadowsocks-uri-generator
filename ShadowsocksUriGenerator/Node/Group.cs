@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -427,7 +428,7 @@ namespace ShadowsocksUriGenerator
                 {
                     if (!responseMessage.IsSuccessStatusCode)
                     {
-                        errMsgSB.AppendLine(await responseMessage.Content.ReadAsStringAsync(cancellationToken));
+                        errMsgSB.AppendLine($"Error when applying settings to Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}");
                     }
                 }
 
@@ -505,12 +506,14 @@ namespace ShadowsocksUriGenerator
                 while (tasks.Count > 0)
                 {
                     var finishedTask = await Task.WhenAny(tasks);
+
                     if (finishedTask == serverInfoTask)
                         OutlineServerInfo = await (Task<ServerInfo?>)finishedTask;
                     else if (finishedTask == accessKeysTask)
                         OutlineAccessKeys = (await (Task<AccessKeysResponse?>)finishedTask)?.AccessKeys;
                     else if (finishedTask == dataUsageTask)
                         OutlineDataUsage = await (Task<DataUsage?>)finishedTask;
+
                     tasks.Remove(finishedTask);
                 }
 
@@ -578,24 +581,26 @@ namespace ShadowsocksUriGenerator
         /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
-        /// The task that represents the operation.
-        /// An optional error message.
+        /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public async Task<string?> DeployToOutlineServer(string group, Users users, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<string> DeployToOutlineServer(string group, Users users, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
             {
-                if (silentlySkipNonOutline)
-                    return null;
-                else
-                    return "Error: the group is not linked to any Outline server.";
+                if (!silentlySkipNonOutline)
+                    yield return "Error: the group is not linked to any Outline server.";
+
+                yield break;
             }
 
             if (OutlineAccessKeys is null)
             {
                 var errMsg = await PullFromOutlineServer(group, users, true, false, cancellationToken);
                 if (errMsg is not null)
-                    return errMsg;
+                {
+                    yield return errMsg;
+                    yield break;
+                }
             }
 
             OutlineAccessKeys ??= new();
@@ -619,11 +624,11 @@ namespace ShadowsocksUriGenerator
             var accessKeysToUpdateDataLimit = OutlineAccessKeys.SelectMany(accessKey => existingUsersInGroupWithDataLimit.Where(userEntry => userEntry.Key == accessKey.Name && userEntry.Value.Memberships[group].DataLimitInBytes != (accessKey.DataLimit?.Bytes ?? 0UL)).Select(userEntry => (accessKey, userEntry.Value.Memberships[group].DataLimitInBytes)));
             var accessKeysToRemoveDataLimit = existingAccessKeysOnOutlineServerWithDataLimit.Where(x => existingUsernamesInGroupWithNoDataLimit.Contains(x.Name));
 
-            var tasks = new List<Task<string?>>();
-            var errMsgSB = new StringBuilder();
-
-            // Per-user data limit
-            tasks.Add(ApplyPerUserDataLimitToOutlineServer(group, cancellationToken));
+            var tasks = new List<Task<string?>>
+            {
+                // Per-user data limit
+                ApplyPerUserDataLimitToOutlineServer(group, cancellationToken),
+            };
 
             // Add
             tasks.AddRange(usersToCreate.Select(userEntry => AddUserToOutlineServer(userEntry.Key, userEntry.Value, group, cancellationToken)));
@@ -637,19 +642,18 @@ namespace ShadowsocksUriGenerator
             // Remove data limit
             tasks.AddRange(accessKeysToRemoveDataLimit.Select(accessKey => DeleteAccessKeyDataLimitOnOutlineServer(accessKey, group, cancellationToken)));
 
-            var errMsgs = await Task.WhenAll(tasks);
-            foreach (var errMsg in errMsgs)
+            while (tasks.Count > 0)
             {
+                var finishedTask = await Task.WhenAny(tasks);
+
+                var errMsg = await finishedTask;
                 if (errMsg is not null)
                 {
-                    errMsgSB.AppendLine(errMsg);
+                    yield return errMsg;
                 }
-            }
 
-            if (errMsgSB.Length > 0)
-                return errMsgSB.ToString();
-            else
-                return null;
+                tasks.Remove(finishedTask);
+            }
         }
 
         /// <summary>
@@ -705,24 +709,28 @@ namespace ShadowsocksUriGenerator
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <param name="usernames">Only target these members in group if specified.</param>
         /// <returns>
-        /// The task that represents the operation.
-        /// An optional error message.
+        /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public async Task<string?> RotatePassword(string group, Users users, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default, params string[] usernames)
+        public async IAsyncEnumerable<string> RotatePassword(string group, Users users, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (OutlineApiKey is null)
             {
-                if (silentlySkipNonOutline)
-                    return null;
-                else
-                    return "Error: the group is not linked to any Outline server.";
+                if (!silentlySkipNonOutline)
+                {
+                    yield return "Error: the group is not linked to any Outline server.";
+                }
+
+                yield break;
             }
 
             if (OutlineAccessKeys is null)
             {
                 var errMsg = await PullFromOutlineServer(group, users, true, false, cancellationToken);
                 if (errMsg is not null)
-                    return errMsg;
+                {
+                    yield return errMsg;
+                    yield break;
+                }
             }
 
             OutlineAccessKeys ??= new();
@@ -735,34 +743,35 @@ namespace ShadowsocksUriGenerator
                 ? accessKeysLinkedToUser.Where(x => usernames.Contains(x.Name))
                 : accessKeysLinkedToUser;
 
-            var errMsgSB = new StringBuilder();
-
             // Remove
-            var removalTasks = targetAccessKeys.Select(async accessKey => await RemoveUserFromOutlineServer(accessKey, users, group, cancellationToken));
-            var removalErrMsgs = await Task.WhenAll(removalTasks);
-            foreach (var errMsg in removalErrMsgs)
+            var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, cancellationToken)).ToList();
+            while (removalTasks.Count > 0)
             {
+                var finishedTask = await Task.WhenAny(removalTasks);
+
+                var errMsg = await finishedTask;
                 if (errMsg is not null)
                 {
-                    errMsgSB.AppendLine(errMsg);
+                    yield return errMsg;
                 }
+
+                removalTasks.Remove(finishedTask);
             }
 
             // Add
-            var addTasks = targetAccessKeys.Select(async accessKey => await AddUserToOutlineServer(accessKey.Name, users.UserDict[accessKey.Name], group, cancellationToken));
-            var addErrMsgs = await Task.WhenAll(addTasks);
-            foreach (var errMsg in addErrMsgs)
+            var addTasks = targetAccessKeys.Select(accessKey => AddUserToOutlineServer(accessKey.Name, users.UserDict[accessKey.Name], group, cancellationToken)).ToList();
+            while (addTasks.Count > 0)
             {
+                var finishedTask = await Task.WhenAny(addTasks);
+
+                var errMsg = await finishedTask;
                 if (errMsg is not null)
                 {
-                    errMsgSB.AppendLine(errMsg);
+                    yield return errMsg;
                 }
-            }
 
-            if (errMsgSB.Length > 0)
-                return errMsgSB.ToString();
-            else
-                return null;
+                addTasks.Remove(finishedTask);
+            }
         }
 
         /// <summary>
@@ -796,7 +805,7 @@ namespace ShadowsocksUriGenerator
                 // Deserialize access key
                 var accessKey = await HttpContentJsonExtensions.ReadFromJsonAsync<AccessKey>(response.Content, Outline.Utilities.commonJsonDeserializerOptions, cancellationToken);
                 if (accessKey is null)
-                    throw new Exception($"Error when deserializing access key for user {username} on group {group}'s Outline server: the result is null.");
+                    return $"Error when deserializing access key for user {username} on group {group}'s Outline server: the result is null.";
 
                 // Set username
                 var setNameResponse = await _apiClient.SetAccessKeyNameAsync(accessKey.Id, username, cancellationToken);

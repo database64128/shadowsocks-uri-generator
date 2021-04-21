@@ -77,7 +77,7 @@ namespace ShadowsocksUriGenerator
 
             UserDict.Add(newName, user);
 
-            var tasks = user.Memberships.Select(async x => await nodes.RenameUserInGroup(x.Key, oldName, newName, cancellationToken));
+            var tasks = user.Memberships.Select(x => nodes.RenameUserInGroup(x.Key, oldName, newName, cancellationToken));
             var results = await Task.WhenAll(tasks);
             var errMsgSB = new StringBuilder();
 
