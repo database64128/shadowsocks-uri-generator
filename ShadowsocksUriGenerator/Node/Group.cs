@@ -738,10 +738,12 @@ namespace ShadowsocksUriGenerator
 
             // Filter out access keys that are linked to a user.
             // This is important because later we need to access UserDict with key names.
+            // The result has to be freezed by calling .ToArray().
+            // Otherwise the query result will change after removal.
             var accessKeysLinkedToUser = OutlineAccessKeys.Where(x => users.UserDict.ContainsKey(x.Name));
             var targetAccessKeys = usernames.Length > 0
-                ? accessKeysLinkedToUser.Where(x => usernames.Contains(x.Name))
-                : accessKeysLinkedToUser;
+                ? accessKeysLinkedToUser.Where(x => usernames.Contains(x.Name)).ToArray()
+                : accessKeysLinkedToUser.ToArray();
 
             // Remove
             var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, cancellationToken)).ToList();
@@ -826,11 +828,7 @@ namespace ShadowsocksUriGenerator
                 }
 
                 // Save the new key to access key list
-                var index = OutlineAccessKeys.IndexOf(accessKey);
-                if (index != -1)
-                    OutlineAccessKeys[index] = accessKey;
-                else
-                    OutlineAccessKeys.Add(accessKey);
+                OutlineAccessKeys.Add(accessKey);
 
                 // Update existing member info or create a new one if nonexistent
                 // Do not update/save data limit since it could be user per-group limit
