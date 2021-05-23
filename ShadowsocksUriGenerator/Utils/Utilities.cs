@@ -12,8 +12,8 @@ namespace ShadowsocksUriGenerator
     {
         public static readonly JsonSerializerOptions commonJsonSerializerOptions = new()
         {
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            IgnoreReadOnlyProperties = true,
             WriteIndented = true,
         };
 
@@ -21,6 +21,7 @@ namespace ShadowsocksUriGenerator
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            IgnoreReadOnlyProperties = true,
             PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
             WriteIndented = true,
         };
