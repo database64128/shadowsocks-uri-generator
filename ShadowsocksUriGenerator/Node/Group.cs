@@ -459,6 +459,8 @@ namespace ShadowsocksUriGenerator
             OutlineServerInfo = null;
             OutlineAccessKeys = null;
             OutlineDataUsage = null;
+
+            CalculateTotalDataUsage();
         }
 
         /// <summary>
