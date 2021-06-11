@@ -17,6 +17,14 @@ namespace ShadowsocksUriGenerator
             WriteIndented = true,
         };
 
+        public static readonly JsonSerializerOptions dataJsonSerializerOptions = new()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+            IgnoreReadOnlyProperties = true,
+            WriteIndented = true,
+        };
+
         public static readonly JsonSerializerOptions snakeCaseJsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,

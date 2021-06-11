@@ -428,7 +428,7 @@ namespace ShadowsocksUriGenerator
         /// Null if no errors occurred.
         /// </returns>
         public static Task<string?> SaveUsersAsync(Users users, CancellationToken cancellationToken = default)
-            => Utilities.SaveJsonAsync("Users.json", users, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
+            => Utilities.SaveJsonAsync("Users.json", users, Utilities.dataJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the current object to the latest version.

@@ -27,13 +27,13 @@ namespace ShadowsocksUriGenerator.Rescue
 
             var usersErrMsg = await Utilities.SaveJsonAsync($"{configDir}Users.json",
                                                             users,
-                                                            Utilities.commonJsonSerializerOptions,
+                                                            Utilities.dataJsonSerializerOptions,
                                                             false,
                                                             false,
                                                             cancellationToken);
             var nodesErrMsg = await Utilities.SaveJsonAsync($"{configDir}Nodes.json",
                                                             nodes,
-                                                            Utilities.commonJsonSerializerOptions,
+                                                            Utilities.dataJsonSerializerOptions,
                                                             false,
                                                             false,
                                                             cancellationToken);
