@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
@@ -411,24 +412,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            var maxUsernameLength = users.UserDict.Select(x => x.Key.Length)
-                                                  .DefaultIfEmpty()
-                                                  .Max();
-            var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Memberships.Keys)
-                                                   .Select(x => x.Length)
-                                                   .DefaultIfEmpty()
-                                                   .Max();
-            var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Memberships.Values)
-                                                  .Select(x => x.Password.Length)
-                                                  .DefaultIfEmpty()
-                                                  .Max();
-            var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
-            var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-            var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
-
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
-            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
+            List<(string username, string group, string method, string password)> filteredCreds = new();
 
             foreach (var user in users.UserDict)
             {
@@ -440,11 +424,38 @@ namespace ShadowsocksUriGenerator.CLI
                     if (groups.Length > 0 && !groups.Contains(membership.Key))
                         continue;
 
-                    Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{membership.Key.PadRight(groupNameFieldWidth)}|{membership.Value.Method,-24}|{membership.Value.Password.PadRight(passwordFieldWidth)}|");
+                    filteredCreds.Add((user.Key, membership.Key, membership.Value.Method, membership.Value.Password));
                 }
             }
 
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, 24, passwordFieldWidth);
+            Console.WriteLine($"{"Credentials",-16}{filteredCreds.Count}");
+
+            if (filteredCreds.Count == 0)
+            {
+                return 0;
+            }
+
+            var maxUsernameLength = filteredCreds.Max(x => x.username.Length);
+            var maxGroupNameLength = filteredCreds.Max(x => x.group.Length);
+            var maxMethodLength = filteredCreds.Max(x => x.method.Length);
+            var maxPasswordLength = filteredCreds.Max(x => x.password.Length);
+
+            var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
+            var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+            var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
+            var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
+
+            Console.WriteLine();
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
+            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
+
+            foreach (var (username, group, method, password) in filteredCreds)
+            {
+                Console.WriteLine($"|{username.PadRight(usernameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{method.PadRight(methodFieldWidth)}|{password.PadRight(passwordFieldWidth)}|");
+            }
+
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
 
             return 0;
         }

@@ -327,32 +327,43 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            var maxUsernameLength = users.UserDict.Select(x => x.Key.Length)
-                                                  .DefaultIfEmpty()
-                                                  .Max();
-            var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Memberships.Values)
-                                                  .Select(x => x.Password.Length)
-                                                  .DefaultIfEmpty()
-                                                  .Max();
-            var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
-            var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
-
-            Console.WriteLine($"{"Group",-16}{group,-32}");
-            Console.WriteLine();
-
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
-            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+            List<(string username, string method, string password)> members = new();
 
             foreach (var user in users.UserDict)
             {
                 if (user.Value.Memberships.TryGetValue(group, out var memberinfo))
                 {
-                    Console.WriteLine($"|{user.Key.PadRight(usernameFieldWidth)}|{memberinfo.Method,-24}|{memberinfo.Password.PadRight(passwordFieldWidth)}|");
+                    members.Add((user.Key, memberinfo.Method, memberinfo.Password));
                 }
             }
 
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, 24, passwordFieldWidth);
+            Console.WriteLine($"{"Group",-16}{group}");
+            Console.WriteLine($"{"Members",-16}{members.Count}");
+
+            if (members.Count == 0)
+            {
+                return 0;
+            }
+
+            var maxUsernameLength = members.Max(x => x.username.Length);
+            var maxMethodLength = members.Max(x => x.method.Length);
+            var maxPasswordLength = members.Max(x => x.password.Length);
+
+            var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
+            var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
+            var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
+
+            Console.WriteLine();
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
+            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
+
+            foreach (var (username, method, password) in members)
+            {
+                Console.WriteLine($"|{username.PadRight(usernameFieldWidth)}|{method.PadRight(methodFieldWidth)}|{password.PadRight(passwordFieldWidth)}|");
+            }
+
+            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
 
             return 0;
         }
@@ -570,15 +581,10 @@ namespace ShadowsocksUriGenerator.CLI
                 return 0;
             }
 
-            var maxUsernameLength = groupCreds.Select(x => x.username.Length)
-                                              .DefaultIfEmpty()
-                                              .Max();
-            var maxMethodLength = groupCreds.Select(x => x.method.Length)
-                                            .DefaultIfEmpty()
-                                            .Max();
-            var maxPasswordLength = groupCreds.Select(x => x.password.Length)
-                                              .DefaultIfEmpty()
-                                              .Max();
+            var maxUsernameLength = groupCreds.Max(x => x.username.Length);
+            var maxMethodLength = groupCreds.Max(x => x.method.Length);
+            var maxPasswordLength = groupCreds.Max(x => x.password.Length);
+
             var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
             var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
             var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
