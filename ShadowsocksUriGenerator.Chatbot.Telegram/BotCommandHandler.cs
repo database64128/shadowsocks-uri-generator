@@ -321,46 +321,71 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 using var nodes = loadedNodes;
 
                 var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
-                var replyBuilder = new StringBuilder();
 
-                var maxNodeNameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Keys)
-                                                    .Select(x => x.Length)
-                                                    .DefaultIfEmpty()
-                                                    .Max();
-                var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
-                                                     .DefaultIfEmpty()
-                                                     .Max();
-                var maxHostnameLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values)
-                                                    .Select(x => x.Host.Length)
-                                                    .DefaultIfEmpty()
-                                                    .Max();
-                var maxPluginLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values)
-                                                  .Select(x => x.Plugin?.Length ?? 0)
-                                                  .DefaultIfEmpty()
-                                                  .Max();
-                var maxPluginOptsLength = nodes.Groups.SelectMany(x => x.Value.NodeDict.Values)
-                                                      .Select(x => x.PluginOpts?.Length ?? 0)
-                                                      .DefaultIfEmpty()
-                                                      .Max();
-                var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
-                var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-                var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
-                var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength + 2 : 8;
-                var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength + 2 : 16;
-
-                replyBuilder.AppendLine("```");
-                replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
-                replyBuilder.AppendLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
-                replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                List<(string group, string nodeName, Node node)> filteredNodes = new();
 
                 foreach (var groupEntry in nodes.Groups)
+                {
                     if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key)))
+                    {
                         foreach (var node in groupEntry.Value.NodeDict)
-                            replyBuilder.AppendLine($"|{(node.Value.Deactivated ? "🛑" : "✔"),7}|{node.Key.PadRight(nodeNameFieldWidth)}|{groupEntry.Key.PadRight(groupNameFieldWidth)}|{node.Value.Uuid,36}|{node.Value.Host.PadLeft(hostnameFieldWidth)}|{node.Value.Port,5}|{(node.Value.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{(node.Value.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
+                        {
+                            filteredNodes.Add((groupEntry.Key, node.Key, node.Value));
+                        }
+                    }
+                }
 
-                replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                var replyBuilder = new StringBuilder();
                 replyBuilder.AppendLine("```");
+                replyBuilder.AppendLine($"{"Nodes",-16}{filteredNodes.Count}");
 
+                if (filteredNodes.Count > 0)
+                {
+                    replyBuilder.AppendLine();
+
+                    var maxNodeNameLength = filteredNodes.Max(x => x.nodeName.Length);
+                    var maxGroupNameLength = filteredNodes.Max(x => x.group.Length);
+                    var maxHostnameLength = filteredNodes.Max(x => x.node.Host.Length);
+                    var maxPluginLength = filteredNodes.Max(x => x.node.Plugin?.Length);
+                    var maxPluginOptsLength = filteredNodes.Max(x => x.node.PluginOpts?.Length);
+
+                    var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
+                    var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+                    var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
+
+                    // Nodes have no plugins. Do not display plugin and plugin options columns.
+                    if (maxPluginLength is null && maxPluginOptsLength is null)
+                    {
+                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+                        replyBuilder.AppendLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|");
+                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+
+                        foreach (var (group, nodeName, node) in filteredNodes)
+                        {
+                            replyBuilder.AppendLine($"|{(node.Deactivated ? "🛑" : "✔"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|");
+                        }
+
+                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+                    }
+                    else // Nodes have plugins.
+                    {
+                        var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength.Value + 2 : 8;
+                        var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength.Value + 2 : 16;
+
+                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                        replyBuilder.AppendLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
+                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+
+                        foreach (var (group, nodeName, node) in filteredNodes)
+                        {
+                            replyBuilder.AppendLine($"|{(node.Deactivated ? "🛑" : "✔"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|{(node.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{(node.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
+                        }
+
+                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                    }
+                }
+
+                replyBuilder.AppendLine("```");
                 reply = replyBuilder.ToString();
                 Console.WriteLine(" Response: successful query.");
             }
@@ -1094,47 +1119,48 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 var username = userEntry.Value.Key;
-                if (userEntry.Value.Value.Memberships.Count > 0)
+                var user = userEntry.Value.Value;
+
+                List<(string group, string method, string password)> filteredCreds = new();
+
+                foreach (var membership in user.Memberships)
                 {
-                    var replyBuilder = new StringBuilder();
-                    var maxGroupNameLength = users.UserDict.SelectMany(x => x.Value.Memberships.Keys)
-                                                           .Select(x => x.Length)
-                                                           .DefaultIfEmpty()
-                                                           .Max();
-                    var maxPasswordLength = users.UserDict.SelectMany(x => x.Value.Memberships.Values)
-                                                          .Select(x => x.Password.Length)
-                                                          .DefaultIfEmpty()
-                                                          .Max();
+                    if (!string.IsNullOrEmpty(argument) && argument != membership.Key)
+                        continue;
+
+                    filteredCreds.Add((membership.Key, membership.Value.Method, membership.Value.Password));
+                }
+
+                var replyBuilder = new StringBuilder();
+                replyBuilder.AppendLine("```");
+                replyBuilder.AppendLine($"{"Credentials",-16}{filteredCreds.Count}");
+
+                if (filteredCreds.Count > 0)
+                {
+                    var maxGroupNameLength = filteredCreds.Max(x => x.group.Length);
+                    var maxMethodLength = filteredCreds.Max(x => x.method.Length);
+                    var maxPasswordLength = filteredCreds.Max(x => x.password.Length);
+
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+                    var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
                     var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
 
-                    replyBuilder.AppendLine("```");
-                    replyBuilder.AppendLine($"{"User",-16}{username,-32}");
                     replyBuilder.AppendLine();
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
+                    replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
 
-                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 24, passwordFieldWidth);
-                    replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Method",-24}|{"Password".PadRight(passwordFieldWidth)}|");
-                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 24, passwordFieldWidth);
-
-                    foreach (var membership in userEntry.Value.Value.Memberships)
+                    foreach (var (group, method, password) in filteredCreds)
                     {
-                        if (!string.IsNullOrEmpty(argument) && argument != membership.Key)
-                            continue;
-
-                        replyBuilder.AppendLine($"|{membership.Key.PadRight(groupNameFieldWidth)}|{membership.Value.Method,-24}|{membership.Value.Password.PadRight(passwordFieldWidth)}|");
+                        replyBuilder.AppendLine($"|{group.PadRight(groupNameFieldWidth)}|{method.PadRight(methodFieldWidth)}|{password.PadRight(passwordFieldWidth)}|");
                     }
 
-                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 24, passwordFieldWidth);
-                    replyBuilder.AppendLine("```");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
+                }
 
-                    reply = replyBuilder.ToString();
-                    Console.WriteLine(" Response: successful query.");
-                }
-                else
-                {
-                    reply = @"You have no credentials\.";
-                    Console.WriteLine(" Response: successful query.");
-                }
+                replyBuilder.AppendLine("```");
+                reply = replyBuilder.ToString();
+                Console.WriteLine(" Response: successful query.");
             }
             else
             {
