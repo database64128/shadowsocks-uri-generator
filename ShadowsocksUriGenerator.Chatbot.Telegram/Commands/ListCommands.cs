@@ -305,7 +305,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 {
                     if (user.Value.Memberships.ContainsKey(argument))
                     {
-                        memberListBuilder.AppendLine($"- {ChatHelper.EscapeMarkdownV2Plaintext(user.Key)}");
+                        memberListBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"- {user.Key}"));
                         memberCount++;
                     }
                 }

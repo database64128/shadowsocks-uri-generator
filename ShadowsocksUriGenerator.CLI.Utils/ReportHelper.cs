@@ -21,7 +21,7 @@ namespace ShadowsocksUriGenerator.CLI.Utils
                 if (bytesRemaining > 0UL)
                     groupSB.Append($",{bytesRemaining}\r\n");
                 else
-                    groupSB.Append("\r\n");
+                    groupSB.Append(",\r\n");
             }
 
             var userSB = new StringBuilder();
@@ -36,7 +36,7 @@ namespace ShadowsocksUriGenerator.CLI.Utils
                 if (bytesRemaining > 0UL)
                     userSB.Append($",{bytesRemaining}\r\n");
                 else
-                    userSB.Append("\r\n");
+                    userSB.Append(",\r\n");
             }
 
             return (groupSB.ToString(), userSB.ToString());
