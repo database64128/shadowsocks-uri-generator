@@ -1,16 +1,10 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
+﻿using ShadowsocksUriGenerator.Chatbot.Telegram.CLI;
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Telegram.Bot;
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Extensions.Polling;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram
 {
@@ -18,77 +12,31 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
     {
         static Task<int> Main(string[] args)
         {
+            var botTokenOption = new Option<string>("--bot-token", "Telegram bot token.");
+            var serviceNameOption = new Option<string>("--service-name", "Service name. Will be displayed in the welcome message.");
+            var usersCanSeeAllUsersOption = new Option<bool?>("--users-can-see-all-users", "Whether any registered user is allowed to see all registered users.");
+            var usersCanSeeAllGroups = new Option<bool?>("--users-can-see-all-groups", "Whether any registered user is allowed to see all groups.");
+            var usersCanSeeGroupDataUsage = new Option<bool?>("--users-can-see-group-data-usage", "Whether users are allowed to query group data usage metrics.");
+            var usersCanSeeGroupDataLimit = new Option<bool?>("--users-can-see-group-data-limit", "Whether users are allowed to see other group member's data limit.");
+            var allowChatAssociation = new Option<bool?>("--allow-chat-association", "Whether Telegram association through /link in chat is allowed.");
+
             var configGetCommand = new Command("get", "Get and print bot config.")
             {
-                Handler = CommandHandler.Create(
-                    async (CancellationToken cancellationToken) =>
-                    {
-                        var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
-                        if (loadBotConfigErrMsg is not null)
-                        {
-                            Console.WriteLine(loadBotConfigErrMsg);
-                            return 1;
-                        }
-
-                        ConsoleHelper.PrintTableBorder(28, 50);
-                        Console.WriteLine($"|{"Key",-28}|{"Value",50}|");
-                        ConsoleHelper.PrintTableBorder(28, 50);
-
-                        Console.WriteLine($"|{"Version",-28}|{botConfig.Version,50}|");
-                        Console.WriteLine($"|{"BotToken",-28}|{botConfig.BotToken,50}|");
-                        Console.WriteLine($"|{"UsersCanSeeAllUsers",-28}|{botConfig.UsersCanSeeAllUsers,50}|");
-                        Console.WriteLine($"|{"UsersCanSeeAllGroups",-28}|{botConfig.UsersCanSeeAllGroups,50}|");
-                        Console.WriteLine($"|{"UsersCanSeeGroupDataUsage",-28}|{botConfig.UsersCanSeeGroupDataUsage,50}|");
-                        Console.WriteLine($"|{"UsersCanSeeGroupDataLimit",-28}|{botConfig.UsersCanSeeGroupDataLimit,50}|");
-                        Console.WriteLine($"|{"AllowChatAssociation",-28}|{botConfig.AllowChatAssociation,50}|");
-
-                        ConsoleHelper.PrintTableBorder(28, 50);
-
-                        return 0;
-                    }),
+                Handler = CommandHandler.Create<CancellationToken>(ConfigCommand.Get),
             };
 
             var configSetCommand = new Command("set", "Change bot config.")
             {
-                Handler = CommandHandler.Create(
-                    async (string? botToken, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? usersCanSeeGroupDataLimit, bool? allowChatAssociation, CancellationToken cancellationToken) =>
-                    {
-                        var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
-                        if (loadBotConfigErrMsg is not null)
-                        {
-                            Console.WriteLine(loadBotConfigErrMsg);
-                            return 1;
-                        }
-
-                        if (!string.IsNullOrEmpty(botToken))
-                            botConfig.BotToken = botToken;
-                        if (usersCanSeeAllUsers is bool canSeeUsers)
-                            botConfig.UsersCanSeeAllUsers = canSeeUsers;
-                        if (usersCanSeeAllGroups is bool canSeeGroups)
-                            botConfig.UsersCanSeeAllGroups = canSeeGroups;
-                        if (usersCanSeeGroupDataUsage is bool canSeeGroupDataUsage)
-                            botConfig.UsersCanSeeGroupDataUsage = canSeeGroupDataUsage;
-                        if (usersCanSeeGroupDataLimit is bool canSeeGroupDataLimit)
-                            botConfig.UsersCanSeeGroupDataLimit = canSeeGroupDataLimit;
-                        if (allowChatAssociation is bool allowLinking)
-                            botConfig.AllowChatAssociation = allowLinking;
-
-                        var saveBotConfigErrMsg = await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
-                        if (saveBotConfigErrMsg is not null)
-                        {
-                            Console.WriteLine(loadBotConfigErrMsg);
-                            return 1;
-                        }
-
-                        return 0;
-                    }),
+                botTokenOption,
+                serviceNameOption,
+                usersCanSeeAllUsersOption,
+                usersCanSeeAllGroups,
+                usersCanSeeGroupDataUsage,
+                usersCanSeeGroupDataLimit,
+                allowChatAssociation,
             };
-            configSetCommand.AddOption(new Option<string?>("--bot-token", "The Telegram bot token."));
-            configSetCommand.AddOption(new Option<bool?>("--users-can-see-all-users", "Whether anyone is allowed to see every registered user."));
-            configSetCommand.AddOption(new Option<bool?>("--users-can-see-all-groups", "Whether anyone is allowed to see every group."));
-            configSetCommand.AddOption(new Option<bool?>("--users-can-see-group-data-usage", "Whether users are allowed to query group data usage metrics."));
-            configSetCommand.AddOption(new Option<bool?>("--users-can-see-group-data-limit", "Whether users are allowed to see other group member's data limit."));
-            configSetCommand.AddOption(new Option<bool?>("--allow-chat-association", "Whether Telegram association through /link in chat is allowed."));
+
+            configSetCommand.Handler = CommandHandler.Create<string, string, bool?, bool?, bool?, bool?, bool?, CancellationToken>(ConfigCommand.Set);
 
             var configCommand = new Command("config", "Print or change bot config.")
             {
@@ -100,81 +48,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             {
                 configCommand,
             };
+
             rootCommand.AddOption(new Option<string?>("--bot-token", "The Telegram bot token."));
-            rootCommand.Handler = CommandHandler.Create(
-                async (string? botToken, CancellationToken cancellationToken) =>
-                {
-                    var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
-                    if (loadBotConfigErrMsg is not null)
-                    {
-                        Console.WriteLine(loadBotConfigErrMsg);
-                        return 1;
-                    }
-
-                    // Priority: commandline option > environment variable > config file
-                    if (string.IsNullOrEmpty(botToken))
-                        botToken = Environment.GetEnvironmentVariable("TELEGRAM_BOT_TOKEN");
-                    if (string.IsNullOrEmpty(botToken))
-                        botToken = botConfig.BotToken;
-                    if (string.IsNullOrEmpty(botToken))
-                    {
-                        Console.WriteLine("No valid bot token is provided.");
-                        return -1;
-                    }
-
-                    try
-                    {
-                        var bot = new TelegramBotClient(botToken);
-                        Console.WriteLine("Created Telegram bot instance with API token");
-                        await bot.SetMyCommandsAsync(BotCommandHandler.BotCommands, cancellationToken);
-                        Console.WriteLine($"Registered {BotCommandHandler.BotCommands.Length} bot commands");
-                        var me = await bot.GetMeAsync(cancellationToken);
-                        Console.WriteLine($"Started Telegram bot: @{me.Username} ({me.Id})");
-                        await bot.ReceiveAsync(new DefaultUpdateHandler(HandleUpdateAsync, HandleErrorAsync), cancellationToken);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        Console.WriteLine($"Invalid access token: {ex.Message}");
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        Console.WriteLine($"A network error occurred: {ex.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
-
-                    return 0;
-                });
+            rootCommand.Handler = CommandHandler.Create<string, CancellationToken>(BotRunner.RunBot);
 
             Console.OutputEncoding = Encoding.UTF8;
             return rootCommand.InvokeAsync(args);
-        }
-
-        public static async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                if (update.Type == UpdateType.Message)
-                    await BotCommandHandler.Handle(botClient, update.Message, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                await HandleErrorAsync(botClient, ex, cancellationToken);
-            }
-        }
-
-        public static Task HandleErrorAsync(ITelegramBotClient botClient, Exception ex, CancellationToken cancellationToken = default)
-        {
-            var errorMessage = ex switch
-            {
-                ApiRequestException apiRequestException => $"Telegram API Error: [{apiRequestException.ErrorCode}] {apiRequestException.Message}",
-                _ => ex.ToString()
-            };
-
-            Console.WriteLine(errorMessage);
-            return Task.CompletedTask;
         }
     }
 }

@@ -22,6 +22,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         public string BotToken { get; set; } = "";
 
         /// <summary>
+        /// Gets or sets the name of the service.
+        /// The service name will be displayed in the welcome message.
+        /// </summary>
+        public string ServiceName { get; set; } = "";
+
+        /// <summary>
         /// Gets or sets whether to allow any user to
         /// see all registered users.
         /// Defaults to false.
