@@ -34,7 +34,10 @@ namespace ShadowsocksUriGenerator.CLI
 
             // collect data
             var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);
-            var totalBytesRemaining = nodes.Groups.Select(x => x.Value.BytesRemaining).Aggregate(0UL, (x, y) => x + y);
+            var totalBytesRemaining = nodes.Groups.All(x => x.Value.DataLimitInBytes > 0UL)
+                ? nodes.Groups.Select(x => x.Value.BytesRemaining).Aggregate(0UL, (x, y) => x + y)
+                : 0UL;
+
             var recordsByGroup = nodes.GetDataUsageByGroup();
             var recordsByUser = users.GetDataUsageByUser(nodes);
 

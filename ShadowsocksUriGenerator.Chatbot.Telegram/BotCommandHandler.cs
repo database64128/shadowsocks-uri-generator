@@ -1210,12 +1210,17 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
                 // collect data
                 var totalBytesUsed = nodes.Groups.Select(x => x.Value.BytesUsed).Aggregate(0UL, (x, y) => x + y);
-                var totalBytesRemaining = nodes.Groups.Select(x => x.Value.BytesRemaining).Aggregate(0UL, (x, y) => x + y);
+                var totalBytesRemaining = nodes.Groups.All(x => x.Value.DataLimitInBytes > 0UL)
+                    ? nodes.Groups.Select(x => x.Value.BytesRemaining).Aggregate(0UL, (x, y) => x + y)
+                    : 0UL;
+
                 var recordsByGroup = nodes.GetDataUsageByGroup();
                 var recordsByUser = users.GetDataUsageByUser(nodes);
+
                 // sort records
                 recordsByGroup = recordsByGroup.OrderByDescending(x => x.bytesUsed).ToList();
                 recordsByUser = recordsByUser.OrderByDescending(x => x.bytesUsed).ToList();
+
                 // calculate column width
                 var maxGroupNameLength = recordsByGroup.Select(x => x.group.Length)
                                                        .DefaultIfEmpty()
