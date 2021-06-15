@@ -13,7 +13,7 @@
     <img alt="AUR badge for ss-uri-gen-rescue-git" src="https://img.shields.io/aur/version/ss-uri-gen-rescue-git?label=AUR%20ss-uri-gen-rescue-git" />
 </a>
 
-A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of [Outline servers](https://github.com/Jigsaw-Code/outline-server). Deliver configurations to users with [SIP008](https://github.com/shadowsocks/shadowsocks-org/issues/89).
+A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of [Outline servers](https://github.com/Jigsaw-Code/outline-server). Deliver configurations to users with [Open Online Config (OOC)](https://github.com/Shadowsocks-NET/OpenOnlineConfig).
 
 ## Features
 
@@ -24,7 +24,7 @@ A light-weight command line automation tool for managing federated Shadowsocks s
 - Manage data usage limit on users and groups. Enforce data limit on Outline servers.
 - Generate [SIP002](https://shadowsocks.org/en/spec/SIP002-URI-Scheme.html) `ss://` URLs for users.
 - Support for [SIP003](https://shadowsocks.org/en/spec/Plugin.html) plugins.
-- Generate SIP008 online config files and delivery URLs.
+- Generate Open Online Config (OOC) v1 files and delivery URLs.
 - Run as a service to execute scheduled tasks.
 - Easy user interactions via [Telegram bots](https://core.telegram.org/bots).
 
@@ -115,10 +115,10 @@ $ ss-uri-gen user get-data-usage MyUserA
 # Get a group's data usage metrics.
 $ ss-uri-gen group get-data-usage MyGroupA
 
-# Generate SIP008-compliant online configuration files.
+# Generate Open Online Config (OOC) v1 files.
 $ ss-uri-gen online-config generate
 
-# Print all users' SIP008 delivery URLs.
+# Print all users' Open Online Config (OOC) v1 delivery URLs.
 $ ss-uri-gen online-config get-links
 
 # Associate a group with an Outline server.
