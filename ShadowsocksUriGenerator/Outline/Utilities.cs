@@ -6,7 +6,7 @@ namespace ShadowsocksUriGenerator.Outline
 {
     public static class Utilities
     {
-        public static readonly JsonSerializerOptions commonJsonSerializerOptions = new JsonSerializerOptions()
+        public static readonly JsonSerializerOptions commonJsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -14,7 +14,7 @@ namespace ShadowsocksUriGenerator.Outline
             WriteIndented = true,
         };
 
-        public static readonly JsonSerializerOptions apiKeyJsonSerializerOptions = new JsonSerializerOptions()
+        public static readonly JsonSerializerOptions apiKeyJsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
@@ -22,7 +22,7 @@ namespace ShadowsocksUriGenerator.Outline
             WriteIndented = false,
         };
 
-        public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new JsonSerializerOptions()
+        public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new()
         {
             AllowTrailingCommas = true,
             NumberHandling = JsonNumberHandling.AllowReadingFromString,

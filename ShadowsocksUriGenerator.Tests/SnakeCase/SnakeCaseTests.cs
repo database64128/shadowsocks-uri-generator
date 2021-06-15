@@ -29,7 +29,7 @@ namespace ShadowsocksUriGenerator.Tests.SnakeCase
 {
     public class SnakeCaseTests
     {
-        private static readonly JsonSerializerOptions s_snakeCaseAndIndentedOption = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions s_snakeCaseAndIndentedOption = new()
         {
             PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
             WriteIndented = true,
@@ -38,7 +38,7 @@ namespace ShadowsocksUriGenerator.Tests.SnakeCase
         [Fact]
         public void JsonSerializerSnakeCaseSettings()
         {
-            Person person = new Person();
+            Person person = new();
             person.BirthDate = new DateTime(2000, 11, 20, 23, 55, 44, DateTimeKind.Utc);
             person.LastModified = new DateTime(2000, 11, 20, 23, 55, 44, DateTimeKind.Utc);
             person.Name = "Name!";
@@ -68,7 +68,7 @@ namespace ShadowsocksUriGenerator.Tests.SnakeCase
         [Fact]
         public void BlogPostExample()
         {
-            Product product = new Product
+            Product product = new()
             {
                 ExpiryDate = new DateTime(2010, 12, 20, 18, 1, 0, DateTimeKind.Utc),
                 Name = "Widget",
