@@ -9,10 +9,9 @@ namespace ShadowsocksUriGenerator
     {
         /// <summary>
         /// Gets or sets the UUID of the node.
-        /// Used for online configuration delivery (SIP008).
         /// </summary>
-        public string Uuid { get; set; }
-        public string Host { get; set; }
+        public string Uuid { get; set; } = Guid.NewGuid().ToString();
+        public string Host { get; set; } = "";
         public int Port { get; set; }
         public string? Plugin { get; set; }
         public string? PluginOpts { get; set; }
@@ -29,14 +28,10 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         public Node()
         {
-            Uuid = Guid.NewGuid().ToString();
-            Host = "";
-            Port = 0;
         }
 
         public Node(string host, int port, string? plugin = null, string? pluginOpts = null)
         {
-            Uuid = Guid.NewGuid().ToString();
             Host = host;
             Port = port;
             Plugin = plugin;

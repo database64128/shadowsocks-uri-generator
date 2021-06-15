@@ -54,7 +54,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
             }
             else if (string.IsNullOrEmpty(argument))
             {
-                reply = "Please provide your user UUID as the command argument. You may find your user UUID from the JSON filename in your SIP008 delivery link.";
+                reply = "Please provide your user UUID as the command argument. You may find your user UUID from the JSON filename in your Open Online Config (OOC) v1 delivery link.";
                 Console.WriteLine(" Response: missing argument.");
             }
             else

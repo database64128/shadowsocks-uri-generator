@@ -90,11 +90,11 @@ namespace ShadowsocksUriGenerator.CLI
                 groupSetDataLimitCommand,
             };
 
-            var onlineConfigGenerateCommand = new Command("generate", "Generate SIP008-compliant online configuration delivery JSON files for specified or all users.");
-            var onlineConfigGetLinksCommand = new Command("get-links", "Get SIP008-compliant online configuration delivery URLs for specified or all users.");
+            var onlineConfigGenerateCommand = new Command("generate", "Generate Open Online Config (OOC) v1 delivery JSON files for specified or all users.");
+            var onlineConfigGetLinksCommand = new Command("get-links", "Get Open Online Config (OOC) v1 delivery URLs for specified or all users.");
             var onlineConfigCleanCommand = new Command("clean", "Clean online configuration files for specified or all users.");
 
-            var onlineConfigCommand = new Command("online-config", "Manage SIP008 online configuration.")
+            var onlineConfigCommand = new Command("online-config", "Manage Open Online Config (OOC).")
             {
                 onlineConfigGenerateCommand,
                 onlineConfigGetLinksCommand,
@@ -135,7 +135,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             var serviceCommand = new Command("service", "Run as a service to execute scheduled tasks.");
 
-            var rootCommand = new RootCommand("A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with SIP008.")
+            var rootCommand = new RootCommand("A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).")
             {
                 userCommand,
                 nodeCommand,
@@ -192,8 +192,8 @@ namespace ShadowsocksUriGenerator.CLI
             nodeCommand.AddAlias("n");
             groupCommand.AddAlias("g");
             onlineConfigCommand.AddAlias("oc");
+            onlineConfigCommand.AddAlias("ooc");
             onlineConfigCommand.AddAlias("online");
-            onlineConfigCommand.AddAlias("sip008");
             outlineServerCommand.AddAlias("os");
             outlineServerCommand.AddAlias("outline");
             reportCommand.AddAlias("r");
@@ -473,11 +473,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             settingsSetCommand.AddOption(new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report."));
             settingsSetCommand.AddOption(new Option<SortBy?>("--group-data-usage-default-sort-by", "The default sort rule for group data usage report."));
-            settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an SIP008 JSON should be sorted by server name."));
+            settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an Open Online Config (OOC) v1 JSON should be sorted by server name."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-deliver-by-group", "Whether online config should be delivered to each user by group. Turning this on will generate one online config JSON for each group associated with the user, in addition to the single JSON that contains all associated servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
             settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
-            settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for SIP008 online configuration delivery. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for Open Online Config (OOC) v1. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-data-limit-on-association", "Whether to apply the group's per-user data limit when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));

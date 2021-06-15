@@ -27,7 +27,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             new() { Command = "get_group_data_usage", Description = "Get data usage statistics of the specified group", },
             new() { Command = "get_group_data_limit", Description = "Get data limit settings of the specified group", },
             new() { Command = "get_ss_links", Description = "Get your ss:// links to all servers or servers from the specified group", },
-            new() { Command = "get_sip008_links", Description = "Get your SIP008 links", },
+            new() { Command = "get_oocv1_links", Description = "Get your Open Online Config (OOC) v1 links", },
             new() { Command = "get_credentials", Description = "Get your credentials to all servers or servers from the specified group", },
             new() { Command = "report", Description = "Generate server usage report", },
             new() { Command = "report_csv", Description = "Generate server usage report in CSV format", },

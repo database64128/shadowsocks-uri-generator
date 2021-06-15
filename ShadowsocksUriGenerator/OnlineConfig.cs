@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace ShadowsocksUriGenerator
 {
     /// <summary>
-    /// The class for online configuration delivery (SIP008).
+    /// The class for Open Online Config Version 1 (OOCv1).
     /// </summary>
     public class OnlineConfig
     {
@@ -40,7 +40,7 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Generates and saves SIP008 online configuration delivery files.
+        /// Generates and saves OOCv1 delivery files.
         /// </summary>
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
@@ -85,11 +85,11 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Generates SIP008 user configuration JSON for the specified user.
+        /// Generates OOCv1 delivery JSON for the specified user.
         /// </summary>
         /// <param name="userEntry">The specified user entry.</param>
         /// <param name="nodes">The object storing all nodes.</param>
-        /// <returns>The object of the user's SIP008 configuration.</returns>
+        /// <returns>The object of the user's OOCv1 configuration.</returns>
         public static Dictionary<string, OnlineConfig> GenerateForUser(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
         {
             var username = userEntry.Key;

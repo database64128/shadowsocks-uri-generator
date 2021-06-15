@@ -31,7 +31,7 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Gets or sets whether the generated servers list
-        /// in an SIP008 JSON should be sorted by server name.
+        /// in an OOCv1 JSON should be sorted by server name.
         /// Defaults to true.
         /// </summary>
         public bool OnlineConfigSortByName { get; set; } = true;
@@ -54,7 +54,7 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Gets or sets the output directory path
-        /// for online configuration delivery (SIP008).
+        /// for online configuration delivery (OOCv1).
         /// Must NOT end with '/' or '\'.
         /// Defaults to a randomly generated UUID.
         /// </summary>

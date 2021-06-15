@@ -6,7 +6,7 @@
     <Version>4.2.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Library</Product>
-    <Description>Library for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with SIP008.</Description>
+    <Description>Library for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC) v1.</Description>
     <Copyright>© 2021 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>

@@ -119,14 +119,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 var replyBuilder = new StringBuilder();
 
-                replyBuilder.AppendLine("SIP008 delivery link for all servers:");
+                replyBuilder.AppendLine("Open Online Config (OOC) v1 delivery link for all servers:");
                 replyBuilder.AppendLine();
                 replyBuilder.AppendLine($"{settings.OnlineConfigDeliveryRootUri}/{userEntry.Value.Value.Uuid}.json");
                 replyBuilder.AppendLine();
 
                 if (settings.OnlineConfigDeliverByGroup)
                 {
-                    replyBuilder.AppendLine("SIP008 delivery link by server group:");
+                    replyBuilder.AppendLine("Open Online Config (OOC) v1 delivery links by server group:");
                     replyBuilder.AppendLine();
 
                     foreach (var group in userEntry.Value.Value.Memberships.Keys)

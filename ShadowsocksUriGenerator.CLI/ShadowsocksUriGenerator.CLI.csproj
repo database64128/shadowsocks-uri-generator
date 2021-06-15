@@ -10,7 +10,7 @@
     <Version>4.2.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator CLI</Product>
-    <Description>A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with SIP008.</Description>
+    <Description>A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).</Description>
     <Copyright>© 2021 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
