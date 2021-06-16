@@ -21,6 +21,7 @@ A light-weight command line automation tool for managing federated Shadowsocks s
 - Deploy and manage [Outline servers](https://github.com/Jigsaw-Code/outline-server).
 - Retrieve user credentials automatically from Outline servers, or add credentials manually in plaintext or `base64url`.
 - Gather data usage statistics from Outline servers.
+- Generate data usage report and export as CSV.
 - Manage data usage limit on users and groups. Enforce data limit on Outline servers.
 - Generate [SIP002](https://shadowsocks.org/en/spec/SIP002-URI-Scheme.html) `ss://` URLs for users.
 - Support for [SIP003](https://shadowsocks.org/en/spec/Plugin.html) plugins.
@@ -132,6 +133,9 @@ $ ss-uri-gen outline-server pull MyGroupA
 
 # Deploy local configuration to Outline server.
 $ ss-uri-gen outline-server deploy MyGroupA
+
+# Generate data usage report and export as CSV to current directory.
+$ ss-uri-gen report --csv-outdir .
 
 # Set default user for Outline server's access key id 0.
 $ ss-uri-gen settings set --outline-server-global-default-user MyUserA

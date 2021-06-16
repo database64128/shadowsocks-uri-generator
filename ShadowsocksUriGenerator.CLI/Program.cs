@@ -186,7 +186,12 @@ namespace ShadowsocksUriGenerator.CLI
             var allUsersOption = new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Target all users.");
             var allNodesOption = new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Target all nodes in target group.");
             var allGroupsOption = new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Target all groups.");
+
             var sortByOption = new Option<SortBy?>("--sort-by", "Sort rule for data usage records.");
+            var userSortByOption = new Option<SortBy?>("--user-sort-by", "Sort rule for user data usage records.");
+            var groupSortByOption = new Option<SortBy?>("--group-sort-by", "Sort rule for group data usage records.");
+
+            var csvOutdirOption = new Option<string>("--csv-outdir", "Export as CSV to the specified directory.");
 
             userCommand.AddAlias("u");
             nodeCommand.AddAlias("n");
@@ -465,9 +470,10 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerRotatePasswordCommand.AddValidator(OutlineServerCommand.ValidateRotatePassword);
             outlineServerRotatePasswordCommand.Handler = CommandHandler.Create<string[], string[], CancellationToken>(OutlineServerCommand.RotatePassword);
 
-            reportCommand.AddOption(new Option<SortBy?>("--group-sort-by", "Sort rule for group data usage records."));
-            reportCommand.AddOption(new Option<SortBy?>("--user-sort-by", "Sort rule for user data usage records."));
-            reportCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, CancellationToken>(ReportCommand.Generate);
+            reportCommand.AddOption(groupSortByOption);
+            reportCommand.AddOption(userSortByOption);
+            reportCommand.AddOption(csvOutdirOption);
+            reportCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, string, CancellationToken>(ReportCommand.Generate);
 
             settingsGetCommand.Handler = CommandHandler.Create<CancellationToken>(SettingsCommand.Get);
 

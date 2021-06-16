@@ -1,5 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +9,7 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class ReportCommand
     {
-        public static async Task<int> Generate(SortBy? groupSortBy, SortBy? userSortBy, CancellationToken cancellationToken = default)
+        public static async Task<int> Generate(SortBy? groupSortBy, SortBy? userSortBy, string csvOutdir, CancellationToken cancellationToken = default)
         {
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)
@@ -52,9 +53,7 @@ namespace ShadowsocksUriGenerator.CLI
             var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
 
             // sort
-            var groupSortByInEffect = settings.GroupDataUsageDefaultSortBy;
-            if (groupSortBy is SortBy currentRunGroupSortBy)
-                groupSortByInEffect = currentRunGroupSortBy;
+            var groupSortByInEffect = groupSortBy ?? settings.GroupDataUsageDefaultSortBy;
             switch (groupSortByInEffect)
             {
                 case SortBy.DefaultAscending:
@@ -81,9 +80,8 @@ namespace ShadowsocksUriGenerator.CLI
                     recordsByGroup = recordsByGroup.OrderByDescending(x => x.bytesRemaining).ToList();
                     break;
             }
-            var userSortByInEffect = settings.UserDataUsageDefaultSortBy;
-            if (userSortBy is SortBy currentRunUserSortBy)
-                userSortByInEffect = currentRunUserSortBy;
+
+            var userSortByInEffect = userSortBy ?? settings.UserDataUsageDefaultSortBy;
             switch (userSortByInEffect)
             {
                 case SortBy.DefaultAscending:
@@ -158,6 +156,30 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"{string.Empty,16}|");
             }
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11, 16);
+
+            // CSV
+            if (!string.IsNullOrEmpty(csvOutdir))
+            {
+                var (dataUsageByGroup, dataUsageByUser) = ReportHelper.GenerateDataUsageCSV(recordsByGroup, recordsByUser);
+
+                try
+                {
+                    _ = Directory.CreateDirectory(csvOutdir);
+
+                    var writeDataUsageByGroupTask = File.WriteAllTextAsync($"{csvOutdir}/data-usage-by-group.csv", dataUsageByGroup, cancellationToken);
+                    var writeDataUsageByUserTask = File.WriteAllTextAsync($"{csvOutdir}/data-usage-by-user.csv", dataUsageByUser, cancellationToken);
+
+                    await Task.WhenAll(writeDataUsageByGroupTask, writeDataUsageByUserTask);
+
+                    Console.WriteLine();
+                    Console.WriteLine($"Written to {csvOutdir}/data-usage-by-group.csv");
+                    Console.WriteLine($"Written to {csvOutdir}/data-usage-by-user.csv");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error when saving CSV: {ex.Message}");
+                }
+            }
 
             return 0;
         }
