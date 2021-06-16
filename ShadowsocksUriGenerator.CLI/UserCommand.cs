@@ -561,6 +561,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
 
             Console.WriteLine($"{"User",-16}{username,-32}");
+
             if (users.UserDict.TryGetValue(username, out var user))
             {
                 Console.WriteLine($"{"Data used",-16}{Utilities.HumanReadableDataString(user.BytesUsed),-32}");
@@ -572,22 +573,37 @@ namespace ShadowsocksUriGenerator.CLI
 
             Console.WriteLine();
 
-            ConsoleHelper.PrintTableBorder(nameFieldWidth, 11, 16);
-
-            Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-
-            ConsoleHelper.PrintTableBorder(nameFieldWidth, 11, 16);
-
-            foreach (var (group, bytesUsed, bytesRemaining) in records)
+            if (records.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
             {
-                Console.Write($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
-                if (bytesRemaining != 0UL)
-                    Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
-                else
-                    Console.WriteLine($"{string.Empty,16}|");
-            }
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
+                Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|");
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
 
-            ConsoleHelper.PrintTableBorder(nameFieldWidth, 11, 16);
+                foreach (var (group, bytesUsed, _) in records)
+                {
+                    Console.WriteLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                }
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
+            }
+            else
+            {
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 11, 16);
+                Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 11, 16);
+
+                foreach (var (group, bytesUsed, bytesRemaining) in records)
+                {
+                    Console.Write($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+
+                    if (bytesRemaining != 0UL)
+                        Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                    else
+                        Console.WriteLine($"{string.Empty,16}|");
+                }
+
+                ConsoleHelper.PrintTableBorder(nameFieldWidth, 11, 16);
+            }
 
             return 0;
         }

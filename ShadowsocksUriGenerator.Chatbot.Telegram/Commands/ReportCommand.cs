@@ -76,12 +76,16 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 // total
                 var replyBuilder = new StringBuilder();
-                replyBuilder.AppendLine("*In the last 30 days*");
+
+                replyBuilder.AppendLine("In the last 30 days:");
                 replyBuilder.AppendLine();
+
                 if (totalBytesUsed != 0UL)
-                    replyBuilder.AppendLine($"*Total data used: {ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString(totalBytesUsed))}*");
+                    replyBuilder.AppendLine($"Total data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString(totalBytesUsed))}*");
+
                 if (totalBytesRemaining != 0UL)
-                    replyBuilder.AppendLine($"*Total data remaining: {ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString(totalBytesRemaining))}*");
+                    replyBuilder.AppendLine($"Total data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString(totalBytesRemaining))}*");
+
                 replyBuilder.AppendLine();
 
                 // CSV
@@ -99,15 +103,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     var sendDataUsageByGroup = botClient.SendTextFileFromStringAsync(message.Chat.Id,
                                                                                 "data-usage-by-group.csv",
                                                                                 dataUsageByGroup,
-                                                                                caption: "*Data usage by group*",
-                                                                                parseMode: ParseMode.MarkdownV2,
+                                                                                caption: "Data usage by group",
                                                                                 cancellationToken: cancellationToken);
 
                     var sendDataUsageByUser = botClient.SendTextFileFromStringAsync(message.Chat.Id,
                                                                                 "data-usage-by-user.csv",
                                                                                 dataUsageByUser,
-                                                                                caption: "*Data usage by user*",
-                                                                                parseMode: ParseMode.MarkdownV2,
+                                                                                caption: "Data usage by user",
                                                                                 cancellationToken: cancellationToken);
 
                     await Task.WhenAll(sendSummaryTask, sendDataUsageByGroup, sendDataUsageByUser);
@@ -117,44 +119,98 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 // by group
                 replyBuilder.AppendLine("*Data usage by group*");
                 replyBuilder.AppendLine("```");
-                replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
-                replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
-                foreach (var (group, bytesUsed, bytesRemaining) in recordsByGroup)
+
+                if (recordsByGroup.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
                 {
-                    replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
-                    if (bytesUsed != 0UL)
-                        replyBuilder.Append($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
-                    else
-                        replyBuilder.Append($"{string.Empty,11}|");
-                    if (bytesRemaining != 0UL)
-                        replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
-                    else
-                        replyBuilder.AppendLine($"{string.Empty,16}|");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 11);
+                    replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Data Used",11}|");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 11);
+
+                    foreach (var (group, bytesUsed, _) in recordsByGroup)
+                    {
+                        replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
+
+                        if (bytesUsed != 0UL)
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        else
+                            replyBuilder.AppendLine($"{string.Empty,11}|");
+                    }
+
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 11);
                 }
-                replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
+                else
+                {
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
+                    replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
+
+                    foreach (var (group, bytesUsed, bytesRemaining) in recordsByGroup)
+                    {
+                        replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
+
+                        if (bytesUsed != 0UL)
+                            replyBuilder.Append($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        else
+                            replyBuilder.Append($"{string.Empty,11}|");
+
+                        if (bytesRemaining != 0UL)
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        else
+                            replyBuilder.AppendLine($"{string.Empty,16}|");
+                    }
+
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 11, 16);
+                }
+
                 replyBuilder.AppendLine("```");
                 replyBuilder.AppendLine();
 
                 // by user
                 replyBuilder.AppendLine("*Data usage by user*");
                 replyBuilder.AppendLine("```");
-                replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
-                replyBuilder.AppendLine($"|{"User".PadRight(usernameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
-                foreach (var (username, bytesUsed, bytesRemaining) in recordsByUser)
+
+                if (recordsByUser.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
                 {
-                    replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
-                    if (bytesUsed != 0UL)
-                        replyBuilder.Append($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
-                    else
-                        replyBuilder.Append($"{string.Empty,11}|");
-                    if (bytesRemaining != 0UL)
-                        replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
-                    else
-                        replyBuilder.AppendLine($"{string.Empty,16}|");
+                    replyBuilder.AppendTableBorder(usernameFieldWidth, 11);
+                    replyBuilder.AppendLine($"|{"User".PadRight(usernameFieldWidth)}|{"Data Used",11}|");
+                    replyBuilder.AppendTableBorder(usernameFieldWidth, 11);
+
+                    foreach (var (username, bytesUsed, _) in recordsByUser)
+                    {
+                        replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
+
+                        if (bytesUsed != 0UL)
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        else
+                            replyBuilder.AppendLine($"{string.Empty,11}|");
+                    }
+
+                    replyBuilder.AppendTableBorder(usernameFieldWidth, 11);
                 }
-                replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
+                else
+                {
+                    replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
+                    replyBuilder.AppendLine($"|{"User".PadRight(usernameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
+                    replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
+
+                    foreach (var (username, bytesUsed, bytesRemaining) in recordsByUser)
+                    {
+                        replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
+
+                        if (bytesUsed != 0UL)
+                            replyBuilder.Append($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        else
+                            replyBuilder.Append($"{string.Empty,11}|");
+
+                        if (bytesRemaining != 0UL)
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        else
+                            replyBuilder.AppendLine($"{string.Empty,16}|");
+                    }
+
+                    replyBuilder.AppendTableBorder(usernameFieldWidth, 11, 16);
+                }
+
                 replyBuilder.AppendLine("```");
 
                 replyMarkdownV2 = replyBuilder.ToString();
