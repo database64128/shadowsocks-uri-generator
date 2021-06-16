@@ -17,9 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.CLI
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.CLI.Tests", "ShadowsocksUriGenerator.CLI.Tests\ShadowsocksUriGenerator.CLI.Tests.csproj", "{D035E8E4-F380-4607-9BC8-3F610ADF9F5D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Rescue.CLI", "ShadowsocksUriGenerator.Rescue.CLI\ShadowsocksUriGenerator.Rescue.CLI.csproj", "{46983015-7962-49F6-946E-7870E9C79026}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.Rescue.CLI", "ShadowsocksUriGenerator.Rescue.CLI\ShadowsocksUriGenerator.Rescue.CLI.csproj", "{46983015-7962-49F6-946E-7870E9C79026}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShadowsocksUriGenerator.Rescue", "ShadowsocksUriGenerator.Rescue\ShadowsocksUriGenerator.Rescue.csproj", "{AC66E10A-566C-419A-967F-FF363C62F8C2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ShadowsocksUriGenerator.Rescue", "ShadowsocksUriGenerator.Rescue\ShadowsocksUriGenerator.Rescue.csproj", "{AC66E10A-566C-419A-967F-FF363C62F8C2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
