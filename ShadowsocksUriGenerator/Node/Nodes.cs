@@ -93,46 +93,26 @@ namespace ShadowsocksUriGenerator
         /// <param name="group">Destination group name.</param>
         /// <param name="node">Node name</param>
         /// <param name="host">Node's host</param>
-        /// <param name="portString">Node's port string to be parsed.</param>
-        /// <param name="plugin">Optional. Plugin binary name.</param>
-        /// <param name="pluginOpts">Optional. Plugin options.</param>
-        /// <returns>
-        /// 0 if success.
-        /// -1 if a node with the same name already exists.
-        /// -2 if the group doesn't exist.
-        /// -3 if the port number is invalid.
-        /// </returns>
-        public int AddNodeToGroup(string group, string node, string host, string portString, string? plugin = null, string? pluginOpts = null)
-        {
-            if (int.TryParse(portString, out int port))
-                return AddNodeToGroup(group, node, host, port, plugin, pluginOpts);
-            else
-                return -3;
-        }
-
-
-        /// <summary>
-        /// Adds a node to a node group.
-        /// </summary>
-        /// <param name="group">Destination group name.</param>
-        /// <param name="node">Node name</param>
-        /// <param name="host">Node's host</param>
         /// <param name="port">Node's port number.</param>
         /// <param name="plugin">Optional. Plugin binary name.</param>
         /// <param name="pluginOpts">Optional. Plugin options.</param>
+        /// <param name="ownerUuid">Optional. Node owner's user UUID.</param>
+        /// <param name="tags">Node's tags.</param>
         /// <returns>
         /// 0 if success.
         /// -1 if a node with the same name already exists.
         /// -2 if the group doesn't exist.
         /// </returns>
-        public int AddNodeToGroup(string group, string node, string host, int port, string? plugin = null, string? pluginOpts = null)
+        public int AddNodeToGroup(string group, string node, string host, int port, string? plugin = null, string? pluginOpts = null, string? ownerUuid = null, params string[] tags)
         {
-            if (Groups.TryGetValue(group, out Group? targetGroup))
+            if (Groups.TryGetValue(group, out var targetGroup))
             {
-                return targetGroup.AddNode(node, host, port, plugin, pluginOpts);
+                return targetGroup.AddNode(node, host, port, plugin, pluginOpts, ownerUuid, tags);
             }
             else
+            {
                 return -2;
+            }
         }
 
         /// <summary>

@@ -70,23 +70,19 @@ namespace ShadowsocksUriGenerator.Tests
             nodes.AddGroup("A");
             nodes.AddGroup("B");
             nodes.AddGroup("C");
-            nodes.AddGroup("D");
-            nodes.AddGroup("E");
-            nodes.AddGroup("F");
-            nodes.AddGroup("G");
 
             // Add
             var successAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443);
             var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com");
+            var successAddWithOwnerAndTags = nodes.AddNodeToGroup("C", "MyNode2", "github.com", 443, null, null, "a2865866-5dc8-4eae-9772-692d10c274df", "direct", "US");
             var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443);
-            var badGroupAdd = nodes.AddNodeToGroup("H", "MyNode0", "github.com", 443);
-            var badPortAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", "https");
+            var badGroupAdd = nodes.AddNodeToGroup("D", "MyNode0", "github.com", 443);
 
             Assert.Equal(0, successAdd);
             Assert.Equal(0, successAddWithPlugin);
+            Assert.Equal(0, successAddWithOwnerAndTags);
             Assert.Equal(-1, duplicateAdd);
             Assert.Equal(-2, badGroupAdd);
-            Assert.Equal(-3, badPortAdd);
 
             Assert.True(nodes.Groups.ContainsKey("A"));
             Assert.True(nodes.Groups["A"].NodeDict.ContainsKey("MyNode0"));
@@ -102,10 +98,18 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal("v2ray-plugin", addedNodeInB.Plugin);
             Assert.Equal("server;tls;host=github.com", addedNodeInB.PluginOpts);
 
+            Assert.True(nodes.Groups.ContainsKey("C"));
+            Assert.True(nodes.Groups["C"].NodeDict.ContainsKey("MyNode2"));
+            var addedNodeInC = nodes.Groups["C"].NodeDict["MyNode2"];
+            Assert.Equal("github.com", addedNodeInC.Host);
+            Assert.Equal(443, addedNodeInC.Port);
+            Assert.Equal("a2865866-5dc8-4eae-9772-692d10c274df", addedNodeInC.OwnerUuid);
+            Assert.Equal(new string[] { "direct", "US", }, addedNodeInC.Tags);
+
             // Remove
             var successRemoval = nodes.RemoveNodeFromGroup("A", "MyNode0");
             var nonExistingNodeRemoval = nodes.RemoveNodeFromGroup("A", "MyNode1");
-            var nonExistingGroupRemoval = nodes.RemoveNodeFromGroup("H", "MyNode0");
+            var nonExistingGroupRemoval = nodes.RemoveNodeFromGroup("D", "MyNode0");
 
             Assert.Equal(0, successRemoval);
             Assert.Equal(-1, nonExistingNodeRemoval);

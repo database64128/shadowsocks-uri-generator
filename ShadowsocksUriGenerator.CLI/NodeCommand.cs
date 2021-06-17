@@ -10,29 +10,7 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class NodeCommand
     {
-        public static int ParsePortNumber(ArgumentResult argumentResult)
-        {
-            var portString = argumentResult.Tokens.Single().Value;
-            if (int.TryParse(portString, out var port))
-            {
-                if (port is > 0 and <= 65535)
-                {
-                    return port;
-                }
-                else
-                {
-                    argumentResult.ErrorMessage = "Port out of range: (0, 65535]";
-                    return default;
-                }
-            }
-            else
-            {
-                argumentResult.ErrorMessage = $"Invalid port number: {portString}";
-                return default;
-            }
-        }
-
-        public static string? ValidateAdd(CommandResult commandResult)
+        public static string? ValidateNodePlugin(CommandResult commandResult)
         {
             var hasPlugin = commandResult.Children.Contains("--plugin");
             var hasPluginOpts = commandResult.Children.Contains("--plugin-opts");
@@ -50,6 +28,8 @@ namespace ShadowsocksUriGenerator.CLI
             int port,
             string? plugin,
             string? pluginOpts,
+            string owner,
+            string[] tags,
             CancellationToken cancellationToken = default)
         {
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
@@ -66,7 +46,31 @@ namespace ShadowsocksUriGenerator.CLI
             if (string.IsNullOrEmpty(pluginOpts))
                 pluginOpts = null;
 
-            var result = nodes.AddNodeToGroup(group, nodename, host, port, plugin, pluginOpts);
+            // Retrieve owner user UUID.
+            string? ownerUuid = null;
+            if (!string.IsNullOrEmpty(owner))
+            {
+                var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+                if (loadUsersErrMsg is not null)
+                {
+                    Console.WriteLine(loadUsersErrMsg);
+                    return 1;
+                }
+
+                if (users.UserDict.TryGetValue(owner, out var targetUser))
+                {
+                    ownerUuid = targetUser.Uuid;
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: The specified owner {owner} is not a user. Skipping.");
+                }
+            }
+
+            // Deduplicate tags.
+            tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+
+            var result = nodes.AddNodeToGroup(group, nodename, host, port, plugin, pluginOpts, ownerUuid, tags);
             switch (result)
             {
                 case 0:
@@ -94,6 +98,128 @@ namespace ShadowsocksUriGenerator.CLI
             }
 
             return result;
+        }
+
+        public static async Task<int> Edit(
+            string group,
+            string nodename,
+            string host,
+            int port,
+            string plugin,
+            string pluginOpts,
+            bool unsetPlugin,
+            string owner,
+            bool unsetOwner,
+            bool clearTags,
+            string[] addTags,
+            string[] removeTags,
+            CancellationToken cancellationToken = default)
+        {
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (nodes.Groups.TryGetValue(group, out var targetGroup))
+            {
+                if (targetGroup.NodeDict.TryGetValue(nodename, out var node))
+                {
+                    if (!string.IsNullOrEmpty(host))
+                        node.Host = host;
+
+                    if (port > 0)
+                        node.Port = port;
+
+                    if (!string.IsNullOrEmpty(plugin))
+                        node.Plugin = plugin;
+
+                    if (!string.IsNullOrEmpty(pluginOpts))
+                        node.PluginOpts = pluginOpts;
+
+                    if (unsetPlugin)
+                    {
+                        node.Plugin = null;
+                        node.PluginOpts = null;
+                    }
+
+                    if (!string.IsNullOrEmpty(owner))
+                    {
+                        var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+                        if (loadUsersErrMsg is not null)
+                        {
+                            Console.WriteLine(loadUsersErrMsg);
+                            return 1;
+                        }
+
+                        if (users.UserDict.TryGetValue(owner, out var targetUser))
+                        {
+                            node.OwnerUuid = targetUser.Uuid;
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Warning: The specified owner {owner} is not a user. Skipping.");
+                        }
+                    }
+
+                    if (unsetOwner)
+                    {
+                        node.OwnerUuid = null;
+                    }
+
+                    if (clearTags)
+                    {
+                        node.Tags.Clear();
+                    }
+
+                    if (addTags.Length > 0)
+                    {
+                        foreach (var tag in addTags)
+                        {
+                            if (node.Tags.Exists(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                Console.WriteLine($"Warning: Tag {tag} already exists. Skipping.");
+                            }
+                            else
+                            {
+                                node.Tags.Add(tag);
+                            }
+                        }
+                    }
+
+                    if (removeTags.Length > 0)
+                    {
+                        foreach (var tag in removeTags)
+                        {
+                            if (node.Tags.RemoveAll(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)) == 0)
+                            {
+                                Console.WriteLine($"Warning: Tag {tag} doesn't exist.");
+                            }
+                        }
+                    }
+
+                    var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+                    if (saveNodesErrMsg is not null)
+                    {
+                        Console.WriteLine(saveNodesErrMsg);
+                        return 1;
+                    }
+
+                    return 0;
+                }
+                else
+                {
+                    Console.WriteLine($"Error: Node {nodename} doesn't exist.");
+                    return -1;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                return -2;
+            }
         }
 
         public static async Task<int> Rename(string group, string oldName, string newName, CancellationToken cancellationToken = default)
@@ -263,6 +389,81 @@ namespace ShadowsocksUriGenerator.CLI
                 }
 
                 ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+            }
+
+            return 0;
+        }
+
+        public static async Task<int> ListAnnotations(string[] groups, bool onePerLine, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            foreach (var groupEntry in nodes.Groups)
+            {
+                if (groups.Length > 0 && !groups.Contains(groupEntry.Key))
+                    continue;
+
+                foreach (var nodeEntry in groupEntry.Value.NodeDict)
+                {
+                    string? owner = null;
+                    var tags = nodeEntry.Value.Tags;
+
+                    // Resolve owner username
+                    if (nodeEntry.Value.OwnerUuid is string ownerUuid)
+                    {
+                        owner = users.UserDict.Where(x => x.Value.Uuid == ownerUuid)
+                                              .Select(x => x.Key)
+                                              .FirstOrDefault();
+                    }
+
+                    if (!onePerLine) // Full format
+                    {
+                        Console.WriteLine($"Group: {groupEntry.Key}");
+                        Console.WriteLine($"Node:  {nodeEntry.Key}");
+
+                        if (!string.IsNullOrEmpty(owner))
+                        {
+                            Console.WriteLine($"Owner: {owner} ({nodeEntry.Value.OwnerUuid})");
+                        }
+                        else
+                        {
+                            Console.WriteLine("Owner: N/A");
+                        }
+
+                        Console.WriteLine($"Tags:  {tags.Count}");
+
+                        foreach (var tag in tags)
+                        {
+                            Console.WriteLine($"- {tag}");
+                        }
+
+                        Console.WriteLine();
+                    }
+                    else // One node per line
+                    {
+                        Console.Write($"Group {groupEntry.Key} Node {nodeEntry.Key} Owner {owner} Tags {tags.Count}");
+
+                        foreach (var tag in tags)
+                        {
+                            Console.Write($" {tag}");
+                        }
+
+                        Console.WriteLine();
+                    }
+                }
             }
 
             return 0;

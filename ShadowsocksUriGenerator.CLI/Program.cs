@@ -43,20 +43,24 @@ namespace ShadowsocksUriGenerator.CLI
             };
 
             var nodeAddCommand = new Command("add", "Add a node to a group.");
+            var nodeEditCommand = new Command("edit", "Edit an existing node in a group.");
             var nodeRenameCommand = new Command("rename", "Rename an existing node with a new name.");
-            var nodeActivateCommand = new Command("activate", "Activate a deactivated node to include it in delivery.");
-            var nodeDeactivateCommand = new Command("deactivate", "Deactivate a node to exclude it from delivery.");
             var nodeRemoveCommand = new Command("remove", "Remove nodes from a group.");
             var nodeListCommand = new Command("list", "List nodes from the specified group or all groups.");
+            var nodeListAnnotationsCommand = new Command("list-annotations", "List annotations (ownership and tags) on nodes from the specified group or all groups.");
+            var nodeActivateCommand = new Command("activate", "Activate a deactivated node to include it in delivery.");
+            var nodeDeactivateCommand = new Command("deactivate", "Deactivate a node to exclude it from delivery.");
 
             var nodeCommand = new Command("node", "Manage nodes.")
             {
                 nodeAddCommand,
+                nodeEditCommand,
                 nodeRenameCommand,
-                nodeActivateCommand,
-                nodeDeactivateCommand,
                 nodeRemoveCommand,
                 nodeListCommand,
+                nodeListAnnotationsCommand,
+                nodeActivateCommand,
+                nodeDeactivateCommand,
             };
 
             var groupAddCommand = new Command("add", "Add groups.");
@@ -149,9 +153,14 @@ namespace ShadowsocksUriGenerator.CLI
             };
 
             var usernameArgument = new Argument<string>("username", "Target user.");
+            var nodenameArgument = new Argument<string>("nodename", "Name of the node.");
             var groupArgument = new Argument<string>("group", "Target group.");
+
             var oldNameArgument = new Argument<string>("oldName", "Current name.");
             var newNameArgument = new Argument<string>("newName", "New name.");
+
+            var hostArgument = new Argument<string>("host", "Hostname of the node.");
+            var portArgument = new Argument<int>("port", Parsers.ParsePortNumber, false, "Port number of the node.");
 
             var usernamesArgumentZeroOrMore = new Argument<string[]>("usernames", "Zero or more usernames.");
             var nodenamesArgumentZeroOrMore = new Argument<string[]>("nodenames", "Zero or more node names.");
@@ -172,6 +181,20 @@ namespace ShadowsocksUriGenerator.CLI
 
             var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
             var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
+
+            var hostOption = new Option<string>("--host", "Hostname of the node.");
+            var portOption = new Option<int>("--port", Parsers.ParsePortNumber, false, "Port number of the node.");
+            var pluginOption = new Option<string>("--plugin", "Plugin binary name of the node.");
+            var pluginOptsOption = new Option<string>("--plugin-opts", "Plugin options of the node.");
+            var unsetPluginOption = new Option<bool>("--unset-plugin", "Remove plugin and plugin options from the node.");
+
+            var ownerOption = new Option<string>("--owner", "Owner of the node.");
+            var unsetOwnerOption = new Option<bool>("--unset-owner", "Unset node owner.");
+
+            var tagsOption = new Option<string[]>("--tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.");
+            var addTagsOption = new Option<string[]>("--add-tags", "Tags to add to the node. Will be deduplicated in a case-insensitive manner.");
+            var removeTagsOption = new Option<string[]>("--remove-tags", "Tags to remove from the node. Matched in a case-insensitive manner.");
+            var clearTagsOption = new Option<bool>("--clear-tags", "Remove all tags from the node.");
 
             var methodOption = new Option<string>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
             var passwordOption = new Option<string>("--password", "The password. Use with --method.");
@@ -290,13 +313,31 @@ namespace ShadowsocksUriGenerator.CLI
 
             nodeAddCommand.AddAlias("a");
             nodeAddCommand.AddArgument(groupArgument);
-            nodeAddCommand.AddArgument(new Argument<string>("nodename", "Name of the new node."));
-            nodeAddCommand.AddArgument(new Argument<string>("host", "Hostname of the new node."));
-            nodeAddCommand.AddArgument(new Argument<int>("portString", NodeCommand.ParsePortNumber, false, "Port number of the new node."));
-            nodeAddCommand.AddOption(new Option<string>("--plugin", "Plugin binary name of the new node."));
-            nodeAddCommand.AddOption(new Option<string>("--plugin-opts", "Plugin options of the new node."));
-            nodeAddCommand.AddValidator(NodeCommand.ValidateAdd);
-            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, CancellationToken>(NodeCommand.Add);
+            nodeAddCommand.AddArgument(nodenameArgument);
+            nodeAddCommand.AddArgument(hostArgument);
+            nodeAddCommand.AddArgument(portArgument);
+            nodeAddCommand.AddOption(pluginOption);
+            nodeAddCommand.AddOption(pluginOptsOption);
+            nodeAddCommand.AddOption(ownerOption);
+            nodeAddCommand.AddOption(tagsOption);
+            nodeAddCommand.AddValidator(NodeCommand.ValidateNodePlugin);
+            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, string, string[], CancellationToken>(NodeCommand.Add);
+
+            nodeEditCommand.AddAlias("e");
+            nodeEditCommand.AddArgument(groupArgument);
+            nodeEditCommand.AddArgument(nodenameArgument);
+            nodeEditCommand.AddOption(hostOption);
+            nodeEditCommand.AddOption(portOption);
+            nodeEditCommand.AddOption(pluginOption);
+            nodeEditCommand.AddOption(pluginOptsOption);
+            nodeEditCommand.AddOption(unsetPluginOption);
+            nodeEditCommand.AddOption(ownerOption);
+            nodeEditCommand.AddOption(unsetOwnerOption);
+            nodeEditCommand.AddOption(clearTagsOption);
+            nodeEditCommand.AddOption(addTagsOption);
+            nodeEditCommand.AddOption(removeTagsOption);
+            nodeEditCommand.AddValidator(NodeCommand.ValidateNodePlugin);
+            nodeEditCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, bool, string, bool, bool, string[], string[], CancellationToken>(NodeCommand.Edit);
 
             nodeRenameCommand.AddArgument(groupArgument);
             nodeRenameCommand.AddArgument(oldNameArgument);
@@ -316,6 +357,12 @@ namespace ShadowsocksUriGenerator.CLI
             nodeListCommand.AddOption(namesOnlyOption);
             nodeListCommand.AddOption(onePerLineOption);
             nodeListCommand.Handler = CommandHandler.Create<string[], bool, bool, CancellationToken>(NodeCommand.List);
+
+            nodeListAnnotationsCommand.AddAlias("la");
+            nodeListAnnotationsCommand.AddAlias("lsa");
+            nodeListAnnotationsCommand.AddArgument(groupsArgumentZeroOrMore);
+            nodeListAnnotationsCommand.AddOption(onePerLineOption);
+            nodeListAnnotationsCommand.Handler = CommandHandler.Create<string[], bool, CancellationToken>(NodeCommand.ListAnnotations);
 
             nodeActivateCommand.AddAlias("enable");
             nodeActivateCommand.AddAlias("unhide");

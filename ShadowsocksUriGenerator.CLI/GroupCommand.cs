@@ -605,13 +605,6 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static async Task<int> GetDataUsage(string group, SortBy? sortBy, CancellationToken cancellationToken = default)
         {
-            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
-            if (loadUsersErrMsg is not null)
-            {
-                Console.WriteLine(loadUsersErrMsg);
-                return 1;
-            }
-
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
             if (loadNodesErrMsg is not null)
             {

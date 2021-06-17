@@ -60,6 +60,11 @@ namespace ShadowsocksUriGenerator
         public ulong BytesRemaining { get; set; }
 
         /// <summary>
+        /// Gets or sets the group's owner.
+        /// </summary>
+        public string? OwnerUuid { get; set; }
+
+        /// <summary>
         /// Gets or sets the Node Dictionary.
         /// key is node name.
         /// value is node info.
@@ -80,19 +85,21 @@ namespace ShadowsocksUriGenerator
         private bool disposedValue;
 
         /// <summary>
-        /// Adds a node to <see cref="NodeDict"/>
+        /// Adds a node to <see cref="NodeDict"/>.
         /// </summary>
         /// <param name="name">Node name.</param>
-        /// <param name="host">Node's host</param>
-        /// <param name="port">Node's port number</param>
+        /// <param name="host">Node's hostname.</param>
+        /// <param name="port">Node's port number.</param>
         /// <param name="plugin">Optional. Plugin binary name.</param>
         /// <param name="pluginOpts">Optional. Plugin options.</param>
+        /// <param name="ownerUuid">Optional. Node owner's user UUID.</param>
+        /// <param name="tags">Node's tags.</param>
         /// <returns>0 for success. -1 for duplicated name.</returns>
-        public int AddNode(string name, string host, int port, string? plugin = null, string? pluginOpts = null)
+        public int AddNode(string name, string host, int port, string? plugin = null, string? pluginOpts = null, string? ownerUuid = null, params string[] tags)
         {
             if (!NodeDict.ContainsKey(name))
             {
-                var node = new Node(host, port, plugin, pluginOpts);
+                var node = new Node(host, port, plugin, pluginOpts, ownerUuid, tags);
                 NodeDict.Add(name, node);
                 return 0;
             }

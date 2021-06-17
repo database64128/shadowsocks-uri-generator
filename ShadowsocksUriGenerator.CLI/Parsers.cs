@@ -10,6 +10,34 @@ namespace ShadowsocksUriGenerator.CLI
     public static class Parsers
     {
         /// <summary>
+        /// Parses the string representation of the port number
+        /// into an integer representation.
+        /// </summary>
+        /// <param name="argumentResult">The argument result.</param>
+        /// <returns>The integer representation of the port number.</returns>
+        public static int ParsePortNumber(ArgumentResult argumentResult)
+        {
+            var portString = argumentResult.Tokens.Single().Value;
+            if (int.TryParse(portString, out var port))
+            {
+                if (port is > 0 and <= 65535)
+                {
+                    return port;
+                }
+                else
+                {
+                    argumentResult.ErrorMessage = "Port out of range: (0, 65535]";
+                    return default;
+                }
+            }
+            else
+            {
+                argumentResult.ErrorMessage = $"Invalid port number: {portString}";
+                return default;
+            }
+        }
+
+        /// <summary>
         /// Parses the Shadowsocks AEAD method string
         /// into the unified form.
         /// </summary>
