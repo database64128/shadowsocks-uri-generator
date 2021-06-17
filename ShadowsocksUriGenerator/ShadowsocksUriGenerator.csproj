@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>4.2.0</Version>
+    <Version>4.3.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Library</Product>
     <Description>Library for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).</Description>
