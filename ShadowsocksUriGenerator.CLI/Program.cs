@@ -64,6 +64,7 @@ namespace ShadowsocksUriGenerator.CLI
             };
 
             var groupAddCommand = new Command("add", "Add groups.");
+            var groupEditCommand = new Command("edit", "Edit groups.");
             var groupRenameCommand = new Command("rename", "Renames an existing group with a new name.");
             var groupRemoveCommand = new Command("remove", "Remove groups and its nodes.");
             var groupListCommand = new Command("list", "List all groups.");
@@ -80,6 +81,7 @@ namespace ShadowsocksUriGenerator.CLI
             var groupCommand = new Command("group", "Manage groups.")
             {
                 groupAddCommand,
+                groupEditCommand,
                 groupRenameCommand,
                 groupRemoveCommand,
                 groupListCommand,
@@ -188,8 +190,8 @@ namespace ShadowsocksUriGenerator.CLI
             var pluginOptsOption = new Option<string>("--plugin-opts", "Plugin options of the node.");
             var unsetPluginOption = new Option<bool>("--unset-plugin", "Remove plugin and plugin options from the node.");
 
-            var ownerOption = new Option<string>("--owner", "Owner of the node.");
-            var unsetOwnerOption = new Option<bool>("--unset-owner", "Unset node owner.");
+            var ownerOption = new Option<string>("--owner", "Set the owner.");
+            var unsetOwnerOption = new Option<bool>("--unset-owner", "Unset the owner.");
 
             var tagsOption = new Option<string[]>("--tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.");
             var addTagsOption = new Option<string[]>("--add-tags", "Tags to add to the node. Will be deduplicated in a case-insensitive manner.");
@@ -382,7 +384,14 @@ namespace ShadowsocksUriGenerator.CLI
 
             groupAddCommand.AddAlias("a");
             groupAddCommand.AddArgument(groupsArgumentOneOrMore);
-            groupAddCommand.Handler = CommandHandler.Create<string[], CancellationToken>(GroupCommand.Add);
+            groupAddCommand.AddOption(ownerOption);
+            groupAddCommand.Handler = CommandHandler.Create<string[], string, CancellationToken>(GroupCommand.Add);
+
+            groupEditCommand.AddAlias("e");
+            groupEditCommand.AddArgument(groupsArgumentOneOrMore);
+            groupEditCommand.AddOption(ownerOption);
+            groupEditCommand.AddOption(unsetOwnerOption);
+            groupEditCommand.Handler = CommandHandler.Create<string[], string, bool, CancellationToken>(GroupCommand.Edit);
 
             groupRenameCommand.AddArgument(oldNameArgument);
             groupRenameCommand.AddArgument(newNameArgument);

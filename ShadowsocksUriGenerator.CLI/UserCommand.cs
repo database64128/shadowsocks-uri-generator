@@ -134,16 +134,20 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            if (namesOnly)
+            Console.WriteLine($"Users: {users.UserDict.Count}");
+
+            if (users.UserDict.Count == 0)
             {
-                var usernames = users.UserDict.Keys.ToList();
-                ConsoleHelper.PrintNameList(usernames, onePerLine);
                 return 0;
             }
 
-            var maxNameLength = users.UserDict.Select(x => x.Key.Length)
-                                              .DefaultIfEmpty()
-                                              .Max();
+            if (namesOnly)
+            {
+                ConsoleHelper.PrintNameList(users.UserDict.Keys, onePerLine);
+                return 0;
+            }
+
+            var maxNameLength = users.UserDict.Max(x => x.Key.Length);
             var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
             ConsoleHelper.PrintTableBorder(nameFieldWidth, 36, 18);
@@ -151,7 +155,9 @@ namespace ShadowsocksUriGenerator.CLI
             ConsoleHelper.PrintTableBorder(nameFieldWidth, 36, 18);
 
             foreach (var user in users.UserDict)
+            {
                 Console.WriteLine($"|{user.Key.PadRight(nameFieldWidth)}|{user.Value.Uuid,36}|{user.Value.Memberships.Count,18}|");
+            }
 
             ConsoleHelper.PrintTableBorder(nameFieldWidth, 36, 18);
 

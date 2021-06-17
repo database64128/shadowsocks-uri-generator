@@ -10,7 +10,7 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class GroupCommand
     {
-        public static async Task<int> Add(string[] groups, CancellationToken cancellationToken = default)
+        public static async Task<int> Add(string[] groups, string owner, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
 
@@ -22,9 +22,30 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
+            // Retrieve owner user UUID.
+            string? ownerUuid = null;
+            if (!string.IsNullOrEmpty(owner))
+            {
+                var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+                if (loadUsersErrMsg is not null)
+                {
+                    Console.WriteLine(loadUsersErrMsg);
+                    return 1;
+                }
+
+                if (users.UserDict.TryGetValue(owner, out var targetUser))
+                {
+                    ownerUuid = targetUser.Uuid;
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: The specified owner {owner} is not a user. Skipping.");
+                }
+            }
+
             foreach (var group in groups)
             {
-                var result = nodes.AddGroup(group);
+                var result = nodes.AddGroup(group, ownerUuid);
                 switch (result)
                 {
                     case 0:
@@ -38,6 +59,73 @@ namespace ShadowsocksUriGenerator.CLI
                         break;
                 }
                 commandResult += result;
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
+            return commandResult;
+        }
+
+        public static async Task<int> Edit(string[] groups, string owner, bool unsetOwner, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            // Retrieve owner user UUID.
+            string? ownerUuid = null;
+            if (!string.IsNullOrEmpty(owner))
+            {
+                if (users.UserDict.TryGetValue(owner, out var targetUser))
+                {
+                    ownerUuid = targetUser.Uuid;
+                }
+                else
+                {
+                    Console.WriteLine($"Error: The specified owner {owner} is not a user.");
+                    return -1;
+                }
+            }
+
+            var commandResult = 0;
+
+            foreach (var group in groups)
+            {
+                if (nodes.Groups.TryGetValue(group, out var targetGroup))
+                {
+                    if (ownerUuid is not null)
+                    {
+                        targetGroup.OwnerUuid = ownerUuid;
+                        Console.WriteLine($"Set user {owner} as owner of group {group}.");
+                    }
+
+                    if (unsetOwner)
+                    {
+                        targetGroup.OwnerUuid = null;
+                        Console.WriteLine($"Unset owner of group {group}.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Error: Group {group} doesn't exist.");
+                    commandResult -= 2;
+                }
             }
 
             var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
@@ -151,6 +239,13 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static async Task<int> List(bool namesOnly, bool onePerLine, CancellationToken cancellationToken = default)
         {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
             if (loadNodesErrMsg is not null)
             {
@@ -159,32 +254,53 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            if (namesOnly)
+            List<(string group, int nodesCount, string? owner, string? outlineServerName)> groups = new();
+
+            foreach (var groupEntry in nodes.Groups)
             {
-                var names = nodes.Groups.Keys.ToList();
-                ConsoleHelper.PrintNameList(names, onePerLine);
+                var group = groupEntry.Key;
+                var nodesCount = groupEntry.Value.NodeDict.Count;
+                var ownerUuid = groupEntry.Value.OwnerUuid;
+                var owner = users.UserDict.Where(x => x.Value.Uuid == ownerUuid)
+                                          .Select(x => x.Key)
+                                          .FirstOrDefault();
+                var outlineServerName = groupEntry.Value.OutlineServerInfo?.Name;
+
+                groups.Add((group, nodesCount, owner, outlineServerName));
+            }
+
+            Console.WriteLine($"Groups: {groups.Count}");
+
+            if (groups.Count == 0)
+            {
                 return 0;
             }
 
-            var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
-                                                 .DefaultIfEmpty()
-                                                 .Max();
-            var maxOutlineServerNameLength = nodes.Groups.Select(x => x.Value.OutlineServerInfo?.Name.Length ?? 0)
-                                                         .DefaultIfEmpty()
-                                                         .Max();
-            var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-            var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
-
-            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
-            Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
-            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
-
-            foreach (var group in nodes.Groups)
+            if (namesOnly)
             {
-                Console.WriteLine($"|{group.Key.PadRight(groupNameFieldWidth)}|{group.Value.NodeDict.Count,16}|{(group.Value.OutlineServerInfo?.Name ?? "No").PadLeft(outlineServerNameFieldWidth)}|");
+                var groupNames = groups.Select(x => x.group);
+                ConsoleHelper.PrintNameList(groupNames, onePerLine);
+                return 0;
             }
 
-            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+            var maxGroupNameLength = groups.Max(x => x.group.Length);
+            var maxOwnerNameLength = groups.Max(x => x.owner?.Length ?? 0);
+            var maxOutlineServerNameLength = groups.Max(x => x.outlineServerName?.Length ?? 0);
+
+            var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+            var ownerNameFieldWidth = maxOwnerNameLength > 5 ? maxOwnerNameLength + 2 : 7;
+            var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
+
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
+            Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Owner".PadLeft(ownerNameFieldWidth)}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
+
+            foreach (var (group, nodesCount, owner, outlineServerName) in groups)
+            {
+                Console.WriteLine($"|{group.PadRight(groupNameFieldWidth)}|{nodesCount,16}|{(owner ?? "N/A").PadLeft(ownerNameFieldWidth)}|{(outlineServerName ?? "N/A").PadLeft(outlineServerNameFieldWidth)}|");
+            }
+
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
 
             return 0;
         }

@@ -321,8 +321,10 @@ namespace ShadowsocksUriGenerator.CLI
                     if (groups.Length > 0 && !groups.Contains(groupEntry.Key))
                         continue;
 
+                    var keys = groupEntry.Value.NodeDict.Keys;
+
                     Console.WriteLine($"Group: {groupEntry.Key}");
-                    var keys = groupEntry.Value.NodeDict.Keys.ToList();
+                    Console.WriteLine($"Nodes: {keys.Count}");
                     ConsoleHelper.PrintNameList(keys, onePerLine);
                     Console.WriteLine();
                 }
@@ -341,14 +343,12 @@ namespace ShadowsocksUriGenerator.CLI
                     filteredNodes.Add((groupEntry.Key, node.Key, node.Value));
             }
 
-            Console.WriteLine($"{"Nodes",-16}{filteredNodes.Count}");
+            Console.WriteLine($"Nodes: {filteredNodes.Count}");
 
             if (filteredNodes.Count == 0)
             {
                 return 0;
             }
-
-            Console.WriteLine();
 
             var maxNodeNameLength = filteredNodes.Max(x => x.nodeName.Length);
             var maxGroupNameLength = filteredNodes.Max(x => x.group.Length);

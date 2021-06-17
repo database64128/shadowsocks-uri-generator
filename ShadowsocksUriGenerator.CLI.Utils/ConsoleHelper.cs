@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ShadowsocksUriGenerator.CLI.Utils
@@ -32,25 +33,32 @@ namespace ShadowsocksUriGenerator.CLI.Utils
             return stringBuilder;
         }
 
-        public static void PrintNameList(List<string> names, bool onePerLine = false)
+        public static void PrintNameList(IEnumerable<string> names, bool onePerLine = false)
         {
-            Console.WriteLine($"Total {names.Count}");
             if (onePerLine)
             {
                 foreach (var name in names)
+                {
                     Console.WriteLine(name);
+                }
             }
             else
             {
                 var stringBuilder = new StringBuilder();
+
                 foreach (var name in names)
+                {
                     if (name.Contains(' '))
                         stringBuilder.Append($"\"{name}\" ");
                     else
                         stringBuilder.Append($"{name} ");
-                stringBuilder.Remove(stringBuilder.Length - 1, 1);
-                if (names.Count > 0)
+                }
+
+                if (names.Any())
+                {
+                    stringBuilder.Remove(stringBuilder.Length - 1, 1); // remove trailing space
                     stringBuilder.AppendLine();
+                }
 
                 var output = stringBuilder.ToString();
                 Console.Write(output);

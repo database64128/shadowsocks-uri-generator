@@ -46,15 +46,21 @@ namespace ShadowsocksUriGenerator
         /// 0 for success.
         /// 1 when a group with the same name already exists.
         /// </returns>
-        public int AddGroup(string group)
+        public int AddGroup(string group, string? ownerUuid = null)
         {
             if (!Groups.ContainsKey(group))
             {
-                Groups.Add(group, new());
+                Groups.Add(group, new()
+                {
+                    OwnerUuid = ownerUuid,
+                });
+
                 return 0;
             }
             else
+            {
                 return 1;
+            }
         }
 
         /// <summary>
