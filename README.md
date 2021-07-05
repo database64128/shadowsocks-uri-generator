@@ -1,17 +1,11 @@
 # 🌐 Shadowsocks URI Generator
 
-[![Build](https://github.com/database64128/shadowsocks-uri-generator/workflows/Build/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ABuild)
-[![Release](https://github.com/database64128/shadowsocks-uri-generator/workflows/Release/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions?query=workflow%3ARelease)
-
-<a href="https://aur.archlinux.org/packages/ss-uri-gen-git/">
-    <img alt="AUR badge for ss-uri-gen-git" src="https://img.shields.io/aur/version/ss-uri-gen-git?label=AUR%20ss-uri-gen-git" />
-</a>
-<a href="https://aur.archlinux.org/packages/ss-uri-gen-chatbot-telegram-git/">
-    <img alt="AUR badge for ss-uri-gen-chatbot-telegram-git" src="https://img.shields.io/aur/version/ss-uri-gen-chatbot-telegram-git?label=AUR%20ss-uri-gen-chatbot-telegram-git" />
-</a>
-<a href="https://aur.archlinux.org/packages/ss-uri-gen-rescue-git/">
-    <img alt="AUR badge for ss-uri-gen-rescue-git" src="https://img.shields.io/aur/version/ss-uri-gen-rescue-git?label=AUR%20ss-uri-gen-rescue-git" />
-</a>
+[![Build](https://github.com/database64128/shadowsocks-uri-generator/actions/workflows/build.yml/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions/workflows/build.yml)
+[![Release](https://github.com/database64128/shadowsocks-uri-generator/actions/workflows/release.yml/badge.svg)](https://github.com/database64128/shadowsocks-uri-generator/actions/workflows/release.yml)
+[![Nuget](https://img.shields.io/nuget/v/ShadowsocksUriGenerator)](https://www.nuget.org/packages/ShadowsocksUriGenerator/)
+[![AUR version](https://img.shields.io/aur/version/ss-uri-gen-git?label=ss-uri-gen-git)](https://aur.archlinux.org/packages/ss-uri-gen-git/)
+[![AUR version](https://img.shields.io/aur/version/ss-uri-gen-chatbot-telegram-git?label=ss-uri-gen-chatbot-telegram-git)](https://aur.archlinux.org/packages/ss-uri-gen-chatbot-telegram-git/)
+[![AUR version](https://img.shields.io/aur/version/ss-uri-gen-rescue-git?label=ss-uri-gen-rescue-git)](https://aur.archlinux.org/packages/ss-uri-gen-rescue-git/)
 
 A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of [Outline servers](https://github.com/Jigsaw-Code/outline-server). Deliver configurations to users with [Open Online Config (OOC)](https://github.com/Shadowsocks-NET/OpenOnlineConfig).
 
