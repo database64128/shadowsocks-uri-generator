@@ -137,3 +137,10 @@ jobs:
           tag: ${{ github.ref }}
           file_glob: true
           prerelease: true
+      # NuGet
+      - name: Package and upload NuGet package
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          cd ShadowsocksUriGenerator
+          dotnet pack -c Release
+          dotnet nuget push bin/Release/*.nupkg -s https://api.nuget.org/v3/index.json -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate

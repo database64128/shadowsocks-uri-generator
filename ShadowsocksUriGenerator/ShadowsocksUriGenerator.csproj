@@ -13,6 +13,7 @@
     <PackageIcon>ss-uri-gen.png</PackageIcon>
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>
     <RepositoryType>Public</RepositoryType>
+    <PackageTags>shadowsocks;online-config;open-online-config;outline-server</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
