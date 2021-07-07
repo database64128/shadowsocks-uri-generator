@@ -83,7 +83,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                                                              cancellationToken: cancellationToken);
         }
 
-        public static async Task GetOOCv1LinksAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
+        public static async Task GetLegacySIP008StaticLinksAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
 
@@ -119,14 +119,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 var replyBuilder = new StringBuilder();
 
-                replyBuilder.AppendLine("Open Online Config (OOC) v1 delivery link for all servers:");
+                replyBuilder.AppendLine("Legacy SIP008 static file delivery link for all servers:");
                 replyBuilder.AppendLine();
                 replyBuilder.AppendLine($"{settings.OnlineConfigDeliveryRootUri}/{userEntry.Value.Value.Uuid}.json");
                 replyBuilder.AppendLine();
 
                 if (settings.OnlineConfigDeliverByGroup)
                 {
-                    replyBuilder.AppendLine("Open Online Config (OOC) v1 delivery links by server group:");
+                    replyBuilder.AppendLine("Legacy SIP008 static file delivery links by server group:");
                     replyBuilder.AppendLine();
 
                     foreach (var group in userEntry.Value.Value.Memberships.Keys)

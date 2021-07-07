@@ -104,10 +104,10 @@ namespace ShadowsocksUriGenerator.Rescue
                         {
                             var node = new Node()
                             {
-                                Uuid = server.Uuid,
+                                Uuid = server.Id,
                                 Host = server.Host,
                                 Port = server.Port,
-                                Plugin = server.Plugin,
+                                Plugin = server.PluginPath,
                                 PluginOpts = server.PluginOpts,
                             };
                             group.NodeDict.Add(server.Name, node);
@@ -192,10 +192,10 @@ namespace ShadowsocksUriGenerator.Rescue
                         {
                             var node = new Node()
                             {
-                                Uuid = server.Uuid,
+                                Uuid = server.Id,
                                 Host = server.Host,
                                 Port = server.Port,
-                                Plugin = server.Plugin,
+                                Plugin = server.PluginPath,
                                 PluginOpts = server.PluginOpts,
                             };
                             group.NodeDict.Add(server.Name, node);

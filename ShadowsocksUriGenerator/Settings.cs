@@ -30,39 +30,36 @@ namespace ShadowsocksUriGenerator
         public SortBy GroupDataUsageDefaultSortBy { get; set; } = SortBy.DataUsedDescending;
 
         /// <summary>
-        /// Gets or sets whether the generated servers list
-        /// in an OOCv1 JSON should be sorted by server name.
+        /// Gets or sets whether online config should sort servers by name.
         /// Defaults to true.
         /// </summary>
         public bool OnlineConfigSortByName { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets whether online config should be delivered
-        /// to each user by group. Turning this on will generate
-        /// one online config JSON for each group associated with the user,
-        /// in addition to the single JSON that contains all associated servers.
+        /// Gets or sets whether the legacy SIP008 online config static file generator
+        /// should generate per-group SIP008 delivery JSON in addition to the single JSON
+        /// that contains all associated servers of the user.
         /// Defaults to false.
         /// </summary>
         public bool OnlineConfigDeliverByGroup { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the user's online config file
+        /// Gets or sets whether the user's generated static online config files
         /// should be removed when the user is being removed.
         /// Defaults to true.
         /// </summary>
         public bool OnlineConfigCleanOnUserRemoval { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets the output directory path
-        /// for online configuration delivery (OOCv1).
-        /// Must NOT end with '/' or '\'.
+        /// Gets or sets the output directory of the
+        /// legacy SIP008 online config static file generator
+        /// MUST NOT end with '/' or '\'.
         /// Defaults to a randomly generated UUID.
         /// </summary>
         public string OnlineConfigOutputDirectory { get; set; } = Guid.NewGuid().ToString();
 
         /// <summary>
-        /// Gets or sets the URI of the folder which contains
-        /// user configuration files for online configuration delivery.
+        /// Gets or sets the base access URL of the SIP008 static file delivery links.
         /// Must NOT end with '/'.
         /// Defaults to an empty string.
         /// </summary>

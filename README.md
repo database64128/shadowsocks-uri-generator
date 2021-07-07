@@ -19,7 +19,7 @@ A light-weight command line automation tool for managing federated Shadowsocks s
 - Manage data usage limit on users and groups. Enforce data limit on Outline servers.
 - Generate [SIP002](https://shadowsocks.org/en/spec/SIP002-URI-Scheme.html) `ss://` URLs for users.
 - Support for [SIP003](https://shadowsocks.org/en/spec/Plugin.html) plugins.
-- Generate Open Online Config (OOC) v1 files and delivery URLs.
+- Online config delivery with support for [Open Online Config](https://github.com/Shadowsocks-NET/OpenOnlineConfig), [SIP008](https://shadowsocks.org/en/wiki/SIP008-Online-Configuration-Delivery.html), and V2Ray outbound files.
 - Run as a service to execute scheduled tasks.
 - Easy user interactions via [Telegram bots](https://core.telegram.org/bots).
 

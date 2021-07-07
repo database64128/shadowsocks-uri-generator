@@ -1,25 +1,21 @@
-﻿using System;
+﻿using Shadowsocks.OnlineConfig.SIP008;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
 {
     /// <summary>
-    /// The class for Open Online Config Version 1 (OOCv1).
+    /// Legacy SIP008 online config static file generator.
     /// </summary>
-    public class OnlineConfig
+    public class OnlineConfig : SIP008Config
     {
-        public int Version { get; set; }
         public string Username { get; set; }
         public string UserUuid { get; set; }
-        public ulong BytesUsed { get; set; }
-        public ulong BytesRemaining { get; set; }
-        public List<Server> Servers { get; set; }
 
         public OnlineConfig()
         {
@@ -40,7 +36,7 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Generates and saves OOCv1 delivery files.
+        /// Generates and saves SIP008 delivery files.
         /// </summary>
         /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
@@ -85,11 +81,11 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Generates OOCv1 delivery JSON for the specified user.
+        /// Generates SIP008 delivery JSON for the specified user.
         /// </summary>
         /// <param name="userEntry">The specified user entry.</param>
         /// <param name="nodes">The object storing all nodes.</param>
-        /// <returns>The object of the user's OOCv1 configuration.</returns>
+        /// <returns>The user's SIP008 configuration object.</returns>
         public static Dictionary<string, OnlineConfig> GenerateForUser(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
         {
             var username = userEntry.Key;
@@ -115,15 +111,17 @@ namespace ShadowsocksUriGenerator
                         if (node.Value.Deactivated)
                             continue;
 
-                        var server = new Server(
-                            node.Key,
-                            node.Value.Uuid,
-                            node.Value.Host,
-                            node.Value.Port,
-                            membership.Value.Password,
-                            membership.Value.Method,
-                            node.Value.Plugin,
-                            node.Value.PluginOpts);
+                        var server = new SIP008Server()
+                        {
+                            Id = node.Value.Uuid,
+                            Name = node.Key,
+                            Host = node.Value.Host,
+                            Port = node.Value.Port,
+                            Method = membership.Value.Method,
+                            Password = membership.Value.Password,
+                            PluginPath = node.Value.Plugin,
+                            PluginOpts = node.Value.PluginOpts,
+                        };
 
                         userOnlineConfig.Servers.Add(server);
 
@@ -215,55 +213,6 @@ namespace ShadowsocksUriGenerator
                         Directory.Delete(path, true);
                     File.Delete($"{path}.json");
                 }
-        }
-    }
-
-    /// <summary>
-    /// The class for a server in the Servers list.
-    /// </summary>
-    public class Server
-    {
-        [JsonPropertyName("server")]
-        public string Host { get; set; }
-        [JsonPropertyName("server_port")]
-        public int Port { get; set; }
-        public string Password { get; set; }
-        public string Method { get; set; }
-        public string? Plugin { get; set; }
-        public string? PluginOpts { get; set; }
-        [JsonPropertyName("remarks")]
-        public string Name { get; set; }
-        [JsonPropertyName("id")]
-        public string Uuid { get; set; }
-
-        public Server()
-        {
-            Host = "";
-            Port = 0;
-            Password = "";
-            Method = "";
-            Name = "";
-            Uuid = "";
-        }
-
-        public Server(
-            string name,
-            string uuid,
-            string host,
-            int port,
-            string password,
-            string method,
-            string? plugin = null,
-            string? pluginOpts = null)
-        {
-            Host = host;
-            Port = port;
-            Password = password;
-            Method = method;
-            Plugin = plugin;
-            PluginOpts = pluginOpts;
-            Name = name;
-            Uuid = uuid;
         }
     }
 }

@@ -43,18 +43,18 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(443, singleServer.Port);
             Assert.Equal("chacha20-ietf-poly1305", singleServer.Method);
             Assert.Equal("ymghiR#75TNqpa", singleServer.Password);
-            Assert.Null(singleServer.Plugin);
+            Assert.Null(singleServer.PluginPath);
             Assert.Null(singleServer.PluginOpts);
-            Assert.True(Guid.TryParse(singleServer.Uuid, out _));
+            Assert.True(Guid.TryParse(singleServer.Id, out _));
             var singleServerWithPlugin = userSingleOnlineConfig.Servers[1];
             Assert.Equal("MyNodeWithPlugin", singleServerWithPlugin.Name);
             Assert.Equal("github.com", singleServerWithPlugin.Host);
             Assert.Equal(443, singleServerWithPlugin.Port);
             Assert.Equal("aes-256-gcm", singleServerWithPlugin.Method);
             Assert.Equal("wLhN2STZ", singleServerWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", singleServerWithPlugin.Plugin);
+            Assert.Equal("v2ray-plugin", singleServerWithPlugin.PluginPath);
             Assert.Equal("server;tls;host=github.com", singleServerWithPlugin.PluginOpts);
-            Assert.True(Guid.TryParse(singleServerWithPlugin.Uuid, out _));
+            Assert.True(Guid.TryParse(singleServerWithPlugin.Id, out _));
 
             // userPerGroupOnlineConfigDict
             Assert.Equal(3, userPerGroupOnlineConfigDict.Count);
@@ -73,18 +73,18 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(443, server.Port);
             Assert.Equal("chacha20-ietf-poly1305", server.Method);
             Assert.Equal("ymghiR#75TNqpa", server.Password);
-            Assert.Null(server.Plugin);
+            Assert.Null(server.PluginPath);
             Assert.Null(server.PluginOpts);
-            Assert.True(Guid.TryParse(server.Uuid, out _));
+            Assert.True(Guid.TryParse(server.Id, out _));
             var serverWithPlugin = userOnlineConfig.Servers[1];
             Assert.Equal("MyNodeWithPlugin", serverWithPlugin.Name);
             Assert.Equal("github.com", serverWithPlugin.Host);
             Assert.Equal(443, serverWithPlugin.Port);
             Assert.Equal("aes-256-gcm", serverWithPlugin.Method);
             Assert.Equal("wLhN2STZ", serverWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", serverWithPlugin.Plugin);
+            Assert.Equal("v2ray-plugin", serverWithPlugin.PluginPath);
             Assert.Equal("server;tls;host=github.com", serverWithPlugin.PluginOpts);
-            Assert.True(Guid.TryParse(serverWithPlugin.Uuid, out _));
+            Assert.True(Guid.TryParse(serverWithPlugin.Id, out _));
 
             // userMyGroupOnlineConfig
             Assert.Equal(1, userMyGroupOnlineConfig.Version);
@@ -97,9 +97,9 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(443, serverMyGroup.Port);
             Assert.Equal("chacha20-ietf-poly1305", serverMyGroup.Method);
             Assert.Equal("ymghiR#75TNqpa", serverMyGroup.Password);
-            Assert.Null(serverMyGroup.Plugin);
+            Assert.Null(serverMyGroup.PluginPath);
             Assert.Null(serverMyGroup.PluginOpts);
-            Assert.True(Guid.TryParse(serverMyGroup.Uuid, out _));
+            Assert.True(Guid.TryParse(serverMyGroup.Id, out _));
 
             // userMyGroupWithPluginOnlineConfig
             Assert.Equal(1, userMyGroupWithPluginOnlineConfig.Version);
@@ -112,9 +112,9 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(443, serverMyGroupWithPlugin.Port);
             Assert.Equal("aes-256-gcm", serverMyGroupWithPlugin.Method);
             Assert.Equal("wLhN2STZ", serverMyGroupWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", serverMyGroupWithPlugin.Plugin);
+            Assert.Equal("v2ray-plugin", serverMyGroupWithPlugin.PluginPath);
             Assert.Equal("server;tls;host=github.com", serverMyGroupWithPlugin.PluginOpts);
-            Assert.True(Guid.TryParse(serverMyGroupWithPlugin.Uuid, out _));
+            Assert.True(Guid.TryParse(serverMyGroupWithPlugin.Id, out _));
         }
 
         [Fact]

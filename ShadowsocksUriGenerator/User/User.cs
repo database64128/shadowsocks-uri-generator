@@ -11,7 +11,6 @@ namespace ShadowsocksUriGenerator
     {
         /// <summary>
         /// Gets or sets the UUID of the user.
-        /// Used for online configuration delivery (OOCv1).
         /// </summary>
         public string Uuid { get; set; } = Guid.NewGuid().ToString();
 

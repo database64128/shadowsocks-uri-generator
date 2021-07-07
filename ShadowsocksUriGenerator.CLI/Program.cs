@@ -96,11 +96,11 @@ namespace ShadowsocksUriGenerator.CLI
                 groupSetDataLimitCommand,
             };
 
-            var onlineConfigGenerateCommand = new Command("generate", "Generate Open Online Config (OOC) v1 delivery JSON files for specified or all users.");
-            var onlineConfigGetLinksCommand = new Command("get-links", "Get Open Online Config (OOC) v1 delivery URLs for specified or all users.");
-            var onlineConfigCleanCommand = new Command("clean", "Clean online configuration files for specified or all users.");
+            var onlineConfigGenerateCommand = new Command("generate", "[Legacy] Generate static SIP008 delivery JSON files for specified or all users.");
+            var onlineConfigGetLinksCommand = new Command("get-links", "[Legacy] Get SIP008 static file delivery URLs for specified or all users.");
+            var onlineConfigCleanCommand = new Command("clean", "[Legacy] Clean static SIP008 delivery files for specified or all users.");
 
-            var onlineConfigCommand = new Command("online-config", "Manage Open Online Config (OOC).")
+            var onlineConfigCommand = new Command("online-config", "Manage online config.")
             {
                 onlineConfigGenerateCommand,
                 onlineConfigGetLinksCommand,
@@ -535,11 +535,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             settingsSetCommand.AddOption(new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report."));
             settingsSetCommand.AddOption(new Option<SortBy?>("--group-data-usage-default-sort-by", "The default sort rule for group data usage report."));
-            settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether the generated servers list in an Open Online Config (OOC) v1 JSON should be sorted by server name."));
-            settingsSetCommand.AddOption(new Option<bool?>("--online-config-deliver-by-group", "Whether online config should be delivered to each user by group. Turning this on will generate one online config JSON for each group associated with the user, in addition to the single JSON that contains all associated servers."));
-            settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's online configuration file should be removed when the user is being removed."));
-            settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Online configuration generation output directory. No trailing slashes allowed."));
-            settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "The URL base for Open Online Config (OOC) v1. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<bool?>("--online-config-sort-by-name", "Whether online config should sort servers by name."));
+            settingsSetCommand.AddOption(new Option<bool?>("--online-config-deliver-by-group", "Whether the legacy SIP008 online config static file generator should generate per-group SIP008 delivery JSON in addition to the single JSON that contains all associated servers of the user."));
+            settingsSetCommand.AddOption(new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's generated static online config files should be removed when the user is being removed."));
+            settingsSetCommand.AddOption(new Option<string>("--online-config-output-directory", "Legacy SIP008 online config static file generator output directory. No trailing slashes allowed."));
+            settingsSetCommand.AddOption(new Option<string>("--online-config-delivery-root-uri", "URL base for the SIP008 static file delivery links. No trailing slashes allowed."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-data-limit-on-association", "Whether to apply the group's per-user data limit when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
