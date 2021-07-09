@@ -14,11 +14,15 @@ namespace ShadowsocksUriGenerator.CLI
         {
             var hasPlugin = commandResult.Children.Contains("--plugin");
             var hasPluginOpts = commandResult.Children.Contains("--plugin-opts");
+            var hasUnsetPlugin = commandResult.Children.Contains("--unset-plugin");
 
             if (!hasPlugin && hasPluginOpts)
                 return "You didn't specify a plugin.";
-            else
-                return null;
+
+            if (hasPlugin && hasUnsetPlugin)
+                return "You can't set and unset plugin at the same time.";
+
+            return null;
         }
 
         public static async Task<int> Add(
@@ -584,5 +588,196 @@ namespace ShadowsocksUriGenerator.CLI
 
             return commandResult;
         }
+
+        public static Task<int> AddTags(
+            string[] tags,
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            CancellationToken cancellationToken = default)
+            => EditTags(groups, allGroups, nodenames, allNodes, false, tags, Array.Empty<string>(), cancellationToken);
+
+        public static async Task<int> EditTags(
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            bool clearTags,
+            string[] addTags,
+            string[] removeTags,
+            CancellationToken cancellationToken = default)
+        {
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            foreach (var groupEntry in nodes.Groups)
+            {
+                if (!allGroups && !groups.Contains(groupEntry.Key))
+                    continue;
+
+                foreach (var nodeEntry in groupEntry.Value.NodeDict)
+                {
+                    if (!allNodes && !nodenames.Contains(nodeEntry.Key))
+                        continue;
+
+                    var nodename = nodeEntry.Key;
+                    var node = nodeEntry.Value;
+
+                    if (clearTags)
+                    {
+                        node.Tags.Clear();
+                        Console.WriteLine($"Cleared all tags on node {nodename}.");
+                    }
+
+                    if (addTags.Length > 0)
+                    {
+                        foreach (var tag in addTags)
+                        {
+                            if (node.Tags.Exists(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
+                            {
+                                Console.WriteLine($"Warning: Tag {tag} already exists on node {nodename}. Skipping.");
+                            }
+                            else
+                            {
+                                node.Tags.Add(tag);
+                                Console.WriteLine($"Added tag {tag} to node {nodename}.");
+                            }
+                        }
+                    }
+
+                    if (removeTags.Length > 0)
+                    {
+                        foreach (var tag in removeTags)
+                        {
+                            if (node.Tags.RemoveAll(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)) == 0)
+                            {
+                                Console.WriteLine($"Warning: Tag {tag} doesn't exist.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Removed tag {tag} from node {nodename}.");
+                            }
+                        }
+                    }
+                }
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
+            return 0;
+        }
+
+        public static Task<int> RemoveTags(
+            string[] tags,
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            CancellationToken cancellationToken = default)
+            => EditTags(groups, allGroups, nodenames, allNodes, false, Array.Empty<string>(), tags, cancellationToken);
+
+        public static Task<int> ClearTags(
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            CancellationToken cancellationToken = default)
+            => EditTags(groups, allGroups, nodenames, allNodes, true, Array.Empty<string>(), Array.Empty<string>(), cancellationToken);
+
+        public static Task<int> SetOwner(
+            string owner,
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            CancellationToken cancellationToken = default)
+            => EditOwner(groups, allGroups, nodenames, allNodes, owner, false, cancellationToken);
+
+        public static async Task<int> EditOwner(
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            string owner,
+            bool unsetOwner,
+            CancellationToken cancellationToken = default)
+        {
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            foreach (var groupEntry in nodes.Groups)
+            {
+                if (!allGroups && !groups.Contains(groupEntry.Key))
+                    continue;
+
+                foreach (var nodeEntry in groupEntry.Value.NodeDict)
+                {
+                    if (!allNodes && !nodenames.Contains(nodeEntry.Key))
+                        continue;
+
+                    var nodename = nodeEntry.Key;
+                    var node = nodeEntry.Value;
+
+                    if (!string.IsNullOrEmpty(owner))
+                    {
+                        var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+                        if (loadUsersErrMsg is not null)
+                        {
+                            Console.WriteLine(loadUsersErrMsg);
+                            return 1;
+                        }
+
+                        if (users.UserDict.TryGetValue(owner, out var targetUser))
+                        {
+                            node.OwnerUuid = targetUser.Uuid;
+                            Console.WriteLine($"Set user {owner} as owner of node {nodename}.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Warning: The specified owner {owner} is not a user. Skipping.");
+                        }
+                    }
+
+                    if (unsetOwner)
+                    {
+                        node.OwnerUuid = null;
+                        Console.WriteLine($"Cleared ownership of node {nodename}.");
+                    }
+                }
+            }
+
+            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+            if (saveNodesErrMsg is not null)
+            {
+                Console.WriteLine(saveNodesErrMsg);
+                return 1;
+            }
+
+            return 0;
+        }
+
+        public static Task<int> UnsetOwner(
+            string[] groups,
+            bool allGroups,
+            string[] nodenames,
+            bool allNodes,
+            CancellationToken cancellationToken = default)
+            => EditOwner(groups, allGroups, nodenames, allNodes, string.Empty, true, cancellationToken);
     }
 }

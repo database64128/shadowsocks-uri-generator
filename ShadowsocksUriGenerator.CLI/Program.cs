@@ -51,6 +51,14 @@ namespace ShadowsocksUriGenerator.CLI
             var nodeActivateCommand = new Command("activate", "Activate a deactivated node to include it in delivery.");
             var nodeDeactivateCommand = new Command("deactivate", "Deactivate a node to exclude it from delivery.");
 
+            var nodeAddTagsCommand = new Command("add-tags", "Add new tags to the node.");
+            var nodeEditTagsCommand = new Command("edit-tags", "Edit tags on the node.");
+            var nodeRemoveTagsCommand = new Command("remove-tags", "Remove tags from the node.");
+            var nodeClearTagsCommand = new Command("clear-tags", "Clear tags from the node.");
+
+            var nodeSetOwnerCommand = new Command("set-owner", "Set node owner.");
+            var nodeUnsetOwnerCommand = new Command("unset-owner", "Unset node owner.");
+
             var nodeCommand = new Command("node", "Manage nodes.")
             {
                 nodeAddCommand,
@@ -61,6 +69,12 @@ namespace ShadowsocksUriGenerator.CLI
                 nodeListAnnotationsCommand,
                 nodeActivateCommand,
                 nodeDeactivateCommand,
+                nodeAddTagsCommand,
+                nodeEditTagsCommand,
+                nodeRemoveTagsCommand,
+                nodeClearTagsCommand,
+                nodeSetOwnerCommand,
+                nodeUnsetOwnerCommand,
             };
 
             var groupAddCommand = new Command("add", "Add groups.");
@@ -164,6 +178,12 @@ namespace ShadowsocksUriGenerator.CLI
             var hostArgument = new Argument<string>("host", "Hostname of the node.");
             var portArgument = new Argument<int>("port", Parsers.ParsePortNumber, false, "Port number of the node.");
 
+            var ownerArgument = new Argument<string>("owner", "Set the owner.");
+            var tagsArgument = new Argument<string[]>("tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.")
+            {
+                Arity = ArgumentArity.OneOrMore,
+            };
+
             var usernamesArgumentZeroOrMore = new Argument<string[]>("usernames", "Zero or more usernames.");
             var nodenamesArgumentZeroOrMore = new Argument<string[]>("nodenames", "Zero or more node names.");
             var groupsArgumentZeroOrMore = new Argument<string[]>("groups", "Zero or more group names.");
@@ -182,6 +202,7 @@ namespace ShadowsocksUriGenerator.CLI
             };
 
             var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
+            var nodenamesOption = new Option<string[]>("--nodenames", "Target these specific nodes. If unspecified, target all nodes.");
             var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
 
             var hostOption = new Option<string>("--host", "Hostname of the node.");
@@ -208,9 +229,14 @@ namespace ShadowsocksUriGenerator.CLI
 
             var namesOnlyOption = new Option<bool>(new string[] { "-s", "--short", "--names-only" }, "Display names only, without a table.");
             var onePerLineOption = new Option<bool>(new string[] { "-1", "--one-per-line" }, "Display one name per line.");
+
             var allUsersOption = new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Target all users.");
             var allNodesOption = new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Target all nodes in target group.");
             var allGroupsOption = new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Target all groups.");
+
+            var allUsersNoAliasesOption = new Option<bool>("--all-users", "Target all users.");
+            var allNodesNoAliasesOption = new Option<bool>("--all-nodes", "Target all nodes in target group.");
+            var allGroupsNoAliasesOption = new Option<bool>("--all-groups", "Target all groups.");
 
             var sortByOption = new Option<SortBy?>("--sort-by", "Sort rule for data usage records.");
             var userSortByOption = new Option<SortBy?>("--user-sort-by", "Sort rule for user data usage records.");
@@ -339,6 +365,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeEditCommand.AddOption(addTagsOption);
             nodeEditCommand.AddOption(removeTagsOption);
             nodeEditCommand.AddValidator(NodeCommand.ValidateNodePlugin);
+            nodeEditCommand.AddValidator(Validators.ValidateOwnerOptions);
             nodeEditCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, bool, string, bool, bool, string[], string[], CancellationToken>(NodeCommand.Edit);
 
             nodeRenameCommand.AddArgument(groupArgument);
@@ -382,6 +409,66 @@ namespace ShadowsocksUriGenerator.CLI
             nodeDeactivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
             nodeDeactivateCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(NodeCommand.Deactivate);
 
+            nodeAddTagsCommand.AddAlias("at");
+            nodeAddTagsCommand.AddArgument(tagsArgument);
+            nodeAddTagsCommand.AddOption(groupsOption);
+            nodeAddTagsCommand.AddOption(allGroupsNoAliasesOption);
+            nodeAddTagsCommand.AddOption(nodenamesOption);
+            nodeAddTagsCommand.AddOption(allNodesNoAliasesOption);
+            nodeAddTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            nodeAddTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeAddTagsCommand.Handler = CommandHandler.Create<string[], string[], bool, string[], bool, CancellationToken>(NodeCommand.AddTags);
+
+            nodeEditTagsCommand.AddAlias("et");
+            nodeEditTagsCommand.AddOption(groupsOption);
+            nodeEditTagsCommand.AddOption(allGroupsNoAliasesOption);
+            nodeEditTagsCommand.AddOption(nodenamesOption);
+            nodeEditTagsCommand.AddOption(allNodesNoAliasesOption);
+            nodeEditTagsCommand.AddOption(clearTagsOption);
+            nodeEditTagsCommand.AddOption(addTagsOption);
+            nodeEditTagsCommand.AddOption(removeTagsOption);
+            nodeEditTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            nodeEditTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeEditTagsCommand.Handler = CommandHandler.Create<string[], bool, string[], bool, bool, string[], string[], CancellationToken>(NodeCommand.EditTags);
+
+            nodeRemoveTagsCommand.AddAlias("rt");
+            nodeRemoveTagsCommand.AddArgument(tagsArgument);
+            nodeRemoveTagsCommand.AddOption(groupsOption);
+            nodeRemoveTagsCommand.AddOption(allGroupsNoAliasesOption);
+            nodeRemoveTagsCommand.AddOption(nodenamesOption);
+            nodeRemoveTagsCommand.AddOption(allNodesNoAliasesOption);
+            nodeRemoveTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            nodeRemoveTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeRemoveTagsCommand.Handler = CommandHandler.Create<string[], string[], bool, string[], bool, CancellationToken>(NodeCommand.RemoveTags);
+
+            nodeClearTagsCommand.AddAlias("ct");
+            nodeClearTagsCommand.AddOption(groupsOption);
+            nodeClearTagsCommand.AddOption(allGroupsNoAliasesOption);
+            nodeClearTagsCommand.AddOption(nodenamesOption);
+            nodeClearTagsCommand.AddOption(allNodesNoAliasesOption);
+            nodeClearTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            nodeClearTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeClearTagsCommand.Handler = CommandHandler.Create<string[], bool, string[], bool, CancellationToken>(NodeCommand.ClearTags);
+
+            nodeSetOwnerCommand.AddAlias("so");
+            nodeSetOwnerCommand.AddArgument(ownerArgument);
+            nodeSetOwnerCommand.AddOption(groupsOption);
+            nodeSetOwnerCommand.AddOption(allGroupsNoAliasesOption);
+            nodeSetOwnerCommand.AddOption(nodenamesOption);
+            nodeSetOwnerCommand.AddOption(allNodesNoAliasesOption);
+            nodeSetOwnerCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            nodeSetOwnerCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeSetOwnerCommand.Handler = CommandHandler.Create<string, string[], bool, string[], bool, CancellationToken>(NodeCommand.SetOwner);
+
+            nodeUnsetOwnerCommand.AddAlias("uo");
+            nodeUnsetOwnerCommand.AddOption(groupsOption);
+            nodeUnsetOwnerCommand.AddOption(allGroupsNoAliasesOption);
+            nodeUnsetOwnerCommand.AddOption(nodenamesOption);
+            nodeUnsetOwnerCommand.AddOption(allNodesNoAliasesOption);
+            nodeUnsetOwnerCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            nodeUnsetOwnerCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeUnsetOwnerCommand.Handler = CommandHandler.Create<string[], bool, string[], bool, CancellationToken>(NodeCommand.UnsetOwner);
+
             groupAddCommand.AddAlias("a");
             groupAddCommand.AddArgument(groupsArgumentOneOrMore);
             groupAddCommand.AddOption(ownerOption);
@@ -391,6 +478,7 @@ namespace ShadowsocksUriGenerator.CLI
             groupEditCommand.AddArgument(groupsArgumentOneOrMore);
             groupEditCommand.AddOption(ownerOption);
             groupEditCommand.AddOption(unsetOwnerOption);
+            groupEditCommand.AddValidator(Validators.ValidateOwnerOptions);
             groupEditCommand.Handler = CommandHandler.Create<string[], string, bool, CancellationToken>(GroupCommand.Edit);
 
             groupRenameCommand.AddArgument(oldNameArgument);
