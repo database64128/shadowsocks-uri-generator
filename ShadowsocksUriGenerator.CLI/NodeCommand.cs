@@ -641,12 +641,12 @@ namespace ShadowsocksUriGenerator.CLI
                         {
                             if (node.Tags.Exists(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
                             {
-                                Console.WriteLine($"Warning: Tag {tag} already exists on node {nodename}. Skipping.");
+                                Console.WriteLine($"Warning: Tag {tag} already exists on node {nodename} in group {groupEntry.Key}. Skipping.");
                             }
                             else
                             {
                                 node.Tags.Add(tag);
-                                Console.WriteLine($"Added tag {tag} to node {nodename}.");
+                                Console.WriteLine($"Added tag {tag} to node {nodename} in group {groupEntry.Key}.");
                             }
                         }
                     }
@@ -657,11 +657,11 @@ namespace ShadowsocksUriGenerator.CLI
                         {
                             if (node.Tags.RemoveAll(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)) == 0)
                             {
-                                Console.WriteLine($"Warning: Tag {tag} doesn't exist.");
+                                Console.WriteLine($"Warning: Tag {tag} doesn't exist on node {nodename} in group {groupEntry.Key}.");
                             }
                             else
                             {
-                                Console.WriteLine($"Removed tag {tag} from node {nodename}.");
+                                Console.WriteLine($"Removed tag {tag} from node {nodename} in group {groupEntry.Key}.");
                             }
                         }
                     }
@@ -746,7 +746,7 @@ namespace ShadowsocksUriGenerator.CLI
                         if (users.UserDict.TryGetValue(owner, out var targetUser))
                         {
                             node.OwnerUuid = targetUser.Uuid;
-                            Console.WriteLine($"Set user {owner} as owner of node {nodename}.");
+                            Console.WriteLine($"Set user {owner} as owner of node {nodename} in group {groupEntry.Key}.");
                         }
                         else
                         {
@@ -757,7 +757,7 @@ namespace ShadowsocksUriGenerator.CLI
                     if (unsetOwner)
                     {
                         node.OwnerUuid = null;
-                        Console.WriteLine($"Cleared ownership of node {nodename}.");
+                        Console.WriteLine($"Cleared ownership of node {nodename} in group {groupEntry.Key}.");
                     }
                 }
             }
