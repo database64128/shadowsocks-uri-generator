@@ -770,5 +770,263 @@ namespace ShadowsocksUriGenerator.CLI
 
             return commandResult;
         }
+
+        public static Task<int> OwnGroups(string username, string[] groups, bool allGroups, bool force, CancellationToken cancellationToken = default)
+            => ManageGroupOwnership(username, true, groups, allGroups, force, cancellationToken);
+
+        public static Task<int> DisownGroups(string username, string[] groups, bool allGroups, CancellationToken cancellationToken = default)
+            => ManageGroupOwnership(username, false, groups, allGroups, false, cancellationToken);
+
+        public static async Task<int> ManageGroupOwnership(string username, bool own, string[] groups, bool allGroups, bool force = false, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (users.UserDict.TryGetValue(username, out var user))
+            {
+                foreach (var groupEntry in nodes.Groups)
+                {
+                    if (!allGroups && !groups.Contains(groupEntry.Key))
+                        continue;
+
+                    if (own)
+                    {
+                        if (force || groupEntry.Value.OwnerUuid is null)
+                        {
+                            groupEntry.Value.OwnerUuid = user.Uuid;
+                            Console.WriteLine($"Set user {username} as owner of group {groupEntry.Key}.");
+                        }
+                        else if (groupEntry.Value.OwnerUuid == user.Uuid)
+                        {
+                            Console.WriteLine($"User {username} already is the owner of group {groupEntry.Key}.");
+                        }
+                        else
+                        {
+                            var owner = users.UserDict.Where(x => x.Value.Uuid == groupEntry.Value.OwnerUuid)
+                                                      .Select(x => x.Key)
+                                                      .FirstOrDefault();
+                            Console.WriteLine($"Group {groupEntry.Key} already has owner {owner}. Disown it first or use `--force` to overwrite.");
+                        }
+                    }
+                    else
+                    {
+                        if (groupEntry.Value.OwnerUuid == user.Uuid)
+                        {
+                            groupEntry.Value.OwnerUuid = null;
+                            Console.WriteLine($"Disowned group {groupEntry.Key}.");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Warning: Group {groupEntry.Key} is not owned by user {username}. Skipping.");
+                        }
+                    }
+                }
+
+                var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+                if (saveNodesErrMsg is not null)
+                {
+                    Console.WriteLine(saveNodesErrMsg);
+                    return 1;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error: user {username} doesn't exist.");
+                return -2;
+            }
+
+            return 0;
+        }
+
+        public static Task<int> OwnNodes(string username, string[] groups, bool allGroups, string[] nodenames, bool allNodes, bool force, CancellationToken cancellationToken = default)
+            => ManageNodeOwnership(username, true, groups, allGroups, nodenames, allNodes, force, cancellationToken);
+
+        public static Task<int> DisownNodes(string username, string[] groups, bool allGroups, string[] nodenames, bool allNodes, CancellationToken cancellationToken = default)
+            => ManageNodeOwnership(username, false, groups, allGroups, nodenames, allNodes, false, cancellationToken);
+
+        public static async Task<int> ManageNodeOwnership(string username, bool own, string[] groups, bool allGroups, string[] nodenames, bool allNodes, bool force = false, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (users.UserDict.TryGetValue(username, out var user))
+            {
+                foreach (var groupEntry in nodes.Groups)
+                {
+                    if (!allGroups && !groups.Contains(groupEntry.Key))
+                        continue;
+
+                    foreach (var nodeEntry in groupEntry.Value.NodeDict)
+                    {
+                        if (!allNodes && !nodenames.Contains(nodeEntry.Key))
+                            continue;
+
+                        var nodename = nodeEntry.Key;
+                        var node = nodeEntry.Value;
+
+                        if (own)
+                        {
+                            if (force || node.OwnerUuid is null)
+                            {
+                                node.OwnerUuid = user.Uuid;
+                                Console.WriteLine($"Set user {username} as owner of node {nodename} in group {groupEntry.Key}.");
+                            }
+                            else if (node.OwnerUuid == user.Uuid)
+                            {
+                                Console.WriteLine($"User {username} already is the owner of node {nodename} in group {groupEntry.Key}.");
+                            }
+                            else
+                            {
+                                var owner = users.UserDict.Where(x => x.Value.Uuid == groupEntry.Value.OwnerUuid)
+                                                          .Select(x => x.Key)
+                                                          .FirstOrDefault();
+                                Console.WriteLine($"Node {nodename} in group {groupEntry.Key} already has owner {owner}. Disown it first or use `--force` to overwrite.");
+                            }
+                        }
+                        else
+                        {
+                            if (node.OwnerUuid == user.Uuid)
+                            {
+                                node.OwnerUuid = null;
+                                Console.WriteLine($"Disowned node {nodename} in group {groupEntry.Key}.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Warning: Node {nodename} in group {groupEntry.Key} is not owned by user {username}. Skipping.");
+                            }
+                        }
+                    }
+                }
+
+                var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
+                if (saveNodesErrMsg is not null)
+                {
+                    Console.WriteLine(saveNodesErrMsg);
+                    return 1;
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error: user {username} doesn't exist.");
+                return -2;
+            }
+
+            return 0;
+        }
+
+        public static async Task<int> ListOwnedGroups(string username, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (users.UserDict.TryGetValue(username, out var user))
+            {
+                var ownedGroupEntries = nodes.Groups.Where(x => x.Value.OwnerUuid == user.Uuid);
+
+                Console.WriteLine($"Owned Groups: {ownedGroupEntries.Count()}");
+
+                foreach (var groupEntry in ownedGroupEntries)
+                {
+                    Console.WriteLine(groupEntry.Key);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error: user {username} doesn't exist.");
+                return -2;
+            }
+
+            return 0;
+        }
+
+        public static async Task<int> ListOwnedNodes(string username, string[] groups, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (users.UserDict.TryGetValue(username, out var user))
+            {
+                var totalCount = 0;
+
+                foreach (var groupEntry in nodes.Groups)
+                {
+                    if (groups.Length > 0 && !groups.Contains(groupEntry.Key))
+                        continue;
+
+                    var ownedNodeEntries = groupEntry.Value.NodeDict.Where(x => x.Value.OwnerUuid == user.Uuid);
+
+                    if (ownedNodeEntries.Any())
+                    {
+                        totalCount += ownedNodeEntries.Count();
+
+                        Console.WriteLine($"From group {groupEntry.Key}: {ownedNodeEntries.Count()}");
+
+                        foreach (var nodeEntry in ownedNodeEntries)
+                        {
+                            Console.WriteLine(nodeEntry.Key);
+                        }
+
+                        Console.WriteLine();
+                    }
+                }
+
+                Console.WriteLine($"Total owned nodes: {totalCount}");
+            }
+            else
+            {
+                Console.WriteLine($"Error: user {username} doesn't exist.");
+                return -2;
+            }
+
+            return 0;
+        }
     }
 }

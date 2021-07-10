@@ -25,6 +25,13 @@ namespace ShadowsocksUriGenerator.CLI
             var userGetDataLimitCommand = new Command("get-data-limit", "Get the user's data limit settings.");
             var userSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-group data limit on the specified users in all or the specified groups.");
 
+            var userOwnGroupsCommand = new Command("own-groups", "Set as owner of groups.");
+            var userDisownGroupsCommand = new Command("disown-groups", "Disown groups.");
+            var userOwnNodesCommand = new Command("own-nodes", "Set as owner of nodes.");
+            var userDisownNodesCommand = new Command("disown-nodes", "Disown nodes.");
+            var userListOwnedGroupsCommand = new Command("list-owned-groups", "List owned groups.");
+            var userListOwnedNodesCmmand = new Command("list-owned-nodes", "List owned nodes.");
+
             var userCommand = new Command("user", "Manage users.")
             {
                 userAddCommand,
@@ -40,6 +47,12 @@ namespace ShadowsocksUriGenerator.CLI
                 userGetDataUsageCommand,
                 userGetDataLimitCommand,
                 userSetDataLimitCommand,
+                userOwnGroupsCommand,
+                userDisownGroupsCommand,
+                userOwnNodesCommand,
+                userDisownNodesCommand,
+                userListOwnedGroupsCommand,
+                userListOwnedNodesCmmand,
             };
 
             var nodeAddCommand = new Command("add", "Add a node to a group.");
@@ -214,6 +227,8 @@ namespace ShadowsocksUriGenerator.CLI
             var ownerOption = new Option<string>("--owner", "Set the owner.");
             var unsetOwnerOption = new Option<bool>("--unset-owner", "Unset the owner.");
 
+            var forceOption = new Option<bool>(new string[] { "-f", "--force" }, "Forcibly overwrite existing settings.");
+
             var tagsOption = new Option<string[]>("--tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.");
             var addTagsOption = new Option<string[]>("--add-tags", "Tags to add to the node. Will be deduplicated in a case-insensitive manner.");
             var removeTagsOption = new Option<string[]>("--remove-tags", "Tags to remove from the node. Matched in a case-insensitive manner.");
@@ -338,6 +353,51 @@ namespace ShadowsocksUriGenerator.CLI
             userSetDataLimitCommand.AddOption(groupsOption);
             userSetDataLimitCommand.AddValidator(UserCommand.ValidateSetDataLimit);
             userSetDataLimitCommand.Handler = CommandHandler.Create<string[], ulong?, ulong?, string[], CancellationToken>(UserCommand.SetDataLimit);
+
+            userOwnGroupsCommand.AddAlias("og");
+            userOwnGroupsCommand.AddArgument(usernameArgument);
+            userOwnGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
+            userOwnGroupsCommand.AddOption(allGroupsOption);
+            userOwnGroupsCommand.AddOption(forceOption);
+            userOwnGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userOwnGroupsCommand.Handler = CommandHandler.Create<string, string[], bool, bool, CancellationToken>(UserCommand.OwnGroups);
+
+            userDisownGroupsCommand.AddAlias("dg");
+            userDisownGroupsCommand.AddArgument(usernameArgument);
+            userDisownGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
+            userDisownGroupsCommand.AddOption(allGroupsOption);
+            userDisownGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userDisownGroupsCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(UserCommand.DisownGroups);
+
+            userOwnNodesCommand.AddAlias("on");
+            userOwnNodesCommand.AddArgument(usernameArgument);
+            userOwnNodesCommand.AddOption(groupsOption);
+            userOwnNodesCommand.AddOption(allGroupsNoAliasesOption);
+            userOwnNodesCommand.AddOption(nodenamesOption);
+            userOwnNodesCommand.AddOption(allNodesNoAliasesOption);
+            userOwnNodesCommand.AddOption(forceOption);
+            userOwnNodesCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userOwnNodesCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            userOwnNodesCommand.Handler = CommandHandler.Create<string, string[], bool, string[], bool, bool, CancellationToken>(UserCommand.OwnNodes);
+
+            userDisownNodesCommand.AddAlias("dn");
+            userDisownNodesCommand.AddArgument(usernameArgument);
+            userDisownNodesCommand.AddOption(groupsOption);
+            userDisownNodesCommand.AddOption(allGroupsNoAliasesOption);
+            userDisownNodesCommand.AddOption(nodenamesOption);
+            userDisownNodesCommand.AddOption(allNodesNoAliasesOption);
+            userDisownNodesCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userDisownNodesCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            userDisownNodesCommand.Handler = CommandHandler.Create<string, string[], bool, string[], bool, CancellationToken>(UserCommand.DisownNodes);
+
+            userListOwnedGroupsCommand.AddAlias("log");
+            userListOwnedGroupsCommand.AddArgument(usernameArgument);
+            userListOwnedGroupsCommand.Handler = CommandHandler.Create<string, CancellationToken>(UserCommand.ListOwnedGroups);
+
+            userListOwnedNodesCmmand.AddAlias("lon");
+            userListOwnedNodesCmmand.AddArgument(usernameArgument);
+            userListOwnedNodesCmmand.AddArgument(groupsArgumentZeroOrMore);
+            userListOwnedNodesCmmand.Handler = CommandHandler.Create<string, string[], CancellationToken>(UserCommand.ListOwnedNodes);
 
             nodeAddCommand.AddAlias("a");
             nodeAddCommand.AddArgument(groupArgument);
