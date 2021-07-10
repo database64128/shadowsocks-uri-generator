@@ -945,7 +945,7 @@ namespace ShadowsocksUriGenerator
                     // update server data limit
                     var responseMessage = await _apiClient.SetDataLimitAsync(PerUserDataLimitInBytes, cancellationToken);
                     if (!responseMessage.IsSuccessStatusCode)
-                        return $"Error when applying per-user data limit {Utilities.HumanReadableDataString(PerUserDataLimitInBytes)} to group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+                        return $"Error when applying per-user data limit {Utilities.HumanReadableDataString1024(PerUserDataLimitInBytes)} to group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
 
                     OutlineServerInfo.AccessKeyDataLimit = new(PerUserDataLimitInBytes);
                 }
@@ -987,7 +987,7 @@ namespace ShadowsocksUriGenerator
             {
                 var responseMessage = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, dataLimitInBytes, cancellationToken);
                 if (!responseMessage.IsSuccessStatusCode)
-                    return $"Error when applying the custom data limit {Utilities.HumanReadableDataString(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
+                    return $"Error when applying the custom data limit {Utilities.HumanReadableDataString1024(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}";
 
                 accessKey.DataLimit = new(dataLimitInBytes);
             }
@@ -997,7 +997,7 @@ namespace ShadowsocksUriGenerator
             }
             catch (Exception ex) // timeout and other errors
             {
-                return $"Error when applying the custom data limit {Utilities.HumanReadableDataString(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {ex.Message}";
+                return $"Error when applying the custom data limit {Utilities.HumanReadableDataString1024(dataLimitInBytes)} to user {accessKey.Name}'s access key on group {group}'s Outline server: {ex.Message}";
             }
 
             return null;

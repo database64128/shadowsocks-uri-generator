@@ -114,10 +114,10 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine();
 
             if (totalBytesUsed != 0UL)
-                Console.WriteLine($"{"Total data used",-24}{Utilities.HumanReadableDataString(totalBytesUsed)}");
+                Console.WriteLine($"{"Total data used",-24}{Utilities.HumanReadableDataString1024(totalBytesUsed)}");
 
             if (totalBytesRemaining != 0UL)
-                Console.WriteLine($"{"Total data remaining",-24}{Utilities.HumanReadableDataString(totalBytesRemaining)}");
+                Console.WriteLine($"{"Total data remaining",-24}{Utilities.HumanReadableDataString1024(totalBytesRemaining)}");
 
             Console.WriteLine();
 
@@ -135,7 +135,7 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.Write($"|{group.PadRight(groupNameFieldWidth)}|");
 
                     if (bytesUsed != 0UL)
-                        Console.WriteLine($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        Console.WriteLine($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                     else
                         Console.WriteLine($"{string.Empty,11}|");
                 }
@@ -153,12 +153,12 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.Write($"|{group.PadRight(groupNameFieldWidth)}|");
 
                     if (bytesUsed != 0UL)
-                        Console.Write($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        Console.Write($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                     else
                         Console.Write($"{string.Empty,11}|");
 
                     if (bytesRemaining != 0UL)
-                        Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        Console.WriteLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
                     else
                         Console.WriteLine($"{string.Empty,16}|");
                 }
@@ -182,7 +182,7 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.Write($"|{username.PadRight(usernameFieldWidth)}|");
 
                     if (bytesUsed != 0UL)
-                        Console.WriteLine($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        Console.WriteLine($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                     else
                         Console.WriteLine($"{string.Empty,11}|");
                 }
@@ -200,12 +200,12 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.Write($"|{username.PadRight(usernameFieldWidth)}|");
 
                     if (bytesUsed != 0UL)
-                        Console.Write($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                        Console.Write($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                     else
                         Console.Write($"{string.Empty,11}|");
 
                     if (bytesRemaining != 0UL)
-                        Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        Console.WriteLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
                     else
                         Console.WriteLine($"{string.Empty,16}|");
                 }

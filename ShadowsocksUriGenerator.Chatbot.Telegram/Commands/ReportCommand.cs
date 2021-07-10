@@ -81,10 +81,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 replyBuilder.AppendLine();
 
                 if (totalBytesUsed != 0UL)
-                    replyBuilder.AppendLine($"Total data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString(totalBytesUsed))}*");
+                    replyBuilder.AppendLine($"Total data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(totalBytesUsed))}*");
 
                 if (totalBytesRemaining != 0UL)
-                    replyBuilder.AppendLine($"Total data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString(totalBytesRemaining))}*");
+                    replyBuilder.AppendLine($"Total data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(totalBytesRemaining))}*");
 
                 replyBuilder.AppendLine();
 
@@ -131,7 +131,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             replyBuilder.AppendLine($"{string.Empty,11}|");
                     }
@@ -149,12 +149,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            replyBuilder.Append($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                            replyBuilder.Append($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             replyBuilder.Append($"{string.Empty,11}|");
 
                         if (bytesRemaining != 0UL)
-                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
                         else
                             replyBuilder.AppendLine($"{string.Empty,16}|");
                     }
@@ -180,7 +180,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             replyBuilder.AppendLine($"{string.Empty,11}|");
                     }
@@ -198,12 +198,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            replyBuilder.Append($"{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                            replyBuilder.Append($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             replyBuilder.Append($"{string.Empty,11}|");
 
                         if (bytesRemaining != 0UL)
-                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                            replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
                         else
                             replyBuilder.AppendLine($"{string.Empty,16}|");
                     }

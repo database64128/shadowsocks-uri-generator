@@ -570,11 +570,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (users.UserDict.TryGetValue(username, out var user))
             {
-                Console.WriteLine($"{"Data used",-16}{Utilities.HumanReadableDataString(user.BytesUsed),-32}");
+                Console.WriteLine($"{"Data used",-16}{Utilities.HumanReadableDataString1024(user.BytesUsed),-32}");
                 if (user.BytesRemaining != 0UL)
-                    Console.WriteLine($"{"Data remaining",-16}{Utilities.HumanReadableDataString(user.BytesRemaining),-32}");
+                    Console.WriteLine($"{"Data remaining",-16}{Utilities.HumanReadableDataString1024(user.BytesRemaining),-32}");
                 if (user.DataLimitInBytes != 0UL)
-                    Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString(user.DataLimitInBytes),-32}");
+                    Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString1024(user.DataLimitInBytes),-32}");
             }
 
             Console.WriteLine();
@@ -587,7 +587,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var (group, bytesUsed, _) in records)
                 {
-                    Console.WriteLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                    Console.WriteLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
                 }
 
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
@@ -600,10 +600,10 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var (group, bytesUsed, bytesRemaining) in records)
                 {
-                    Console.Write($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(bytesUsed),11}|");
+                    Console.Write($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
 
                     if (bytesRemaining != 0UL)
-                        Console.WriteLine($"{Utilities.HumanReadableDataString(bytesRemaining),16}|");
+                        Console.WriteLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
                     else
                         Console.WriteLine($"{string.Empty,16}|");
                 }
@@ -627,9 +627,9 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 Console.WriteLine($"{"User",-24}{username,-32}");
                 if (user.DataLimitInBytes != 0UL)
-                    Console.WriteLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString(user.DataLimitInBytes),-32}");
+                    Console.WriteLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString1024(user.DataLimitInBytes),-32}");
                 if (user.PerGroupDataLimitInBytes != 0UL)
-                    Console.WriteLine($"{"Per-group data limit",-24}{Utilities.HumanReadableDataString(user.PerGroupDataLimitInBytes),-32}");
+                    Console.WriteLine($"{"Per-group data limit",-24}{Utilities.HumanReadableDataString1024(user.PerGroupDataLimitInBytes),-32}");
 
                 var customLimits = user.Memberships.Where(x => x.Value.DataLimitInBytes > 0UL).Select(x => (x.Key, x.Value.DataLimitInBytes));
 
@@ -653,7 +653,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach ((var group, var dataLimitInBytes) in customLimits)
                 {
-                    Console.WriteLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString(dataLimitInBytes),19}|");
+                    Console.WriteLine($"|{group.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(dataLimitInBytes),19}|");
                 }
 
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
