@@ -453,8 +453,8 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            Console.WriteLine($"{"Group",-16}{group}");
-            Console.WriteLine($"{"Members",-16}{members.Count}");
+            Console.WriteLine($"Group: {group}");
+            Console.WriteLine($"Members: {members.Count}");
 
             if (members.Count == 0)
             {
@@ -469,14 +469,13 @@ namespace ShadowsocksUriGenerator.CLI
             var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
             var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
 
-            Console.WriteLine();
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
-            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
+            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method".PadLeft(methodFieldWidth)}|{"Password".PadLeft(passwordFieldWidth)}|");
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
 
             foreach (var (username, method, password) in members)
             {
-                Console.WriteLine($"|{username.PadRight(usernameFieldWidth)}|{method.PadRight(methodFieldWidth)}|{password.PadRight(passwordFieldWidth)}|");
+                Console.WriteLine($"|{username.PadRight(usernameFieldWidth)}|{method.PadLeft(methodFieldWidth)}|{password.PadLeft(passwordFieldWidth)}|");
             }
 
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
@@ -657,68 +656,6 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task<int> ListCredentials(string group, CancellationToken cancellationToken = default)
-        {
-            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
-            if (loadUsersErrMsg is not null)
-            {
-                Console.WriteLine(loadUsersErrMsg);
-                return 1;
-            }
-
-            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
-            if (loadNodesErrMsg is not null)
-            {
-                Console.WriteLine(loadNodesErrMsg);
-                return 1;
-            }
-            using var nodes = loadedNodes;
-
-            if (!nodes.Groups.ContainsKey(group))
-            {
-                Console.WriteLine($"Error: Group {group} doesn't exist.");
-                return -2;
-            }
-
-            var groupCreds = new List<(string username, string method, string password)>();
-            foreach (var userEntry in users.UserDict)
-            {
-                var groupCred = userEntry.Value.Memberships.Where(x => x.Key == group)
-                                                           .Select(x => (userEntry.Key, x.Value.Method, x.Value.Password));
-                groupCreds.AddRange(groupCred);
-            }
-
-            Console.WriteLine($"{"Group",-16}{group}");
-            Console.WriteLine($"{"Credentials",-16}{groupCreds.Count}");
-            Console.WriteLine();
-
-            if (groupCreds.Count == 0)
-            {
-                return 0;
-            }
-
-            var maxUsernameLength = groupCreds.Max(x => x.username.Length);
-            var maxMethodLength = groupCreds.Max(x => x.method.Length);
-            var maxPasswordLength = groupCreds.Max(x => x.password.Length);
-
-            var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
-            var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
-            var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
-
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
-            Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
-
-            foreach (var (username, method, password) in groupCreds)
-            {
-                Console.WriteLine($"|{username.PadRight(usernameFieldWidth)}|{method.PadRight(methodFieldWidth)}|{password.PadRight(passwordFieldWidth)}|");
-            }
-
-            ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
-
-            return 0;
-        }
-
         public static async Task<int> GetDataUsage(string group, SortBy? sortBy, CancellationToken cancellationToken = default)
         {
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
@@ -790,8 +727,6 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString1024(targetGroup.DataLimitInBytes),-32}");
             }
 
-            Console.WriteLine();
-
             if (records.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
             {
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
@@ -857,12 +792,8 @@ namespace ShadowsocksUriGenerator.CLI
                                                                 .Max();
                 var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
-                Console.WriteLine();
-
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
-
                 Console.WriteLine($"|{"User".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
-
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
 
                 foreach ((var username, var dataLimitInBytes) in outlineAccessKeyCustomLimits)

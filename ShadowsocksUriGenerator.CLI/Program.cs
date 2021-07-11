@@ -97,10 +97,9 @@ namespace ShadowsocksUriGenerator.CLI
             var groupListCommand = new Command("list", "List all groups.");
             var groupAddUsersCommand = new Command("add-users", "Add users to the group.");
             var groupRemoveUsersCommand = new Command("remove-users", "Remove users from the group.");
-            var groupListUsersCommand = new Command("list-users", "List users in the group.");
+            var groupListUsersCommand = new Command("list-users", "List group members and credentials.");
             var groupAddCredentialCommand = new Command("add-credential", "Add credential to selected users in the group.");
             var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
-            var groupListCredentialsCommand = new Command("list-credentials", "List credentials in the group.");
             var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
             var groupGetDataLimitCommand = new Command("get-data-limit", "Get the group's data limit settings.");
             var groupSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
@@ -117,7 +116,6 @@ namespace ShadowsocksUriGenerator.CLI
                 groupListUsersCommand,
                 groupAddCredentialCommand,
                 groupRemoveCredentialsCommand,
-                groupListCredentialsCommand,
                 groupGetDataUsageCommand,
                 groupGetDataLimitCommand,
                 groupSetDataLimitCommand,
@@ -571,7 +569,11 @@ namespace ShadowsocksUriGenerator.CLI
             groupRemoveUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveUsersCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(GroupCommand.RemoveUsers);
 
+            groupListUsersCommand.AddAlias("lc");
+            groupListUsersCommand.AddAlias("lm");
             groupListUsersCommand.AddAlias("lu");
+            groupListUsersCommand.AddAlias("list-credentials");
+            groupListUsersCommand.AddAlias("list-members");
             groupListUsersCommand.AddArgument(groupArgument);
             groupListUsersCommand.Handler = CommandHandler.Create<string, CancellationToken>(GroupCommand.ListUsers);
 
@@ -592,10 +594,6 @@ namespace ShadowsocksUriGenerator.CLI
             groupRemoveCredentialsCommand.AddOption(allUsersOption);
             groupRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveCredentialsCommand.Handler = CommandHandler.Create<string, string[], bool, CancellationToken>(GroupCommand.RemoveCredentials);
-
-            groupListCredentialsCommand.AddAlias("lc");
-            groupListCredentialsCommand.AddArgument(groupArgument);
-            groupListCredentialsCommand.Handler = CommandHandler.Create<string, CancellationToken>(GroupCommand.ListCredentials);
 
             groupGetDataUsageCommand.AddAlias("data");
             groupGetDataUsageCommand.AddArgument(groupArgument);

@@ -479,7 +479,6 @@ namespace ShadowsocksUriGenerator.CLI
             var methodFieldWidth = maxMethodLength > 6 ? maxMethodLength + 2 : 8;
             var passwordFieldWidth = maxPasswordLength > 8 ? maxPasswordLength + 2 : 10;
 
-            Console.WriteLine();
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
             Console.WriteLine($"|{"User".PadRight(usernameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"Method".PadRight(methodFieldWidth)}|{"Password".PadRight(passwordFieldWidth)}|");
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, groupNameFieldWidth, methodFieldWidth, passwordFieldWidth);
@@ -605,8 +604,6 @@ namespace ShadowsocksUriGenerator.CLI
                     Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString1024(user.DataLimitInBytes),-32}");
             }
 
-            Console.WriteLine();
-
             if (records.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
             {
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
@@ -671,12 +668,8 @@ namespace ShadowsocksUriGenerator.CLI
                                                 .Max();
                 var nameFieldWidth = maxNameLength > 5 ? maxNameLength + 2 : 7;
 
-                Console.WriteLine();
-
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
-
                 Console.WriteLine($"|{"Group".PadRight(nameFieldWidth)}|{"Custom Data Limit",19}|");
-
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);
 
                 foreach ((var group, var dataLimitInBytes) in customLimits)
