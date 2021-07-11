@@ -92,6 +92,14 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
             if (loadSettingsErrMsg is not null)
             {
@@ -102,16 +110,36 @@ namespace ShadowsocksUriGenerator.CLI
             // Removing online config requires reading user entry.
             if (settings.OnlineConfigCleanOnUserRemoval)
                 OnlineConfig.Remove(users, settings, usernames);
+
             // Remove user entry.
             foreach (var username in usernames)
             {
-                var result = users.RemoveUser(username);
-                if (result)
-                    Console.WriteLine($"Removed {username}.");
+                if (users.UserDict.TryGetValue(username, out var user))
+                {
+                    // Clear group and node ownership.
+                    var ownedGroupEntries = nodes.Groups.Where(x => x.Value.OwnerUuid == user.Uuid);
+                    var ownedNodeEntries = nodes.Groups.SelectMany(x => x.Value.NodeDict)
+                                                       .Where(x => x.Value.OwnerUuid == user.Uuid);
+
+                    foreach (var groupEntry in ownedGroupEntries)
+                    {
+                        groupEntry.Value.OwnerUuid = null;
+                        Console.WriteLine($"{username}: Disowned group {groupEntry.Key}.");
+                    }
+
+                    foreach (var nodeEntry in ownedNodeEntries)
+                    {
+                        nodeEntry.Value.OwnerUuid = null;
+                        Console.WriteLine($"{username}: Disowned node {nodeEntry.Key}.");
+                    }
+
+                    _ = users.RemoveUser(username);
+                    Console.WriteLine($"Removed user {username}.");
+                }
                 else
                 {
                     commandResult--;
-                    Console.WriteLine($"Error: {username} doesn't exist.");
+                    Console.WriteLine($"Error: User {username} doesn't exist.");
                 }
             }
 
