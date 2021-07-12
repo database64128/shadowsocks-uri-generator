@@ -254,18 +254,18 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         {
                             totalCount += ownedNodeEntries.Count();
 
-                            replyBuilder.AppendLine($"From group {groupEntry.Key}: {ownedNodeEntries.Count()}");
+                            replyBuilder.AppendLine($"*From group {ChatHelper.EscapeMarkdownV2Plaintext(groupEntry.Key)}: {ownedNodeEntries.Count()}*");
 
                             foreach (var nodeEntry in ownedNodeEntries)
                             {
-                                replyBuilder.AppendLine(nodeEntry.Key);
+                                replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext(nodeEntry.Key));
                             }
 
                             replyBuilder.AppendLine();
                         }
                     }
 
-                    replyBuilder.AppendLine($"Total owned nodes: {totalCount}");
+                    replyBuilder.AppendLine($"*Total owned nodes: {totalCount}*");
 
                     replyMarkdownV2 = replyBuilder.ToString();
                     Console.WriteLine(" Response: successful query.");
@@ -351,14 +351,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                             var owner = users.UserDict.Where(x => x.Value.Uuid == node.OwnerUuid)
                                                       .Select(x => x.Key)
                                                       .FirstOrDefault();
-                            Console.WriteLine($"Owner: {owner}");
+                            Console.WriteLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(owner ?? "N/A")}");
                         }
 
                         replyBuilder.AppendLine($"Tags: {node.Tags.Count}");
 
                         foreach (var tag in node.Tags)
                         {
-                            replyBuilder.AppendLine($"- {ChatHelper.EscapeMarkdownV2Plaintext(tag)}");
+                            replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"- {tag}"));
                         }
 
                         replyBuilder.AppendLine();
@@ -534,11 +534,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                     var ownedGroupEntries = nodes.Groups.Where(x => x.Value.OwnerUuid == targetUserUuid);
 
-                    replyBuilder.AppendLine($"Owned Groups: {ownedGroupEntries.Count()}");
+                    replyBuilder.AppendLine($"*Owned Groups: {ownedGroupEntries.Count()}*");
 
                     foreach (var groupEntry in ownedGroupEntries)
                     {
-                        replyBuilder.AppendLine(groupEntry.Key);
+                        replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext(groupEntry.Key));
                     }
 
                     replyMarkdownV2 = replyBuilder.ToString();
