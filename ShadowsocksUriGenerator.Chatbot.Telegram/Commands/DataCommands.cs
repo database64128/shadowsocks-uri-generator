@@ -1,6 +1,7 @@
 ﻿using ShadowsocksUriGenerator.Chatbot.Telegram.Utils;
 using ShadowsocksUriGenerator.CLI.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -274,98 +275,46 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 replyMarkdownV2 = @"The admin has disabled the command\.";
                 Console.WriteLine(" Response: permission denied.");
             }
-            else if (string.IsNullOrEmpty(argument))
-            {
-                replyMarkdownV2 = @"Please specify a group\.";
-                Console.WriteLine(" Response: missing argument.");
-            }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
-                if (userEntry.Value.Value.Memberships.ContainsKey(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
+                var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+                if (loadNodesErrMsg is not null)
                 {
-                    var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
-                    if (loadNodesErrMsg is not null)
+                    Console.WriteLine();
+                    Console.WriteLine(loadNodesErrMsg);
+                    return;
+                }
+                using var nodes = loadedNodes;
+
+                var replyBuilder = new StringBuilder();
+
+                if (string.IsNullOrEmpty(argument)) // target the user's groups
+                {
+                    var ownedGroupEntries = nodes.Groups.Where(x => x.Value.OwnerUuid == userUuid);
+
+                    replyBuilder.AppendLine($"Owned Groups: {ownedGroupEntries.Count()}");
+                    replyBuilder.AppendLine();
+
+                    foreach (var groupEntry in ownedGroupEntries)
                     {
-                        Console.WriteLine();
-                        Console.WriteLine(loadNodesErrMsg);
-                        return;
+                        GetGroupDataUsageCore(replyBuilder, groupEntry);
                     }
-                    using var nodes = loadedNodes;
 
-                    var records = nodes.GetGroupDataUsage(argument);
-                    if (records is null)
+                    replyMarkdownV2 = replyBuilder.ToString();
+                    Console.WriteLine(" Response: successful query.");
+                }
+                else if (userEntry.Value.Value.Memberships.ContainsKey(argument) || botConfig.UsersCanSeeAllGroups) // user is allowed to view it
+                {
+                    if (nodes.Groups.TryGetValue(argument, out var targetGroup))
                     {
-                        replyMarkdownV2 = @"The specified group doesn't exist\.";
-                        Console.WriteLine(" Response: nonexistent group.");
-                    }
-                    else if (records.Any())
-                    {
-                        // sort records
-                        records = records.OrderByDescending(x => x.bytesUsed).ToList();
-
-                        var maxNameLength = records.Select(x => x.username.Length)
-                                                   .DefaultIfEmpty()
-                                                   .Max();
-                        var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
-
-                        var replyBuilder = new StringBuilder();
-
-                        replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(argument)}*");
-
-                        if (nodes.Groups.TryGetValue(argument, out var targetGroup))
-                        {
-                            replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(targetGroup.BytesUsed))}*");
-
-                            if (targetGroup.BytesRemaining != 0UL)
-                                replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(targetGroup.BytesRemaining))}*");
-
-                            if (targetGroup.DataLimitInBytes != 0UL)
-                                replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(targetGroup.DataLimitInBytes))}*");
-                        }
-
-                        replyBuilder.AppendLine("```");
-
-                        if (records.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
-                        {
-                            replyBuilder.AppendTableBorder(nameFieldWidth, 11);
-                            replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|");
-                            replyBuilder.AppendTableBorder(nameFieldWidth, 11);
-
-                            foreach (var (username, bytesUsed, bytesRemaining) in records)
-                            {
-                                replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
-                            }
-
-                            replyBuilder.AppendTableBorder(nameFieldWidth, 11);
-                        }
-                        else
-                        {
-                            replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
-                            replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
-                            replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
-
-                            foreach (var (username, bytesUsed, bytesRemaining) in records)
-                            {
-                                replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
-
-                                if (bytesRemaining != 0UL)
-                                    replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
-                                else
-                                    replyBuilder.AppendLine($"{string.Empty,16}|");
-                            }
-
-                            replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
-                        }
-
-                        replyBuilder.AppendLine("```");
-
+                        GetGroupDataUsageCore(replyBuilder, new(argument, targetGroup));
                         replyMarkdownV2 = replyBuilder.ToString();
                         Console.WriteLine(" Response: successful query.");
                     }
                     else
                     {
-                        replyMarkdownV2 = @"No data usage metrics available\.";
-                        Console.WriteLine(" Response: successful query.");
+                        replyMarkdownV2 = @"The specified group doesn't exist\.";
+                        Console.WriteLine(" Response: nonexistent group.");
                     }
                 }
                 else
@@ -385,6 +334,62 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                                                              ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
+        }
+
+        private static void GetGroupDataUsageCore(StringBuilder replyBuilder, KeyValuePair<string, Group> groupEntry)
+        {
+            var records = groupEntry.Value.GetDataUsage()
+                                          .OrderByDescending(x => x.bytesUsed)
+                                          .ToList();
+
+            if (records.Count == 0)
+                return;
+
+            var maxNameLength = records.Max(x => x.username.Length);
+            var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
+
+            replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(groupEntry.Key)}*");
+            replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(groupEntry.Value.BytesUsed))}*");
+            if (groupEntry.Value.BytesRemaining != 0UL)
+                replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(groupEntry.Value.BytesRemaining))}*");
+            if (groupEntry.Value.DataLimitInBytes != 0UL)
+                replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(groupEntry.Value.DataLimitInBytes))}*");
+
+            replyBuilder.AppendLine("```");
+
+            if (records.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
+            {
+                replyBuilder.AppendTableBorder(nameFieldWidth, 11);
+                replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|");
+                replyBuilder.AppendTableBorder(nameFieldWidth, 11);
+
+                foreach (var (username, bytesUsed, bytesRemaining) in records)
+                {
+                    replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                }
+
+                replyBuilder.AppendTableBorder(nameFieldWidth, 11);
+            }
+            else
+            {
+                replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
+                replyBuilder.AppendLine($"|{"User".PadRight(nameFieldWidth)}|{"Data Used",11}|{"Data Remaining",16}|");
+                replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
+
+                foreach (var (username, bytesUsed, bytesRemaining) in records)
+                {
+                    replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+
+                    if (bytesRemaining != 0UL)
+                        replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
+                    else
+                        replyBuilder.AppendLine($"{string.Empty,16}|");
+                }
+
+                replyBuilder.AppendTableBorder(nameFieldWidth, 11, 16);
+            }
+
+            replyBuilder.AppendLine("```");
         }
 
         public static async Task GetGroupDataLimitAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)

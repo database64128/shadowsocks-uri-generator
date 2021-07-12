@@ -110,13 +110,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
                 using var nodes = loadedNodes;
 
-                var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
-
                 List<(string group, string nodeName, Node node)> filteredNodes = new();
 
                 foreach (var groupEntry in nodes.Groups)
                 {
-                    if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key)))
+                    if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || groupEntry.Value.OwnerUuid == userUuid || userEntry.Value.Value.Memberships.ContainsKey(groupEntry.Key)))
                     {
                         foreach (var node in groupEntry.Value.NodeDict)
                         {
@@ -126,13 +124,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
 
                 var replyBuilder = new StringBuilder();
-                replyBuilder.AppendLine("```");
-                replyBuilder.AppendLine($"{"Nodes",-16}{filteredNodes.Count}");
+
+                replyBuilder.AppendLine($"*Nodes: {filteredNodes.Count}*");
 
                 if (filteredNodes.Count > 0)
                 {
-                    replyBuilder.AppendLine();
-
                     var maxNodeNameLength = filteredNodes.Max(x => x.nodeName.Length);
                     var maxGroupNameLength = filteredNodes.Max(x => x.group.Length);
                     var maxHostnameLength = filteredNodes.Max(x => x.node.Host.Length);
@@ -142,6 +138,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
                     var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
                     var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
+
+                    replyBuilder.AppendLine("```");
 
                     // Nodes have no plugins. Do not display plugin and plugin options columns.
                     if (maxPluginLength is null && maxPluginOptsLength is null)
@@ -173,9 +171,200 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                         replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
                     }
+
+                    replyBuilder.AppendLine("```");
                 }
 
-                replyBuilder.AppendLine("```");
+                replyMarkdownV2 = replyBuilder.ToString();
+                Console.WriteLine(" Response: successful query.");
+            }
+            else
+            {
+                replyMarkdownV2 = @"You must link your Telegram account to your user first\.";
+                Console.WriteLine(" Response: user not linked.");
+            }
+
+            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
+                                                             replyMarkdownV2,
+                                                             ParseMode.MarkdownV2,
+                                                             replyToMessageId: message.MessageId,
+                                                             cancellationToken: cancellationToken);
+        }
+
+        public static async Task ListOwnedNodesAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
+        {
+            Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
+            string replyMarkdownV2;
+
+            var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            if (loadBotConfigErrMsg is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine(loadBotConfigErrMsg);
+                return;
+            }
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine(loadUsersErrMsg);
+                return;
+            }
+
+            if (!botConfig.UsersCanSeeAllUsers || !botConfig.UsersCanSeeAllGroups)
+            {
+                replyMarkdownV2 = @"The admin has disabled the command\.";
+                Console.WriteLine(" Response: permission denied.");
+            }
+            else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            {
+                string? targetUserUuid = null;
+
+                if (string.IsNullOrEmpty(argument))
+                {
+                    targetUserUuid = userUuid;
+                }
+                else if (users.UserDict.TryGetValue(argument, out var targetUser))
+                {
+                    targetUserUuid = targetUser.Uuid;
+                }
+
+                if (targetUserUuid is not null)
+                {
+                    var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+                    if (loadNodesErrMsg is not null)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(loadNodesErrMsg);
+                        return;
+                    }
+                    using var nodes = loadedNodes;
+
+                    var replyBuilder = new StringBuilder();
+
+                    var totalCount = 0;
+
+                    foreach (var groupEntry in nodes.Groups)
+                    {
+                        var ownedNodeEntries = groupEntry.Value.NodeDict.Where(x => x.Value.OwnerUuid == targetUserUuid);
+
+                        if (ownedNodeEntries.Any())
+                        {
+                            totalCount += ownedNodeEntries.Count();
+
+                            replyBuilder.AppendLine($"From group {groupEntry.Key}: {ownedNodeEntries.Count()}");
+
+                            foreach (var nodeEntry in ownedNodeEntries)
+                            {
+                                replyBuilder.AppendLine(nodeEntry.Key);
+                            }
+
+                            replyBuilder.AppendLine();
+                        }
+                    }
+
+                    replyBuilder.AppendLine($"Total owned nodes: {totalCount}");
+
+                    replyMarkdownV2 = replyBuilder.ToString();
+                    Console.WriteLine(" Response: successful query.");
+                }
+                else
+                {
+                    replyMarkdownV2 = @"The specified user doesn't exist\.";
+                    Console.WriteLine(" Response: target user not found.");
+                }
+            }
+            else
+            {
+                replyMarkdownV2 = @"You must link your Telegram account to your user first\.";
+                Console.WriteLine(" Response: user not linked.");
+            }
+
+            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
+                                                             replyMarkdownV2,
+                                                             ParseMode.MarkdownV2,
+                                                             replyToMessageId: message.MessageId,
+                                                             cancellationToken: cancellationToken);
+        }
+
+        public static async Task ListNodeAnnotationsAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
+        {
+            Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
+            string replyMarkdownV2;
+
+            var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            if (loadBotConfigErrMsg is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine(loadBotConfigErrMsg);
+                return;
+            }
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine(loadUsersErrMsg);
+                return;
+            }
+
+            if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            {
+                var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+                if (loadNodesErrMsg is not null)
+                {
+                    Console.WriteLine();
+                    Console.WriteLine(loadNodesErrMsg);
+                    return;
+                }
+                using var nodes = loadedNodes;
+
+                List<(string group, string nodeName, Node node)> filteredNodes = new();
+
+                foreach (var groupEntry in nodes.Groups)
+                {
+                    if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || groupEntry.Value.OwnerUuid == userUuid || userEntry.Value.Value.Memberships.ContainsKey(groupEntry.Key)))
+                    {
+                        foreach (var node in groupEntry.Value.NodeDict)
+                        {
+                            filteredNodes.Add((groupEntry.Key, node.Key, node.Value));
+                        }
+                    }
+                }
+
+                var replyBuilder = new StringBuilder();
+
+                replyBuilder.AppendLine($"*Nodes: {filteredNodes.Count}*");
+
+                if (filteredNodes.Count > 0)
+                {
+                    foreach (var (group, nodeName, node) in filteredNodes)
+                    {
+                        replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(group)}*");
+                        replyBuilder.AppendLine($"Node: *{ChatHelper.EscapeMarkdownV2Plaintext(nodeName)}*");
+
+                        if (node.OwnerUuid is not null)
+                        {
+                            var owner = users.UserDict.Where(x => x.Value.Uuid == node.OwnerUuid)
+                                                      .Select(x => x.Key)
+                                                      .FirstOrDefault();
+                            Console.WriteLine($"Owner: {owner}");
+                        }
+
+                        replyBuilder.AppendLine($"Tags: {node.Tags.Count}");
+
+                        foreach (var tag in node.Tags)
+                        {
+                            replyBuilder.AppendLine($"- {ChatHelper.EscapeMarkdownV2Plaintext(tag)}");
+                        }
+
+                        replyBuilder.AppendLine();
+                    }
+                }
+
                 replyMarkdownV2 = replyBuilder.ToString();
                 Console.WriteLine(" Response: successful query.");
             }
@@ -225,31 +414,141 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
                 using var nodes = loadedNodes;
 
-                var userGroups = userEntry.Value.Value.Memberships.Keys.ToList();
-                var replyBuilder = new StringBuilder();
-
-                var maxGroupNameLength = nodes.Groups.Select(x => x.Key.Length)
-                                                     .DefaultIfEmpty()
-                                                     .Max();
-                var maxOutlineServerNameLength = nodes.Groups.Select(x => x.Value.OutlineServerInfo?.Name.Length ?? 0)
-                                                             .DefaultIfEmpty()
-                                                             .Max();
-                var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-                var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
-
-                replyBuilder.AppendLine("```");
-                replyBuilder.AppendTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
-                replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
-                replyBuilder.AppendTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
+                List<(string group, int nodeCount, string? owner)> tableEntries = new();
 
                 foreach (var groupEntry in nodes.Groups)
-                    if (botConfig.UsersCanSeeAllGroups || userGroups.Contains(groupEntry.Key))
-                        replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(groupEntry.Key).PadRight(groupNameFieldWidth)}|{groupEntry.Value.NodeDict.Count,16}|{ChatHelper.EscapeMarkdownV2CodeBlock(groupEntry.Value.OutlineServerInfo?.Name ?? "No").PadLeft(outlineServerNameFieldWidth)}|");
+                {
+                    // Add group if either:
+                    // 1. Explicitly allowed by setting.
+                    // 2. User is group owner.
+                    // 3. User is group member.
+                    if (botConfig.UsersCanSeeAllGroups || groupEntry.Value.OwnerUuid == userUuid || userEntry.Value.Value.Memberships.ContainsKey(groupEntry.Key))
+                    {
+                        if (groupEntry.Value.OwnerUuid == userUuid) // no need to lookup username
+                        {
+                            tableEntries.Add((groupEntry.Key, groupEntry.Value.NodeDict.Count, userEntry.Value.Key));
+                        }
+                        else
+                        {
+                            var owner = users.UserDict.Where(x => x.Value.Uuid == groupEntry.Value.OwnerUuid)
+                                                      .Select(x => x.Key)
+                                                      .FirstOrDefault();
+                            tableEntries.Add((groupEntry.Key, groupEntry.Value.NodeDict.Count, owner));
+                        }
+                    }
+                }
 
-                replyBuilder.AppendTableBorder(groupNameFieldWidth, 16, outlineServerNameFieldWidth);
-                replyBuilder.AppendLine("```");
+                var replyBuilder = new StringBuilder();
+
+                replyBuilder.AppendLine($"*Groups: {tableEntries.Count}*");
+
+                if (tableEntries.Count > 0)
+                {
+                    var maxGroupNameLength = tableEntries.Max(x => x.group.Length);
+                    var maxOwnerNameLength = tableEntries.Max(x => x.owner?.Length ?? 0);
+                    var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
+                    var ownerNameFieldWidth = maxOwnerNameLength > 5 ? maxOwnerNameLength + 2 : 7;
+
+                    replyBuilder.AppendLine("```");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 6, ownerNameFieldWidth);
+                    replyBuilder.AppendLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Nodes",6}|{"Owner".PadLeft(ownerNameFieldWidth)}|");
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 6, ownerNameFieldWidth);
+
+                    foreach (var (group, nodeCount, owner) in tableEntries)
+                    {
+                        replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|{nodeCount,6}|{ChatHelper.EscapeMarkdownV2CodeBlock(owner ?? "N/A").PadLeft(ownerNameFieldWidth)}|");
+                    }
+
+                    replyBuilder.AppendTableBorder(groupNameFieldWidth, 6, ownerNameFieldWidth);
+                    replyBuilder.AppendLine("```");
+                }
+
                 replyMarkdownV2 = replyBuilder.ToString();
                 Console.WriteLine(" Response: successful query.");
+            }
+            else
+            {
+                replyMarkdownV2 = @"You must link your Telegram account to your user first\.";
+                Console.WriteLine(" Response: user not linked.");
+            }
+
+            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
+                                                             replyMarkdownV2,
+                                                             ParseMode.MarkdownV2,
+                                                             replyToMessageId: message.MessageId,
+                                                             cancellationToken: cancellationToken);
+        }
+
+        public static async Task ListOwnedGroupsAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
+        {
+            Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
+
+            string replyMarkdownV2;
+
+            var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
+            if (loadBotConfigErrMsg is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine(loadBotConfigErrMsg);
+                return;
+            }
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine();
+                Console.WriteLine(loadUsersErrMsg);
+                return;
+            }
+
+            if (!botConfig.UsersCanSeeAllUsers || !botConfig.UsersCanSeeAllGroups)
+            {
+                replyMarkdownV2 = @"The admin has disabled the command\.";
+                Console.WriteLine(" Response: permission denied.");
+            }
+            else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            {
+                string? targetUserUuid = null;
+
+                if (string.IsNullOrEmpty(argument))
+                {
+                    targetUserUuid = userUuid;
+                }
+                else if (users.UserDict.TryGetValue(argument, out var targetUser))
+                {
+                    targetUserUuid = targetUser.Uuid;
+                }
+
+                if (targetUserUuid is not null)
+                {
+                    var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+                    if (loadNodesErrMsg is not null)
+                    {
+                        Console.WriteLine();
+                        Console.WriteLine(loadNodesErrMsg);
+                        return;
+                    }
+                    using var nodes = loadedNodes;
+
+                    var replyBuilder = new StringBuilder();
+
+                    var ownedGroupEntries = nodes.Groups.Where(x => x.Value.OwnerUuid == targetUserUuid);
+
+                    replyBuilder.AppendLine($"Owned Groups: {ownedGroupEntries.Count()}");
+
+                    foreach (var groupEntry in ownedGroupEntries)
+                    {
+                        replyBuilder.AppendLine(groupEntry.Key);
+                    }
+
+                    replyMarkdownV2 = replyBuilder.ToString();
+                    Console.WriteLine(" Response: successful query.");
+                }
+                else
+                {
+                    replyMarkdownV2 = @"The specified user doesn't exist\.";
+                    Console.WriteLine(" Response: target user not found.");
+                }
             }
             else
             {
