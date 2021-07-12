@@ -351,7 +351,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                             var owner = users.UserDict.Where(x => x.Value.Uuid == node.OwnerUuid)
                                                       .Select(x => x.Key)
                                                       .FirstOrDefault();
-                            Console.WriteLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(owner ?? "N/A")}");
+                            replyBuilder.AppendLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(owner ?? "N/A")}");
                         }
 
                         replyBuilder.AppendLine($"Tags: {node.Tags.Count}");

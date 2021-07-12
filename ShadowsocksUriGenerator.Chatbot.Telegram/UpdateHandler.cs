@@ -27,7 +27,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             new() { Command = "list_owned_groups", Description = "List groups owned by you or the specified user", },
             new() { Command = "get_user_data_usage", Description = "Get data usage statistics of the associated user or the specified user", },
             new() { Command = "get_user_data_limit", Description = "Get data limit settings of the associated user or the specified user", },
-            new() { Command = "get_group_data_usage", Description = "Get data usage statistics of the specified group", },
+            new() { Command = "get_group_data_usage", Description = "Get data usage statistics of groups you own or the specified group", },
             new() { Command = "get_group_data_limit", Description = "Get data limit settings of the specified group", },
             new() { Command = "get_ss_links", Description = "Get your ss:// links to all servers or servers from the specified group", },
             new() { Command = "get_legacy_sip008_links", Description = "Get legacy SIP008 static file delivery links", },
