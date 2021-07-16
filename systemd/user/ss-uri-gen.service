@@ -4,7 +4,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-ExecStart=/usr/bin/ss-uri-gen service --interval 3600 --pull-outline-server --regenerate-online-config
+ExecStart=/usr/bin/ss-uri-gen service --interval 3600 --pull-outline-server
 
 [Install]
 WantedBy=multi-user.target default.target

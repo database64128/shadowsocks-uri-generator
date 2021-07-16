@@ -32,13 +32,13 @@ Prerequisites: .NET 5 SDK
 Note for packagers: The application by default uses executable directory as config directory. To use user's config directory, define the constant `PACKAGED` when building.
 
 ```console
-# Build with Release configuration
+$ # Build with Release configuration
 $ dotnet build -c Release
 
-# Publish as framework-dependent
+$ # Publish as framework-dependent
 $ dotnet publish ShadowsocksUriGenerator -c Release
 
-# Publish as self-contained for Linux x64
+$ # Publish as self-contained for Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:PublishReadyToRun=true \
     -p:PublishSingleFile=true \
@@ -50,7 +50,7 @@ $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:InvariantGlobalization=true \
     -r linux-x64 --self-contained
 
-# Publish as self-contained for packaging on Linux x64
+$ # Publish as self-contained for packaging on Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:DefineConstants=PACKAGED \
     -p:PublishReadyToRun=true \
