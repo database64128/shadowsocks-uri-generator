@@ -3,10 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>4.3.0</Version>
+    <Version>5.0.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Library</Product>
-    <Description>Library for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).</Description>
+    <Description>Shadowsocks URI Generator is a management and distribution platform for censorship circumvention services.</Description>
     <Copyright>© 2021 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>

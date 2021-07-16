@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -83,11 +84,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                                                              cancellationToken: cancellationToken);
         }
 
-        public static async Task GetLegacySIP008StaticLinksAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
+        public static async Task GetOnlineConfigLinksAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
         {
             Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
 
-            string reply;
+            string replyMarkdownV2;
 
             var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
             if (loadBotConfigErrMsg is not null)
@@ -106,7 +107,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
             }
 
             if (message.Chat.Type != ChatType.Private)
-                reply = "Retrieval of sensitive information is only allowed in private chats.";
+            {
+                replyMarkdownV2 = @"Retrieval of sensitive information is only allowed in private chats\.";
+                Console.WriteLine(" Response: not in private chat.");
+            }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
@@ -117,33 +121,53 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     return;
                 }
 
+                var user = userEntry.Value.Value;
+
                 var replyBuilder = new StringBuilder();
 
-                replyBuilder.AppendLine("Legacy SIP008 static file delivery link for all servers:");
-                replyBuilder.AppendLine();
-                replyBuilder.AppendLine($"{settings.OnlineConfigDeliveryRootUri}/{userEntry.Value.Value.Uuid}.json");
-                replyBuilder.AppendLine();
+                var printApiLinks = !string.IsNullOrEmpty(settings.ApiServerBaseUrl) && !string.IsNullOrEmpty(settings.ApiServerSecretPath);
+                var printStaticLinks = !string.IsNullOrEmpty(settings.OnlineConfigDeliveryRootUri);
 
-                if (settings.OnlineConfigDeliverByGroup)
+                if (printApiLinks)
                 {
-                    replyBuilder.AppendLine("Legacy SIP008 static file delivery links by server group:");
-                    replyBuilder.AppendLine();
+                    var oocv1ApiToken = new OpenOnlineConfig.v1.OOCv1ApiToken(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
+                    var oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OpenOnlineConfig.Utils.JsonHelper.camelCaseMinifiedJsonSerializerOptions);
 
-                    foreach (var group in userEntry.Value.Value.Memberships.Keys)
-                        replyBuilder.AppendLine($"{settings.OnlineConfigDeliveryRootUri}/{userEntry.Value.Value.Uuid}/{Uri.EscapeDataString(group)}.json");
+                    replyBuilder.AppendLine($"OOCv1 API Token: `{ChatHelper.EscapeMarkdownV2CodeBlock(oocv1ApiTokenString)}`");
+                    replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"OOCv1 API URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}"));
+                    replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"SIP008 Delivery URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sip008/{user.Uuid}"));
+                    replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"V2Ray Outbound URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/v2ray/outbound/{user.Uuid}"));
                 }
 
-                reply = replyBuilder.ToString();
+                if (printStaticLinks)
+                {
+                    replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"Legacy SIP008 Static File Delivery URL (All Servers): {settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json"));
+
+                    if (settings.OnlineConfigDeliverByGroup)
+                    {
+                        replyBuilder.AppendLine();
+                        replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext("Legacy SIP008 Static File Delivery URLs (By Group):"));
+                        replyBuilder.AppendLine();
+
+                        foreach (var group in user.Memberships.Keys)
+                        {
+                            replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{Uri.EscapeDataString(group)}.json"));
+                        }
+                    }
+                }
+
+                replyMarkdownV2 = replyBuilder.ToString();
                 Console.WriteLine(" Response: successful query.");
             }
             else
             {
-                reply = "You must link your Telegram account to your user first.";
+                replyMarkdownV2 = @"You must link your Telegram account to your user first\.";
                 Console.WriteLine(" Response: user not linked.");
             }
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             reply,
+                                                             replyMarkdownV2,
+                                                             ParseMode.MarkdownV2,
                                                              disableWebPagePreview: true,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);

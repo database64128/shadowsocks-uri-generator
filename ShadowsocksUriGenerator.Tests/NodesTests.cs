@@ -1,3 +1,4 @@
+using ShadowsocksUriGenerator.OnlineConfig;
 using System.Linq;
 using Xunit;
 
@@ -166,7 +167,7 @@ namespace ShadowsocksUriGenerator.Tests
             var user = users.UserDict.First();
 
             // Initial status: all activated
-            var userOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            var userOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             var userSsLinks = user.Value.GetSSUris(nodes);
 
             Assert.Equal(2, userOnlineConfigDict.First().Value.Servers.Count);
@@ -174,7 +175,7 @@ namespace ShadowsocksUriGenerator.Tests
 
             // Deactivate first node
             nodes.Groups["MyGroup"].NodeDict["MyNode"].Deactivated = true;
-            userOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            userOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             userSsLinks = user.Value.GetSSUris(nodes);
 
             Assert.Single(userOnlineConfigDict.First().Value.Servers);
@@ -183,7 +184,7 @@ namespace ShadowsocksUriGenerator.Tests
             // Reactivate first node and deactivate second node
             nodes.Groups["MyGroup"].NodeDict["MyNode"].Deactivated = false;
             nodes.Groups["MyGroupWithPlugin"].NodeDict["MyNodeWithPlugin"].Deactivated = true;
-            userOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            userOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             userSsLinks = user.Value.GetSSUris(nodes);
 
             Assert.Single(userOnlineConfigDict.First().Value.Servers);

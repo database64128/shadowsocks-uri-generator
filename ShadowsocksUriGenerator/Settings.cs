@@ -87,6 +87,22 @@ namespace ShadowsocksUriGenerator
         public string OutlineServerGlobalDefaultUser { get; set; } = "";
 
         /// <summary>
+        /// Gets or sets the base URL of the API server.
+        /// MUST NOT contain a trailing slash.
+        /// Defaults to an empty string.
+        /// </summary>
+        public string ApiServerBaseUrl { get; set; } = "";
+
+        /// <summary>
+        /// Gets or sets the secret path to the API endpoint.
+        /// This is required to conceal the presence of the API.
+        /// The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy.
+        /// But it's recommended to put non-secret part of the path in the base URL.
+        /// Defaults to an empty string.
+        /// </summary>
+        public string ApiServerSecretPath { get; set; } = "";
+
+        /// <summary>
         /// Loads settings from Settings.json.
         /// </summary>
         /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>

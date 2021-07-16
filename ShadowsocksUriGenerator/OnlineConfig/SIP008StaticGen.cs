@@ -1,40 +1,17 @@
-﻿using Shadowsocks.OnlineConfig.SIP008;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShadowsocksUriGenerator
+namespace ShadowsocksUriGenerator.OnlineConfig
 {
     /// <summary>
     /// Legacy SIP008 online config static file generator.
     /// </summary>
-    public class OnlineConfig : SIP008Config
+    public static class SIP008StaticGen
     {
-        public string Username { get; set; }
-        public string UserUuid { get; set; }
-
-        public OnlineConfig()
-        {
-            Version = 1;
-            Username = "";
-            UserUuid = Guid.NewGuid().ToString();
-            Servers = new();
-        }
-
-        public OnlineConfig(string username, string userUuid, ulong bytesUsed = 0, ulong bytesRemaining = 0)
-        {
-            Version = 1;
-            Username = username;
-            UserUuid = userUuid;
-            BytesUsed = bytesUsed;
-            BytesRemaining = bytesRemaining;
-            Servers = new();
-        }
-
         /// <summary>
         /// Generates and saves SIP008 delivery files.
         /// </summary>
@@ -51,7 +28,7 @@ namespace ShadowsocksUriGenerator
             {
                 foreach (var userEntry in users.UserDict)
                 {
-                    var onlineConfigDict = GenerateForUser(userEntry, nodes, settings);
+                    var onlineConfigDict = GenerateForUser(userEntry, users, nodes, settings);
                     var errMsg = await SaveOutputAsync(onlineConfigDict, settings, cancellationToken);
                     if (errMsg is not null)
                         errMsgSB.AppendLine(errMsg);
@@ -63,7 +40,7 @@ namespace ShadowsocksUriGenerator
                 {
                     if (users.UserDict.TryGetValue(username, out User? user))
                     {
-                        var onlineConfigDict = GenerateForUser(new(username, user), nodes, settings);
+                        var onlineConfigDict = GenerateForUser(new(username, user), users, nodes, settings);
                         var errMsg = await SaveOutputAsync(onlineConfigDict, settings, cancellationToken);
                         if (errMsg is not null)
                             errMsgSB.AppendLine(errMsg);
@@ -86,41 +63,73 @@ namespace ShadowsocksUriGenerator
         /// <param name="userEntry">The specified user entry.</param>
         /// <param name="nodes">The object storing all nodes.</param>
         /// <returns>The user's SIP008 configuration object.</returns>
-        public static Dictionary<string, OnlineConfig> GenerateForUser(KeyValuePair<string, User> userEntry, Nodes nodes, Settings settings)
+        public static Dictionary<string, SIP008Config> GenerateForUser(KeyValuePair<string, User> userEntry, Users users, Nodes nodes, Settings settings)
         {
             var username = userEntry.Key;
             var user = userEntry.Value;
+
             var dataUsageRecords = user.GetDataUsage(username, nodes);
-            var OnlineConfigDict = new Dictionary<string, OnlineConfig>();
-            var userOnlineConfig = new OnlineConfig(username, user.Uuid, user.BytesUsed, user.BytesRemaining);
+
+            var OnlineConfigDict = new Dictionary<string, SIP008Config>();
+
+            var userOnlineConfig = new SIP008Config()
+            {
+                Username = username,
+                Id = user.Uuid,
+            };
+
+            if (user.BytesUsed > 0UL)
+                userOnlineConfig.BytesUsed = user.BytesUsed;
+            if (user.BytesRemaining > 0UL)
+                userOnlineConfig.BytesRemaining = user.BytesRemaining;
+
             foreach (var membership in user.Memberships)
             {
-                if (!membership.Value.HasCredential)
-                    continue;
-
-                if (nodes.Groups.TryGetValue(membership.Key, out var group)) // find credEntry's group
+                if (membership.Value.HasCredential && nodes.Groups.TryGetValue(membership.Key, out var group))
                 {
                     // per-group delivery
                     var filteredDataUsageRecords = dataUsageRecords.Where(x => x.group == membership.Key);
                     var dataUsageRecord = filteredDataUsageRecords.Any() ? filteredDataUsageRecords.First() : new();
-                    var perGroupOnlineConfig = new OnlineConfig(username, user.Uuid, dataUsageRecord.bytesUsed, dataUsageRecord.bytesRemaining);
+
+                    var perGroupOnlineConfig = new SIP008Config()
+                    {
+                        Username = username,
+                        Id = user.Uuid,
+                    };
+
+                    if (dataUsageRecord.bytesUsed > 0UL)
+                        perGroupOnlineConfig.BytesUsed = dataUsageRecord.bytesUsed;
+                    if (dataUsageRecord.bytesRemaining > 0UL)
+                        perGroupOnlineConfig.BytesRemaining = dataUsageRecord.bytesRemaining;
 
                     // add each node to the Servers list.
-                    foreach (var node in group.NodeDict)
+                    foreach (var nodeEntry in group.NodeDict)
                     {
-                        if (node.Value.Deactivated)
+                        if (nodeEntry.Value.Deactivated)
                             continue;
+
+                        var owner = nodeEntry.Value.OwnerUuid is not null
+                            ? users.UserDict.Where(x => x.Value.Uuid == nodeEntry.Value.OwnerUuid)
+                                            .Select(x => x.Key)
+                                            .FirstOrDefault()
+                            : null;
+
+                        var tags = nodeEntry.Value.Tags.Count > 0
+                            ? nodeEntry.Value.Tags
+                            : null;
 
                         var server = new SIP008Server()
                         {
-                            Id = node.Value.Uuid,
-                            Name = node.Key,
-                            Host = node.Value.Host,
-                            Port = node.Value.Port,
+                            Id = nodeEntry.Value.Uuid,
+                            Name = nodeEntry.Key,
+                            Host = nodeEntry.Value.Host,
+                            Port = nodeEntry.Value.Port,
                             Method = membership.Value.Method,
                             Password = membership.Value.Password,
-                            PluginPath = node.Value.Plugin,
-                            PluginOpts = node.Value.PluginOpts,
+                            PluginPath = nodeEntry.Value.Plugin,
+                            PluginOpts = nodeEntry.Value.PluginOpts,
+                            Owner = owner,
+                            Tags = tags,
                         };
 
                         userOnlineConfig.Servers.Add(server);
@@ -128,6 +137,7 @@ namespace ShadowsocksUriGenerator
                         if (settings.OnlineConfigDeliverByGroup)
                             perGroupOnlineConfig.Servers.Add(server);
                     }
+
                     // sort and add per-group online config to dictionary
                     if (settings.OnlineConfigDeliverByGroup)
                     {
@@ -137,9 +147,8 @@ namespace ShadowsocksUriGenerator
                         OnlineConfigDict.Add($"{user.Uuid}/{membership.Key}", perGroupOnlineConfig);
                     }
                 }
-                else
-                    continue; // ignoring is intentional, as groups may get removed.
             }
+
             // sort and add
             if (settings.OnlineConfigSortByName)
                 userOnlineConfig.Servers = userOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
@@ -156,7 +165,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="settings">The object storing all settings.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the write operation.</param>
         /// <returns>An error message. Null if no errors occurred.</returns>
-        public static async Task<string?> SaveOutputAsync(Dictionary<string, OnlineConfig> onlineConfigDict, Settings settings, CancellationToken cancellationToken = default)
+        public static async Task<string?> SaveOutputAsync(Dictionary<string, SIP008Config> onlineConfigDict, Settings settings, CancellationToken cancellationToken = default)
         {
             var errMsgSB = new StringBuilder();
             foreach (var x in onlineConfigDict)

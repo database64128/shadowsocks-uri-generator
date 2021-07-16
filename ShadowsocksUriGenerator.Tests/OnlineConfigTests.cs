@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.OnlineConfig;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -24,9 +25,9 @@ namespace ShadowsocksUriGenerator.Tests
             var user = users.UserDict.First();
 
             settings.OnlineConfigDeliverByGroup = false;
-            var userSingleOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            var userSingleOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             settings.OnlineConfigDeliverByGroup = true;
-            var userPerGroupOnlineConfigDict = OnlineConfig.GenerateForUser(user, nodes, settings);
+            var userPerGroupOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
 
             // userSingleOnlineConfigDict
             Assert.Single(userSingleOnlineConfigDict);
@@ -35,7 +36,7 @@ namespace ShadowsocksUriGenerator.Tests
             // userSingleOnlineConfig
             Assert.Equal(1, userSingleOnlineConfig.Version);
             Assert.Equal("root", userSingleOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userSingleOnlineConfig.UserUuid, out _));
+            Assert.True(Guid.TryParse(userSingleOnlineConfig.Id, out _));
             Assert.Equal(2, userSingleOnlineConfig.Servers.Count);
             var singleServer = userSingleOnlineConfig.Servers[0];
             Assert.Equal("MyNode", singleServer.Name);
@@ -65,7 +66,7 @@ namespace ShadowsocksUriGenerator.Tests
             // userOnlineConfig
             Assert.Equal(1, userOnlineConfig.Version);
             Assert.Equal("root", userOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userOnlineConfig.UserUuid, out _));
+            Assert.True(Guid.TryParse(userOnlineConfig.Id, out _));
             Assert.Equal(2, userOnlineConfig.Servers.Count);
             var server = userOnlineConfig.Servers[0];
             Assert.Equal("MyNode", server.Name);
@@ -89,7 +90,7 @@ namespace ShadowsocksUriGenerator.Tests
             // userMyGroupOnlineConfig
             Assert.Equal(1, userMyGroupOnlineConfig.Version);
             Assert.Equal("root", userMyGroupOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userMyGroupOnlineConfig.UserUuid, out _));
+            Assert.True(Guid.TryParse(userMyGroupOnlineConfig.Id, out _));
             Assert.Single(userMyGroupOnlineConfig.Servers);
             var serverMyGroup = userMyGroupOnlineConfig.Servers[0];
             Assert.Equal("MyNode", serverMyGroup.Name);
@@ -104,7 +105,7 @@ namespace ShadowsocksUriGenerator.Tests
             // userMyGroupWithPluginOnlineConfig
             Assert.Equal(1, userMyGroupWithPluginOnlineConfig.Version);
             Assert.Equal("root", userMyGroupWithPluginOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userMyGroupWithPluginOnlineConfig.UserUuid, out _));
+            Assert.True(Guid.TryParse(userMyGroupWithPluginOnlineConfig.Id, out _));
             Assert.Single(userMyGroupWithPluginOnlineConfig.Servers);
             var serverMyGroupWithPlugin = userMyGroupWithPluginOnlineConfig.Servers[0];
             Assert.Equal("MyNodeWithPlugin", serverMyGroupWithPlugin.Name);
@@ -140,7 +141,7 @@ namespace ShadowsocksUriGenerator.Tests
             // Disable delivery by group
             settings.OnlineConfigDeliverByGroup = false;
             // Save
-            var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings);
+            var genResult = await SIP008StaticGen.GenerateAndSave(users, nodes, settings);
 
             Assert.Null(genResult);
             Assert.True(Directory.Exists(directory));
@@ -148,7 +149,7 @@ namespace ShadowsocksUriGenerator.Tests
                 Assert.True(File.Exists($"{directory}/{user.Uuid}.json"));
 
             // Clean
-            OnlineConfig.Remove(users, settings);
+            SIP008StaticGen.Remove(users, settings);
 
             Assert.True(Directory.Exists(directory));
             foreach (var user in users.UserDict.Values)
@@ -160,7 +161,7 @@ namespace ShadowsocksUriGenerator.Tests
             // Enable delivery by group
             settings.OnlineConfigDeliverByGroup = true;
             // Save
-            var genByGroupResult = await OnlineConfig.GenerateAndSave(users, nodes, settings);
+            var genByGroupResult = await SIP008StaticGen.GenerateAndSave(users, nodes, settings);
 
             Assert.Null(genByGroupResult);
             Assert.True(Directory.Exists(directory));
@@ -175,7 +176,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.False(Directory.Exists($"{directory}/{nobodyUser.Uuid}"));
 
             // Clean
-            OnlineConfig.Remove(users, settings);
+            SIP008StaticGen.Remove(users, settings);
 
             Assert.True(Directory.Exists(directory));
             foreach (var user in users.UserDict.Values)
@@ -211,7 +212,7 @@ namespace ShadowsocksUriGenerator.Tests
 
             settings.OnlineConfigDeliverByGroup = false;
             // Save
-            var genResult = await OnlineConfig.GenerateAndSave(users, nodes, settings, default, selectedUsernames);
+            var genResult = await SIP008StaticGen.GenerateAndSave(users, nodes, settings, default, selectedUsernames);
 
             Assert.Equal(expectedResult, genResult);
             if (expectedResult is null)
@@ -223,7 +224,7 @@ namespace ShadowsocksUriGenerator.Tests
             }
 
             // Clean
-            OnlineConfig.Remove(users, settings, selectedUsernames[0]);
+            SIP008StaticGen.Remove(users, settings, selectedUsernames[0]);
 
             if (expectedResult is null)
             {

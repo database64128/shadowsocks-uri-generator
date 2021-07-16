@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
+using ShadowsocksUriGenerator.OnlineConfig;
 using System;
 using System.Collections.Generic;
 using System.CommandLine.Parsing;
@@ -109,7 +110,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             // Removing online config requires reading user entry.
             if (settings.OnlineConfigCleanOnUserRemoval)
-                OnlineConfig.Remove(users, settings, usernames);
+                SIP008StaticGen.Remove(users, settings, usernames);
 
             // Remove user entry.
             foreach (var username in usernames)

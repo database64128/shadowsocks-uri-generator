@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.OnlineConfig;
+using System;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,7 +32,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken, usernames);
+            var errMsg = await SIP008StaticGen.GenerateAndSave(users, nodes, settings, cancellationToken, usernames);
             if (errMsg is not null)
             {
                 Console.WriteLine(errMsg);
@@ -58,39 +60,98 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            if (usernames.Length == 0)
+            var printApiLinks = !string.IsNullOrEmpty(settings.ApiServerBaseUrl) && !string.IsNullOrEmpty(settings.ApiServerSecretPath);
+            var printStaticLinks = !string.IsNullOrEmpty(settings.OnlineConfigDeliveryRootUri);
+
+            if (printApiLinks)
             {
-                foreach (var userEntry in users.UserDict)
+                Console.WriteLine("=== Online Config API URLs and Tokens ===");
+                Console.WriteLine();
+
+                if (usernames.Length == 0)
                 {
-                    var username = userEntry.Key;
-                    var user = userEntry.Value;
-                    PrintUserLinks(username, user, settings);
+                    foreach (var userEntry in users.UserDict)
+                    {
+                        PrintUserApiLinks(userEntry.Key, userEntry.Value, settings);
+                    }
+                }
+                else
+                {
+                    foreach (var username in usernames)
+                    {
+                        if (users.UserDict.TryGetValue(username, out User? user))
+                        {
+                            PrintUserApiLinks(username, user, settings);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Error: user {username} doesn't exist.");
+                            commandResult -= 2;
+                        }
+                    }
                 }
             }
-            else
+
+            if (printStaticLinks)
             {
-                foreach (var username in usernames)
+                Console.WriteLine("=== Online Config Static URLs ===");
+                Console.WriteLine();
+
+                if (usernames.Length == 0)
                 {
-                    if (users.UserDict.TryGetValue(username, out User? user))
-                        PrintUserLinks(username, user, settings);
-                    else
+                    foreach (var userEntry in users.UserDict)
                     {
-                        Console.WriteLine($"Error: user {username} doesn't exist.");
-                        commandResult -= 2;
+                        PrintUserStaticLinks(userEntry.Key, userEntry.Value, settings);
+                    }
+                }
+                else
+                {
+                    foreach (var username in usernames)
+                    {
+                        if (users.UserDict.TryGetValue(username, out User? user))
+                        {
+                            PrintUserStaticLinks(username, user, settings);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Error: user {username} doesn't exist.");
+                            commandResult -= 2;
+                        }
                     }
                 }
             }
 
             return commandResult;
 
-            static void PrintUserLinks(string username, User user, Settings settings)
+            static void PrintUserStaticLinks(string username, User user, Settings settings)
             {
-                Console.WriteLine($"{"User",-8}{username,-32}");
-                Console.WriteLine();
+                Console.WriteLine($"User: {username}");
+
                 Console.WriteLine($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}.json");
+
                 if (settings.OnlineConfigDeliverByGroup)
+                {
                     foreach (var group in user.Memberships.Keys)
+                    {
                         Console.WriteLine($"{settings.OnlineConfigDeliveryRootUri}/{user.Uuid}/{Uri.EscapeDataString(group)}.json");
+                    }
+                }
+
+                Console.WriteLine();
+            }
+
+            static void PrintUserApiLinks(string username, User user, Settings settings)
+            {
+                Console.WriteLine($"User:                {username}");
+
+                var oocv1ApiToken = new OpenOnlineConfig.v1.OOCv1ApiToken(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
+                var oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OpenOnlineConfig.Utils.JsonHelper.camelCaseMinifiedJsonSerializerOptions);
+
+                Console.WriteLine($"OOCv1 API Token:     {oocv1ApiTokenString}");
+                Console.WriteLine($"OOCv1 API URL:       {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}");
+                Console.WriteLine($"SIP008 Delivery URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sip008/{user.Uuid}");
+                Console.WriteLine($"V2Ray Outbound URL:  {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/v2ray/outbound/{user.Uuid}");
+
                 Console.WriteLine();
             }
         }
@@ -111,7 +172,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            OnlineConfig.Remove(users, settings, usernames);
+            SIP008StaticGen.Remove(users, settings, usernames);
 
             return 0;
         }

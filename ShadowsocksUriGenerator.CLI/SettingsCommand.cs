@@ -31,6 +31,8 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerApplyDataLimitOnAssociationn",-42}|{settings.OutlineServerApplyDataLimitOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
+            Console.WriteLine($"|{"ApiServerBaseUrl",-42}|{settings.ApiServerBaseUrl,40}|");
+            Console.WriteLine($"|{"ApiServerSecretPath",-42}|{settings.ApiServerSecretPath,40}|");
 
             ConsoleHelper.PrintTableBorder(42, 40);
 
@@ -48,6 +50,8 @@ namespace ShadowsocksUriGenerator.CLI
             bool? outlineServerApplyDefaultUserOnAssociation,
             bool? outlineServerApplyDataLimitOnAssociation,
             string outlineServerGlobalDefaultUser,
+            string apiServerBaseUrl,
+            string apiServerSecretPath,
             CancellationToken cancellationToken = default)
         {
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
@@ -61,6 +65,7 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.UserDataUsageDefaultSortBy = userSortBy;
             if (groupDataUsageDefaultSortBy is SortBy groupSortBy)
                 settings.GroupDataUsageDefaultSortBy = groupSortBy;
+
             if (onlineConfigSortByName is bool sortByName)
                 settings.OnlineConfigSortByName = sortByName;
             if (onlineConfigDeliverByGroup is bool deliverByGroup)
@@ -71,12 +76,18 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.OnlineConfigOutputDirectory = onlineConfigOutputDirectory;
             if (!string.IsNullOrEmpty(onlineConfigDeliveryRootUri))
                 settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
+
             if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
                 settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
             if (outlineServerApplyDataLimitOnAssociation is bool applyDataLimitOnAssociation)
                 settings.OutlineServerApplyDataLimitOnAssociation = applyDataLimitOnAssociation;
             if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                 settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
+
+            if (!string.IsNullOrEmpty(apiServerBaseUrl))
+                settings.ApiServerBaseUrl = apiServerBaseUrl;
+            if (!string.IsNullOrEmpty(apiServerSecretPath))
+                settings.ApiServerSecretPath = apiServerSecretPath;
 
             var saveSettingsErrMsg = await Settings.SaveSettingsAsync(settings, cancellationToken);
             if (saveSettingsErrMsg is not null)

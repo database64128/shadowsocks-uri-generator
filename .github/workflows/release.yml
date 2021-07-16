@@ -27,30 +27,35 @@ jobs:
       - name: Publish framework-dependent
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release --no-restore
+          dotnet publish ShadowsocksUriGenerator.Server -c Release --no-restore
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release --no-restore
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release --no-restore
       - name: Publish self-contained for Linux ARM64
         if: matrix.os == 'ubuntu-20.04'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
       - name: Publish self-contained for Linux x64
         if: matrix.os == 'ubuntu-20.04'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
       - name: Publish self-contained for Windows ARM64
         if: matrix.os == 'windows-latest'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
       - name: Publish self-contained for Windows x64
         if: matrix.os == 'windows-latest'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r win-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-x64 --self-contained
       # Get version
@@ -71,6 +76,13 @@ jobs:
           tar -acf ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar.zst .
           cd ../../linux-x64/publish
           tar -acf ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-linux-x64.tar.zst .
+          # ShadowsocksUriGenerator.Server
+          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net5.0/publish
+          tar -acf ../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-linux.tar.zst .
+          cd ../linux-arm64/publish
+          tar -acf ../../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar.zst .
+          cd ../../linux-x64/publish
+          tar -acf ../../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-linux-x64.tar.zst .
           # ShadowsocksUriGenerator.Rescue.CLI
           cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/publish
           tar -acf ../ss-uri-gen-rescue-${{ steps.get_version.outputs.VERSION }}-linux.tar.zst .
@@ -98,6 +110,16 @@ jobs:
           cd ../../win-x64/publish
           7z a -tzip -mx=9 -mfb=128 ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-x64.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-${{ steps.get_version.outputs.VERSION }}-windows-x64.7z .
+          # ShadowsocksUriGenerator.Server
+          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net5.0/publish
+          7z a -tzip -mx=9 -mfb=128 ../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-windows.zip .
+          7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-windows.7z .
+          cd ../win-arm64/publish
+          7z a -tzip -mx=9 -mfb=128 ../../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-windows-arm64.zip .
+          7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-windows-arm64.7z .
+          cd ../../win-x64/publish
+          7z a -tzip -mx=9 -mfb=128 ../../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-windows-x64.zip .
+          7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-server-${{ steps.get_version.outputs.VERSION }}-windows-x64.7z .
           # ShadowsocksUriGenerator.Rescue.CLI
           cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net5.0/publish
           7z a -tzip -mx=9 -mfb=128 ../ss-uri-gen-rescue-${{ steps.get_version.outputs.VERSION }}-windows.zip .

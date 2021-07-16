@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.OnlineConfig;
+using System;
 using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -80,7 +81,7 @@ namespace ShadowsocksUriGenerator.CLI
                     }
                     if (generateOnlineConfig)
                     {
-                        var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
+                        var errMsg = await SIP008StaticGen.GenerateAndSave(users, nodes, settings, cancellationToken);
                         if (errMsg is not null)
                             Console.Write(errMsg);
 
@@ -88,11 +89,11 @@ namespace ShadowsocksUriGenerator.CLI
                     }
                     if (regenerateOnlineConfig)
                     {
-                        OnlineConfig.Remove(users, settings);
+                        SIP008StaticGen.Remove(users, settings);
 
                         Console.WriteLine("Cleaned online config.");
 
-                        var errMsg = await OnlineConfig.GenerateAndSave(users, nodes, settings, cancellationToken);
+                        var errMsg = await SIP008StaticGen.GenerateAndSave(users, nodes, settings, cancellationToken);
                         if (errMsg is not null)
                             Console.Write(errMsg);
 

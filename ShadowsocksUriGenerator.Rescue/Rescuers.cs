@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.OnlineConfig;
+using System;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -91,7 +92,7 @@ namespace ShadowsocksUriGenerator.Rescue
 
                     // retrieve group credential
                     using var userCredJsonFS = userCredJson.OpenRead();
-                    var userCred = await JsonSerializer.DeserializeAsync<OnlineConfig>(userCredJsonFS, Utilities.snakeCaseJsonSerializerOptions, cancellationToken);
+                    var userCred = await JsonSerializer.DeserializeAsync<SIP008Config>(userCredJsonFS, Utilities.snakeCaseJsonSerializerOptions, cancellationToken);
                     if (userCred is null)
                         continue;
 
@@ -118,8 +119,8 @@ namespace ShadowsocksUriGenerator.Rescue
 
                     // save user info and creds
                     username ??= userCred.Username;
-                    user.BytesUsed += userCred.BytesUsed;
-                    user.BytesRemaining += userCred.BytesRemaining;
+                    user.BytesUsed += userCred.BytesUsed ?? 0UL;
+                    user.BytesRemaining += userCred.BytesRemaining ?? 0UL;
                     var credSource = userCred.Servers.Any() ? userCred.Servers.First() : null;
                     if (credSource is not null)
                         _ = user.AddCredential(groupName, credSource.Method, credSource.Password);
@@ -157,17 +158,17 @@ namespace ShadowsocksUriGenerator.Rescue
 
                 // retrieve user credentials
                 using var userJsonFS = userJson.OpenRead();
-                var userCreds = await JsonSerializer.DeserializeAsync<OnlineConfig>(userJsonFS, Utilities.snakeCaseJsonSerializerOptions, cancellationToken);
+                var userCreds = await JsonSerializer.DeserializeAsync<SIP008Config>(userJsonFS, Utilities.snakeCaseJsonSerializerOptions, cancellationToken);
                 if (userCreds is null)
                     continue;
 
                 // save user info
-                var username = userCreds.Username;
+                var username = userCreds.Username ?? Guid.NewGuid().ToString();
                 var user = new User()
                 {
-                    Uuid = userCreds.UserUuid,
-                    BytesUsed = userCreds.BytesUsed,
-                    BytesRemaining = userCreds.BytesRemaining,
+                    Uuid = userCreds.Id ?? Guid.NewGuid().ToString(),
+                    BytesUsed = userCreds.BytesUsed ?? 0UL,
+                    BytesRemaining = userCreds.BytesRemaining ?? 0UL,
                 };
 
                 // group servers by credential

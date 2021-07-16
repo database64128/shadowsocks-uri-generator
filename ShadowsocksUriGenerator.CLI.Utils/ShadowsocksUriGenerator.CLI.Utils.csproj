@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>4.3.0</Version>
+    <Version>5.0.0</Version>
     <Authors>database64128</Authors>
     <Description>Utilities library for ShadowsocksUriGenerator.CLI</Description>
     <Copyright>© 2021 database64128</Copyright>

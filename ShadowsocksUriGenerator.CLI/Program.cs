@@ -122,7 +122,7 @@ namespace ShadowsocksUriGenerator.CLI
             };
 
             var onlineConfigGenerateCommand = new Command("generate", "[Legacy] Generate static SIP008 delivery JSON files for specified or all users.");
-            var onlineConfigGetLinksCommand = new Command("get-links", "[Legacy] Get SIP008 static file delivery URLs for specified or all users.");
+            var onlineConfigGetLinksCommand = new Command("get-links", "Get online config API URLs and tokens for specified or all users.");
             var onlineConfigCleanCommand = new Command("clean", "[Legacy] Clean static SIP008 delivery files for specified or all users.");
 
             var onlineConfigCommand = new Command("online-config", "Manage online config.")
@@ -625,6 +625,8 @@ namespace ShadowsocksUriGenerator.CLI
             onlineConfigGetLinksCommand.AddAlias("l");
             onlineConfigGetLinksCommand.AddAlias("link");
             onlineConfigGetLinksCommand.AddAlias("links");
+            onlineConfigGetLinksCommand.AddAlias("token");
+            onlineConfigGetLinksCommand.AddAlias("tokens");
             onlineConfigGetLinksCommand.AddAlias("url");
             onlineConfigGetLinksCommand.AddAlias("urls");
             onlineConfigGetLinksCommand.AddArgument(usernamesArgumentZeroOrMore);
@@ -689,7 +691,9 @@ namespace ShadowsocksUriGenerator.CLI
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<bool?>("--outline-server-apply-data-limit-on-association", "Whether to apply the group's per-user data limit when associating with Outline servers."));
             settingsSetCommand.AddOption(new Option<string>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user."));
-            settingsSetCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, bool?, bool?, bool?, string, string, bool?, bool?, string, CancellationToken>(SettingsCommand.Set);
+            settingsSetCommand.AddOption(new Option<string>("--api-server-base-url", "The base URL of the API server. MUST NOT contain a trailing slash."));
+            settingsSetCommand.AddOption(new Option<string>("--api-server-secret-path", "The secret path to the API endpoint. This is required to conceal the presence of the API. The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy. But it's recommended to put non-secret part of the path in the base URL."));
+            settingsSetCommand.Handler = CommandHandler.Create<SortBy?, SortBy?, bool?, bool?, bool?, string, string, bool?, bool?, string, string, string, CancellationToken>(SettingsCommand.Set);
 
             interactiveCommand.Handler = CommandHandler.Create(
                 async () =>
