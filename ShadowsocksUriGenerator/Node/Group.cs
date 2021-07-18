@@ -134,8 +134,8 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="node">The node to be removed.</param>
         /// <returns>
-        /// <see cref="true"/> if the node is successfully found and removed.
-        /// Otherwise <see cref="false"/>, including not already in the group.
+        /// True if the node is successfully found and removed.
+        /// Otherwise false, including not already in the group.
         /// </returns>
         public bool RemoveNode(string node) => NodeDict.Remove(node);
 
@@ -482,6 +482,11 @@ namespace ShadowsocksUriGenerator
         /// Whether to update local user database from the retrieved access keys.
         /// Defaults to true.
         /// </param>
+        /// <param name="silentlySkipNonOutline">
+        /// Set to true to silently return without emitting an error
+        /// if this server is not linked to any Outline server.
+        /// Defaults to false.
+        /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// The task that represents the operation.
@@ -588,6 +593,11 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="silentlySkipNonOutline">
+        /// Set to true to silently return without emitting an error
+        /// if this server is not linked to any Outline server.
+        /// Defaults to false.
+        /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
@@ -715,6 +725,11 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="silentlySkipNonOutline">
+        /// Set to true to silently return without emitting an error
+        /// if this server is not linked to any Outline server.
+        /// Defaults to false.
+        /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <param name="usernames">Only target these members in group if specified.</param>
         /// <returns>

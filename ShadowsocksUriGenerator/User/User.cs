@@ -53,7 +53,10 @@ namespace ShadowsocksUriGenerator
         /// Adds the user to a group with empty credential.
         /// </summary>
         /// <param name="group">Name of the group.</param>
-        /// <returns><see cref="true"/> if the user was successfully added to the group. Otherwise <see cref="false"/>.</returns>
+        /// <returns>
+        /// True if the user was successfully added to the group.
+        /// Otherwise, false.
+        /// </returns>
         public bool AddToGroup(string group) => Memberships.TryAdd(group, new());
 
         /// <summary>
@@ -120,8 +123,8 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Name of the group.</param>
         /// <returns>
-        /// <see cref="true"/> if the user successfully left the group.
-        /// Otherwise <see cref="false"/>, including already not in the group.
+        /// True if the user successfully left the group.
+        /// Otherwise false, including already not in the group.
         /// </returns>
         public bool RemoveFromGroup(string group) => Memberships.Remove(group);
 

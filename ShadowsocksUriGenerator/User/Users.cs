@@ -98,10 +98,10 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Removes the user from <see cref="UserDict"/>.
         /// </summary>
-        /// <param name="user">The user to be removed from <see cref="UserDict"/>.</param>
+        /// <param name="username">The user to be removed from <see cref="UserDict"/>.</param>
         /// <returns>
-        /// <see cref="true"/> if the user is successfully found and removed.
-        /// Otherwise, <see cref="false"/>.
+        /// True if the user is successfully found and removed.
+        /// Otherwise, false.
         /// </returns>
         public bool RemoveUser(string username) => UserDict.Remove(username);
 
@@ -274,6 +274,8 @@ namespace ShadowsocksUriGenerator
         /// Gets Shadowsocks URIs associated with a username.
         /// </summary>
         /// <param name="username">Target username.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        /// <param name="groups">Only retrieve URLs for servers of these groups.</param>
         /// <returns>
         /// A list of the user's associated Shadowsocks URIs.
         /// Null if target user doesn't exist.
@@ -291,7 +293,7 @@ namespace ShadowsocksUriGenerator
         /// This method is intended to be called
         /// by online config generator.
         /// </summary>
-        /// <param name="nodes"></param>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
         public void CalculateDataUsageForAllUsers(Nodes nodes)
         {
             foreach (var userEntry in UserDict)

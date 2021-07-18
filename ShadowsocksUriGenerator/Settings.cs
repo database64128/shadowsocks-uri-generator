@@ -6,6 +6,7 @@ namespace ShadowsocksUriGenerator
 {
     public class Settings
     {
+        /// <summary>
         /// Gets the default configuration version
         /// used by this version of the app.
         /// </summary>

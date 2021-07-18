@@ -61,7 +61,9 @@ namespace ShadowsocksUriGenerator.OnlineConfig
         /// Generates SIP008 delivery JSON for the specified user.
         /// </summary>
         /// <param name="userEntry">The specified user entry.</param>
+        /// <param name="users">The object storing all users.</param>
         /// <param name="nodes">The object storing all nodes.</param>
+        /// <param name="settings">The object storing all settings.</param>
         /// <returns>The user's SIP008 configuration object.</returns>
         public static Dictionary<string, SIP008Config> GenerateForUser(KeyValuePair<string, User> userEntry, Users users, Nodes nodes, Settings settings)
         {

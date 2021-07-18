@@ -42,6 +42,7 @@ namespace ShadowsocksUriGenerator
         /// Adds a new node group to the group dictionary.
         /// </summary>
         /// <param name="group">The group to add.</param>
+        /// <param name="ownerUuid">Optional. User UUID of the group owner.</param>
         /// <returns>
         /// 0 for success.
         /// 1 when a group with the same name already exists.
@@ -88,8 +89,8 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">The group to be removed.</param>
         /// <returns>
-        /// <see cref="true"/> if the group is successfully found and removed.
-        /// Otherwise, <see cref="false"/>.
+        /// True if the group is successfully found and removed.
+        /// Otherwise, false.
         /// </returns>
         public bool RemoveGroup(string group) => Groups.Remove(group);
 

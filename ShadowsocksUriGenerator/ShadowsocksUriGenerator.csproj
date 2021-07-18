@@ -14,6 +14,8 @@
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>
     <RepositoryType>Public</RepositoryType>
     <PackageTags>shadowsocks;online-config;open-online-config;outline-server</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
