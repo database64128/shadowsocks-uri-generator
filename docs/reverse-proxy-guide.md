@@ -7,7 +7,7 @@ The Shadowsocks URI Generator API server is required to be used with a reverse p
 The client real IP is obtained from these sources following the order of `X-Real-IP -> X-Forwarded-For -> Connecting IP`. The API server doesn't verify the authenticity of these headers. Instead, it's the admin's responsibility to configure the reverse proxy to make sure the header used by the API server contains information from a reliable source. This choice is made for the following reasons:
 
 1. `Microsoft.AspNetCore.HttpOverrides.IPNetwork` doesn't have a parse method out of box. We'd have to write our own parser if we decided to read `ForwardedHeadersOptions.KnownNetworks` from `appsettings.json`.
-2. NGINX has [`ngx_http_realip_module`](http://nginx.org/en/docs/http/ngx_http_realip_module.html) that collects the client real IP from configured trusted sources and sets the `X-Real-IP` header.
+2. NGINX has [`ngx_http_realip_module`](http://nginx.org/en/docs/http/ngx_http_realip_module.html) that collects the client real IP from configured trusted sources and sets the `$remote_addr` variable.
 3. Cloudflare reverse proxy sets the `CF-Connecting-IP` header and appends/sets the `X-Forwarded-For` header.
 4. If the admin wants to make sure the client real IP is obtained from a trusted source, they can configure NGINX to set the `X-Real-IP` header. If the admin doesn't care whether the client IP is authentic, it just works out of box. I believe this is the perfect balance of security and usability.
 
