@@ -25,10 +25,15 @@ http {
             # Other possible values: $proxy_host, $http_host
             proxy_set_header Host $host;
 
-            # Comment the following line out if the incoming traffic is proxied.
             proxy_set_header X-Real-IP $remote_addr;
 
+            # Use this if this is the terminating reverse proxy.
+            # $proxy_add_x_forwarded_for is an alias for '$http_x_forwarded_for, $remote_addr'.
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+
+            # Use this if the incoming traffic is proxied.
+            #proxy_set_header X-Forwarded-For '$http_x_forwarded_for, $realip_remote_addr';
+
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_set_header X-Forwarded-Host $http_host;
 
