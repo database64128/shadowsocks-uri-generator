@@ -117,7 +117,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers
                 config.Shadowsocks = config.Shadowsocks.OrderBy(x => x.Name).ToList();
             }
 
-            _logger.LogInformation($"{userEntry.Key} ({id}) retrieved {config.Shadowsocks.Count} servers from {HttpContext.Connection.RemoteIpAddress} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
+            _logger.LogInformation($"{userEntry.Key} ({id}) retrieved {config.Shadowsocks.Count} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
 
             return config;
         }

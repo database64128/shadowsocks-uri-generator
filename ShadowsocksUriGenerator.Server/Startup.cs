@@ -45,6 +45,8 @@ namespace ShadowsocksUriGenerator.Server
             {
                 options.ForwardedHeaders = ForwardedHeaders.All;
                 options.ForwardLimit = null;
+                options.KnownProxies.Clear();
+                options.KnownNetworks.Clear();
             });
         }
 
