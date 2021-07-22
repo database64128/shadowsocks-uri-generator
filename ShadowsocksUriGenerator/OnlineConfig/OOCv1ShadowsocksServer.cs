@@ -6,9 +6,15 @@ namespace ShadowsocksUriGenerator.OnlineConfig
     public class OOCv1ShadowsocksServer : Shadowsocks.OnlineConfig.OOCv1.OOCShadowsocksServer
     {
         /// <summary>
+        /// Gets or sets the node group
+        /// this server belongs to.
+        /// </summary>
+        public string? Group { get; set; }
+
+        /// <summary>
         /// Gets or sets the owner of the server.
         /// </summary>
-        public string? Owner { get; set; } = "";
+        public string? Owner { get; set; }
 
         /// <summary>
         /// Gets or sets the list of annotated tags.

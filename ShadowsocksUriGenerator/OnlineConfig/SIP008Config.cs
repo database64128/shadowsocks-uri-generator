@@ -23,9 +23,7 @@ namespace ShadowsocksUriGenerator.OnlineConfig
         /// <inheritdoc cref="Shadowsocks.OnlineConfig.SIP008.SIP008Config.BytesRemaining"/>
         public ulong? BytesRemaining { get; set; }
 
-        /// <summary>
-        /// Gets or sets the list of servers.
-        /// </summary>
+        /// <inheritdoc cref="Shadowsocks.OnlineConfig.SIP008.SIP008Config.Servers"/>
         public List<SIP008Server> Servers { get; set; } = new();
     }
 }

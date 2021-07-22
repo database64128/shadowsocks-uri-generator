@@ -108,8 +108,10 @@ namespace ShadowsocksUriGenerator.Rescue
                                 Uuid = server.Id,
                                 Host = server.Host,
                                 Port = server.Port,
-                                Plugin = server.PluginPath,
-                                PluginOpts = server.PluginOpts,
+                                Plugin = server.PluginName,
+                                PluginVersion = server.PluginVersion,
+                                PluginOpts = server.PluginOptions,
+                                PluginArguments = server.PluginArguments,
                             };
                             group.NodeDict.Add(server.Name, node);
                         }
@@ -196,8 +198,10 @@ namespace ShadowsocksUriGenerator.Rescue
                                 Uuid = server.Id,
                                 Host = server.Host,
                                 Port = server.Port,
-                                Plugin = server.PluginPath,
-                                PluginOpts = server.PluginOpts,
+                                Plugin = server.PluginName,
+                                PluginVersion = server.PluginVersion,
+                                PluginOpts = server.PluginOptions,
+                                PluginArguments = server.PluginArguments,
                             };
                             group.NodeDict.Add(server.Name, node);
                         }

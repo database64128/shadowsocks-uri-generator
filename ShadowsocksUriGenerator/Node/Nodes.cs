@@ -102,7 +102,9 @@ namespace ShadowsocksUriGenerator
         /// <param name="host">Node's host</param>
         /// <param name="port">Node's port number.</param>
         /// <param name="plugin">Optional. Plugin binary name.</param>
+        /// <param name="pluginVersion">Optional. Required plugin version.</param>
         /// <param name="pluginOpts">Optional. Plugin options.</param>
+        /// <param name="pluginArguments">Optional. Plugin startup arguments.</param>
         /// <param name="ownerUuid">Optional. Node owner's user UUID.</param>
         /// <param name="tags">Node's tags.</param>
         /// <returns>
@@ -110,11 +112,11 @@ namespace ShadowsocksUriGenerator
         /// -1 if a node with the same name already exists.
         /// -2 if the group doesn't exist.
         /// </returns>
-        public int AddNodeToGroup(string group, string node, string host, int port, string? plugin = null, string? pluginOpts = null, string? ownerUuid = null, params string[] tags)
+        public int AddNodeToGroup(string group, string node, string host, int port, string? plugin = null, string? pluginVersion = null, string? pluginOpts = null, string? pluginArguments = null, string? ownerUuid = null, params string[] tags)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
             {
-                return targetGroup.AddNode(node, host, port, plugin, pluginOpts, ownerUuid, tags);
+                return targetGroup.AddNode(node, host, port, plugin, pluginVersion, pluginOpts, pluginArguments, ownerUuid, tags);
             }
             else
             {

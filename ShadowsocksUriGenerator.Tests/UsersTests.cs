@@ -217,22 +217,5 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.False(rootUserMemberships["MyGroup"].HasCredential);
             Assert.False(httpUserMemberships["MyGroup"].HasCredential);
         }
-
-        [Theory]
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "", null, null, "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/")] // domain name
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "1.1.1.1", 853, "", null, null, "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@1.1.1.1:853/")] // IPv4
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "2001:db8:85a3::8a2e:370:7334", 8388, "", null, null, "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@[2001:db8:85a3::8a2e:370:7334]:8388/")] // IPv6
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "GitHub", null, null, "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/#GitHub")] // fragment
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "👩‍💻", null, null, "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/#%F0%9F%91%A9%E2%80%8D%F0%9F%92%BB")] // fragment
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "", "v2ray-plugin", null, "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/?plugin=v2ray-plugin")] // plugin
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "", null, "server;tls;host=github.com", "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/")] // pluginOpts
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "", "v2ray-plugin", "server;tls;host=github.com", "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/?plugin=v2ray-plugin%3Bserver%3Btls%3Bhost%3Dgithub.com")] // plugin + pluginOpts
-        [InlineData("YWVzLTI1Ni1nY206d0xoTjJTVFo", "github.com", 443, "GitHub", "v2ray-plugin", "server;tls;host=github.com", "ss://YWVzLTI1Ni1nY206d0xoTjJTVFo@github.com:443/?plugin=v2ray-plugin%3Bserver%3Btls%3Bhost%3Dgithub.com#GitHub")] // fragment + plugin + pluginOpts
-        public void Get_SS_Uris(string userinfoBase64url, string host, int port, string fragment, string? plugin, string? pluginOpts, string expectedSSUri)
-        {
-            var ssUriString = User.SSUriBuilder(userinfoBase64url, host, port, fragment, plugin, pluginOpts).AbsoluteUri;
-
-            Assert.Equal(expectedSSUri, ssUriString);
-        }
     }
 }

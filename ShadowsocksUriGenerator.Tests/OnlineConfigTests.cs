@@ -13,16 +13,21 @@ namespace ShadowsocksUriGenerator.Tests
         public void Generate_OnlineConfig_Properties()
         {
             var settings = new Settings();
+
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
             nodes.AddGroup("MyGroupWithPlugin");
-            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443);
-            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com");
+
             var users = new Users();
             users.AddUser("root");
             users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
             users.AddCredentialToUser("root", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
             var user = users.UserDict.First();
+
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443);
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv", user.Value.Uuid, "test");
+            var myNode = nodes.Groups["MyGroup"].NodeDict["MyNode"];
+            var myNodeWithPlugin = nodes.Groups["MyGroupWithPlugin"].NodeDict["MyNodeWithPlugin"];
 
             settings.OnlineConfigDeliverByGroup = false;
             var userSingleOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
@@ -36,26 +41,39 @@ namespace ShadowsocksUriGenerator.Tests
             // userSingleOnlineConfig
             Assert.Equal(1, userSingleOnlineConfig.Version);
             Assert.Equal("root", userSingleOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userSingleOnlineConfig.Id, out _));
+            Assert.Equal(user.Value.Uuid, userSingleOnlineConfig.Id);
+            Assert.Null(userSingleOnlineConfig.BytesUsed);
+            Assert.Null(userSingleOnlineConfig.BytesRemaining);
             Assert.Equal(2, userSingleOnlineConfig.Servers.Count);
+
             var singleServer = userSingleOnlineConfig.Servers[0];
+            Assert.Equal(myNode.Uuid, singleServer.Id);
             Assert.Equal("MyNode", singleServer.Name);
             Assert.Equal("github.com", singleServer.Host);
             Assert.Equal(443, singleServer.Port);
             Assert.Equal("chacha20-ietf-poly1305", singleServer.Method);
             Assert.Equal("ymghiR#75TNqpa", singleServer.Password);
-            Assert.Null(singleServer.PluginPath);
-            Assert.Null(singleServer.PluginOpts);
-            Assert.True(Guid.TryParse(singleServer.Id, out _));
+            Assert.Null(singleServer.PluginName);
+            Assert.Null(singleServer.PluginVersion);
+            Assert.Null(singleServer.PluginOptions);
+            Assert.Null(singleServer.PluginArguments);
+            Assert.Equal("MyGroup", singleServer.Group);
+            Assert.Null(singleServer.Owner);
+            Assert.Null(singleServer.Tags);
+
             var singleServerWithPlugin = userSingleOnlineConfig.Servers[1];
+            Assert.Equal(myNodeWithPlugin.Uuid, singleServerWithPlugin.Id);
             Assert.Equal("MyNodeWithPlugin", singleServerWithPlugin.Name);
             Assert.Equal("github.com", singleServerWithPlugin.Host);
             Assert.Equal(443, singleServerWithPlugin.Port);
             Assert.Equal("aes-256-gcm", singleServerWithPlugin.Method);
             Assert.Equal("wLhN2STZ", singleServerWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", singleServerWithPlugin.PluginPath);
-            Assert.Equal("server;tls;host=github.com", singleServerWithPlugin.PluginOpts);
-            Assert.True(Guid.TryParse(singleServerWithPlugin.Id, out _));
+            Assert.Equal("v2ray-plugin", singleServerWithPlugin.PluginName);
+            Assert.Equal("1.0", singleServerWithPlugin.PluginVersion);
+            Assert.Equal("server;tls;host=github.com", singleServerWithPlugin.PluginOptions);
+            Assert.Equal("-vvvvvv", singleServerWithPlugin.PluginArguments);
+            Assert.Equal("root", singleServerWithPlugin.Owner);
+            Assert.Single(singleServerWithPlugin.Tags, "test");
 
             // userPerGroupOnlineConfigDict
             Assert.Equal(3, userPerGroupOnlineConfigDict.Count);
@@ -66,56 +84,82 @@ namespace ShadowsocksUriGenerator.Tests
             // userOnlineConfig
             Assert.Equal(1, userOnlineConfig.Version);
             Assert.Equal("root", userOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userOnlineConfig.Id, out _));
+            Assert.Equal(user.Value.Uuid, userOnlineConfig.Id);
+            Assert.Null(userOnlineConfig.BytesUsed);
+            Assert.Null(userOnlineConfig.BytesRemaining);
             Assert.Equal(2, userOnlineConfig.Servers.Count);
+
             var server = userOnlineConfig.Servers[0];
+            Assert.Equal(myNode.Uuid, server.Id);
             Assert.Equal("MyNode", server.Name);
             Assert.Equal("github.com", server.Host);
             Assert.Equal(443, server.Port);
             Assert.Equal("chacha20-ietf-poly1305", server.Method);
             Assert.Equal("ymghiR#75TNqpa", server.Password);
-            Assert.Null(server.PluginPath);
-            Assert.Null(server.PluginOpts);
-            Assert.True(Guid.TryParse(server.Id, out _));
+            Assert.Null(server.PluginName);
+            Assert.Null(server.PluginVersion);
+            Assert.Null(server.PluginOptions);
+            Assert.Null(server.PluginArguments);
+            Assert.Equal("MyGroup", server.Group);
+            Assert.Null(server.Owner);
+            Assert.Null(server.Tags);
+
             var serverWithPlugin = userOnlineConfig.Servers[1];
+            Assert.Equal(myNodeWithPlugin.Uuid, serverWithPlugin.Id);
             Assert.Equal("MyNodeWithPlugin", serverWithPlugin.Name);
             Assert.Equal("github.com", serverWithPlugin.Host);
             Assert.Equal(443, serverWithPlugin.Port);
             Assert.Equal("aes-256-gcm", serverWithPlugin.Method);
             Assert.Equal("wLhN2STZ", serverWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", serverWithPlugin.PluginPath);
-            Assert.Equal("server;tls;host=github.com", serverWithPlugin.PluginOpts);
-            Assert.True(Guid.TryParse(serverWithPlugin.Id, out _));
+            Assert.Equal("v2ray-plugin", serverWithPlugin.PluginName);
+            Assert.Equal("1.0", serverWithPlugin.PluginVersion);
+            Assert.Equal("server;tls;host=github.com", serverWithPlugin.PluginOptions);
+            Assert.Equal("-vvvvvv", serverWithPlugin.PluginArguments);
+            Assert.Equal("root", serverWithPlugin.Owner);
+            Assert.Single(serverWithPlugin.Tags, "test");
 
             // userMyGroupOnlineConfig
             Assert.Equal(1, userMyGroupOnlineConfig.Version);
             Assert.Equal("root", userMyGroupOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userMyGroupOnlineConfig.Id, out _));
+            Assert.Equal(user.Value.Uuid, userMyGroupOnlineConfig.Id);
+            Assert.Null(userMyGroupOnlineConfig.BytesUsed);
+            Assert.Null(userMyGroupOnlineConfig.BytesRemaining);
             Assert.Single(userMyGroupOnlineConfig.Servers);
+
             var serverMyGroup = userMyGroupOnlineConfig.Servers[0];
+            Assert.Equal(myNode.Uuid, serverMyGroup.Id);
             Assert.Equal("MyNode", serverMyGroup.Name);
             Assert.Equal("github.com", serverMyGroup.Host);
             Assert.Equal(443, serverMyGroup.Port);
             Assert.Equal("chacha20-ietf-poly1305", serverMyGroup.Method);
             Assert.Equal("ymghiR#75TNqpa", serverMyGroup.Password);
-            Assert.Null(serverMyGroup.PluginPath);
-            Assert.Null(serverMyGroup.PluginOpts);
-            Assert.True(Guid.TryParse(serverMyGroup.Id, out _));
+            Assert.Null(serverMyGroup.PluginName);
+            Assert.Null(serverMyGroup.PluginVersion);
+            Assert.Null(serverMyGroup.PluginOptions);
+            Assert.Null(serverMyGroup.PluginArguments);
+            Assert.Equal("MyGroup", serverMyGroup.Group);
+            Assert.Null(serverMyGroup.Owner);
+            Assert.Null(serverMyGroup.Tags);
 
             // userMyGroupWithPluginOnlineConfig
             Assert.Equal(1, userMyGroupWithPluginOnlineConfig.Version);
             Assert.Equal("root", userMyGroupWithPluginOnlineConfig.Username);
             Assert.True(Guid.TryParse(userMyGroupWithPluginOnlineConfig.Id, out _));
             Assert.Single(userMyGroupWithPluginOnlineConfig.Servers);
+
             var serverMyGroupWithPlugin = userMyGroupWithPluginOnlineConfig.Servers[0];
+            Assert.Equal(myNodeWithPlugin.Uuid, serverMyGroupWithPlugin.Id);
             Assert.Equal("MyNodeWithPlugin", serverMyGroupWithPlugin.Name);
             Assert.Equal("github.com", serverMyGroupWithPlugin.Host);
             Assert.Equal(443, serverMyGroupWithPlugin.Port);
             Assert.Equal("aes-256-gcm", serverMyGroupWithPlugin.Method);
             Assert.Equal("wLhN2STZ", serverMyGroupWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", serverMyGroupWithPlugin.PluginPath);
-            Assert.Equal("server;tls;host=github.com", serverMyGroupWithPlugin.PluginOpts);
-            Assert.True(Guid.TryParse(serverMyGroupWithPlugin.Id, out _));
+            Assert.Equal("v2ray-plugin", serverMyGroupWithPlugin.PluginName);
+            Assert.Equal("1.0", serverMyGroupWithPlugin.PluginVersion);
+            Assert.Equal("server;tls;host=github.com", serverMyGroupWithPlugin.PluginOptions);
+            Assert.Equal("-vvvvvv", serverMyGroupWithPlugin.PluginArguments);
+            Assert.Equal("root", serverMyGroupWithPlugin.Owner);
+            Assert.Single(serverMyGroupWithPlugin.Tags, "test");
         }
 
         [Fact]

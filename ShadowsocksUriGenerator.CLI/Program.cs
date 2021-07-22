@@ -218,8 +218,10 @@ namespace ShadowsocksUriGenerator.CLI
 
             var hostOption = new Option<string>("--host", "Hostname of the node.");
             var portOption = new Option<int>("--port", Parsers.ParsePortNumber, false, "Port number of the node.");
-            var pluginOption = new Option<string>("--plugin", "Plugin binary name of the node.");
-            var pluginOptsOption = new Option<string>("--plugin-opts", "Plugin options of the node.");
+            var pluginNameOption = new Option<string>("--plugin-name", "Plugin name.");
+            var pluginVersionOption = new Option<string>("--plugin-version", "Required plugin version.");
+            var pluginOptionsOption = new Option<string>("--plugin-options", "Plugin options, passed as environment variable 'SS_PLUGIN_OPTIONS'.");
+            var pluginArgumentsOption = new Option<string>("--plugin-arguments", "Plugin startup arguments.");
             var unsetPluginOption = new Option<bool>("--unset-plugin", "Remove plugin and plugin options from the node.");
 
             var ownerOption = new Option<string>("--owner", "Set the owner.");
@@ -402,20 +404,24 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddCommand.AddArgument(nodenameArgument);
             nodeAddCommand.AddArgument(hostArgument);
             nodeAddCommand.AddArgument(portArgument);
-            nodeAddCommand.AddOption(pluginOption);
-            nodeAddCommand.AddOption(pluginOptsOption);
+            nodeAddCommand.AddOption(pluginNameOption);
+            nodeAddCommand.AddOption(pluginVersionOption);
+            nodeAddCommand.AddOption(pluginOptionsOption);
+            nodeAddCommand.AddOption(pluginArgumentsOption);
             nodeAddCommand.AddOption(ownerOption);
             nodeAddCommand.AddOption(tagsOption);
             nodeAddCommand.AddValidator(NodeCommand.ValidateNodePlugin);
-            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, string, string[], CancellationToken>(NodeCommand.Add);
+            nodeAddCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, string, string, string, string[], CancellationToken>(NodeCommand.Add);
 
             nodeEditCommand.AddAlias("e");
             nodeEditCommand.AddArgument(groupArgument);
             nodeEditCommand.AddArgument(nodenameArgument);
             nodeEditCommand.AddOption(hostOption);
             nodeEditCommand.AddOption(portOption);
-            nodeEditCommand.AddOption(pluginOption);
-            nodeEditCommand.AddOption(pluginOptsOption);
+            nodeEditCommand.AddOption(pluginNameOption);
+            nodeEditCommand.AddOption(pluginVersionOption);
+            nodeEditCommand.AddOption(pluginOptionsOption);
+            nodeEditCommand.AddOption(pluginArgumentsOption);
             nodeEditCommand.AddOption(unsetPluginOption);
             nodeEditCommand.AddOption(ownerOption);
             nodeEditCommand.AddOption(unsetOwnerOption);
@@ -424,7 +430,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeEditCommand.AddOption(removeTagsOption);
             nodeEditCommand.AddValidator(NodeCommand.ValidateNodePlugin);
             nodeEditCommand.AddValidator(Validators.ValidateOwnerOptions);
-            nodeEditCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, bool, string, bool, bool, string[], string[], CancellationToken>(NodeCommand.Edit);
+            nodeEditCommand.Handler = CommandHandler.Create<string, string, string, int, string, string, string, string, bool, string, bool, bool, string[], string[], CancellationToken>(NodeCommand.Edit);
 
             nodeRenameCommand.AddArgument(groupArgument);
             nodeRenameCommand.AddArgument(oldNameArgument);

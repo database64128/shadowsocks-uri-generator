@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator
@@ -18,7 +17,7 @@ namespace ShadowsocksUriGenerator
         public string Userinfo => $"{Method}:{Password}";
 
         [JsonIgnore]
-        public string UserinfoBase64url => Base64UserinfoEncoder(Userinfo);
+        public string UserinfoBase64url => Shadowsocks.Utils.Base64Url.Encode(Userinfo);
 
         /// <summary>
         /// Gets whether the member info contains credential.
@@ -70,7 +69,7 @@ namespace ShadowsocksUriGenerator
             [NotNullWhen(true)] out string? method,
             [NotNullWhen(true)] out string? password)
         {
-            var userinfo = Base64UserinfoDecoder(userinfoBase64url);
+            var userinfo = Shadowsocks.Utils.Base64Url.DecodeToString(userinfoBase64url);
             var methodPasswordArray = userinfo.Split(':', 2);
 
             if (methodPasswordArray.Length == 2)
@@ -102,20 +101,6 @@ namespace ShadowsocksUriGenerator
                 memberInfo = null;
                 return false;
             }
-        }
-
-        public static string Base64UserinfoEncoder(string userinfo)
-        {
-            var userinfoBytes = Encoding.UTF8.GetBytes(userinfo);
-            return Convert.ToBase64String(userinfoBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_');
-        }
-
-        public static string Base64UserinfoDecoder(string userinfoBase64url)
-        {
-            var parsedUserinfoBase64 = userinfoBase64url.Replace('_', '/').Replace('-', '+');
-            parsedUserinfoBase64 = parsedUserinfoBase64.PadRight(parsedUserinfoBase64.Length + (4 - parsedUserinfoBase64.Length % 4) % 4, '=');
-            var userinfoBytes = Convert.FromBase64String(parsedUserinfoBase64);
-            return Encoding.UTF8.GetString(userinfoBytes);
         }
     }
 }

@@ -178,25 +178,30 @@ namespace ShadowsocksUriGenerator
                 if (!membership.Value.HasCredential || groups.Length > 0 && !groups.Contains(membership.Key))
                     continue;
 
-                var userinfoBase64url = membership.Value.UserinfoBase64url;
                 if (nodes.Groups.TryGetValue(membership.Key, out Group? group)) // find credEntry's group
                 {
-                    foreach (var node in group.NodeDict)
+                    foreach (var nodeEntry in group.NodeDict)
                     {
-                        if (node.Value.Deactivated)
+                        if (nodeEntry.Value.Deactivated)
                             continue;
 
-                        var fragment = node.Key;
-                        var host = node.Value.Host;
-                        var port = node.Value.Port;
-                        var plugin = node.Value.Plugin;
-                        var pluginOpts = node.Value.PluginOpts;
+                        Shadowsocks.Models.IServer server = new Shadowsocks.Models.Server()
+                        {
+                            Id = nodeEntry.Value.Uuid,
+                            Name = nodeEntry.Key,
+                            Host = nodeEntry.Value.Host,
+                            Port = nodeEntry.Value.Port,
+                            Method = membership.Value.Method,
+                            Password = membership.Value.Password,
+                            PluginName = nodeEntry.Value.Plugin,
+                            PluginVersion = nodeEntry.Value.PluginVersion,
+                            PluginOptions = nodeEntry.Value.PluginOpts,
+                            PluginArguments = nodeEntry.Value.PluginArguments,
+                        };
 
-                        uris.Add(SSUriBuilder(userinfoBase64url, host, port, fragment, plugin, pluginOpts));
+                        uris.Add(server.ToUrl());
                     }
                 }
-                else
-                    continue; // ignoring is intentional, as groups may get removed.
             }
 
             return uris;
@@ -307,21 +312,6 @@ namespace ShadowsocksUriGenerator
             }
             else
                 return -2;
-        }
-
-        public static Uri SSUriBuilder(string userinfoBase64url, string host, int port, string fragment, string? plugin = null, string? pluginOpts = null)
-        {
-            UriBuilder ssUriBuilder = new("ss", host, port)
-            {
-                UserName = userinfoBase64url,
-                Fragment = fragment
-            };
-            if (!string.IsNullOrEmpty(plugin))
-                if (!string.IsNullOrEmpty(pluginOpts))
-                    ssUriBuilder.Query = $"plugin={Uri.EscapeDataString($"{plugin};{pluginOpts}")}"; // manually escape as a workaround
-                else
-                    ssUriBuilder.Query = $"plugin={plugin}";
-            return ssUriBuilder.Uri;
         }
     }
 }

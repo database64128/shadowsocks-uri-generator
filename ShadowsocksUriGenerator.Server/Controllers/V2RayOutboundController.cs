@@ -70,6 +70,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers
                     foreach (var nodeEntry in targetGroup.NodeDict)
                     {
                         if (!nodeEntry.Value.Deactivated
+                            && string.IsNullOrEmpty(nodeEntry.Value.Plugin)
                             && (targetNodeOwnerIds.Length == 0 || targetNodeOwnerIds.Contains(nodeEntry.Value.OwnerUuid))
                             && (tag.Length == 0 || tag.All(x => nodeEntry.Value.Tags.Exists(y => string.Equals(x, y, StringComparison.OrdinalIgnoreCase)))))
                         {
@@ -81,8 +82,6 @@ namespace ShadowsocksUriGenerator.Server.Controllers
                                 Port = nodeEntry.Value.Port,
                                 Method = membership.Value.Method,
                                 Password = membership.Value.Password,
-                                PluginPath = nodeEntry.Value.Plugin,
-                                PluginOpts = nodeEntry.Value.PluginOpts,
                             };
 
                             config.Outbounds.Add(Shadowsocks.Interop.V2Ray.OutboundObject.GetShadowsocks(server));

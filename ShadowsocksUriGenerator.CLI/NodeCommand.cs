@@ -12,14 +12,16 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static string? ValidateNodePlugin(CommandResult commandResult)
         {
-            var hasPlugin = commandResult.Children.Contains("--plugin");
-            var hasPluginOpts = commandResult.Children.Contains("--plugin-opts");
+            var hasPluginName = commandResult.Children.Contains("--plugin-name");
+            var hasPluginVersion = commandResult.Children.Contains("--plugin-version");
+            var hasPluginOptions = commandResult.Children.Contains("--plugin-options");
+            var hasPluginArguments = commandResult.Children.Contains("--plugin-arguments");
             var hasUnsetPlugin = commandResult.Children.Contains("--unset-plugin");
 
-            if (!hasPlugin && hasPluginOpts)
+            if (!hasPluginName && (hasPluginVersion || hasPluginOptions || hasPluginArguments))
                 return "You didn't specify a plugin.";
 
-            if (hasPlugin && hasUnsetPlugin)
+            if (hasPluginName && hasUnsetPlugin)
                 return "You can't set and unset plugin at the same time.";
 
             return null;
@@ -30,8 +32,10 @@ namespace ShadowsocksUriGenerator.CLI
             string nodename,
             string host,
             int port,
-            string? plugin,
-            string? pluginOpts,
+            string? pluginName,
+            string? pluginVersion,
+            string? pluginOptions,
+            string? pluginArguments,
             string owner,
             string[] tags,
             CancellationToken cancellationToken = default)
@@ -45,10 +49,14 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = loadedNodes;
 
             // Turn empty strings into null
-            if (string.IsNullOrEmpty(plugin))
-                plugin = null;
-            if (string.IsNullOrEmpty(pluginOpts))
-                pluginOpts = null;
+            if (string.IsNullOrEmpty(pluginName))
+                pluginName = null;
+            if (string.IsNullOrEmpty(pluginVersion))
+                pluginVersion = null;
+            if (string.IsNullOrEmpty(pluginOptions))
+                pluginOptions = null;
+            if (string.IsNullOrEmpty(pluginArguments))
+                pluginArguments = null;
 
             // Retrieve owner user UUID.
             string? ownerUuid = null;
@@ -74,7 +82,7 @@ namespace ShadowsocksUriGenerator.CLI
             // Deduplicate tags.
             tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
-            var result = nodes.AddNodeToGroup(group, nodename, host, port, plugin, pluginOpts, ownerUuid, tags);
+            var result = nodes.AddNodeToGroup(group, nodename, host, port, pluginName, pluginVersion, pluginOptions, pluginArguments, ownerUuid, tags);
             switch (result)
             {
                 case 0:
@@ -109,8 +117,10 @@ namespace ShadowsocksUriGenerator.CLI
             string nodename,
             string host,
             int port,
-            string plugin,
-            string pluginOpts,
+            string pluginName,
+            string pluginVersion,
+            string pluginOptions,
+            string pluginArguments,
             bool unsetPlugin,
             string owner,
             bool unsetOwner,
@@ -137,16 +147,24 @@ namespace ShadowsocksUriGenerator.CLI
                     if (port > 0)
                         node.Port = port;
 
-                    if (!string.IsNullOrEmpty(plugin))
-                        node.Plugin = plugin;
+                    if (!string.IsNullOrEmpty(pluginName))
+                        node.Plugin = pluginName;
 
-                    if (!string.IsNullOrEmpty(pluginOpts))
-                        node.PluginOpts = pluginOpts;
+                    if (!string.IsNullOrEmpty(pluginVersion))
+                        node.PluginVersion = pluginVersion;
+
+                    if (!string.IsNullOrEmpty(pluginOptions))
+                        node.PluginOpts = pluginOptions;
+
+                    if (!string.IsNullOrEmpty(pluginArguments))
+                        node.PluginArguments = pluginArguments;
 
                     if (unsetPlugin)
                     {
                         node.Plugin = null;
+                        node.PluginVersion = null;
                         node.PluginOpts = null;
+                        node.PluginArguments = null;
                     }
 
                     if (!string.IsNullOrEmpty(owner))
@@ -358,14 +376,16 @@ namespace ShadowsocksUriGenerator.CLI
             var maxGroupNameLength = filteredNodes.Max(x => x.group.Length);
             var maxHostnameLength = filteredNodes.Max(x => x.node.Host.Length);
             var maxPluginLength = filteredNodes.Max(x => x.node.Plugin?.Length);
+            var maxPluginVersionLength = filteredNodes.Max(x => x.node.PluginVersion?.Length);
             var maxPluginOptsLength = filteredNodes.Max(x => x.node.PluginOpts?.Length);
+            var maxPluginArgumentsLength = filteredNodes.Max(x => x.node.PluginArguments?.Length);
 
             var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
             var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
             var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
 
             // Nodes have no plugins. Do not display plugin and plugin options columns.
-            if (maxPluginLength is null && maxPluginOptsLength is null)
+            if (maxPluginLength is null && maxPluginVersionLength is null && maxPluginOptsLength is null && maxPluginArgumentsLength is null)
             {
                 ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
                 Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|");
@@ -373,14 +393,16 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var (group, nodeName, node) in filteredNodes)
                 {
-                    Console.WriteLine($"|{(node.Deactivated ? "🛑" : "✔"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|");
+                    Console.WriteLine($"|{(node.Deactivated ? "🛑" : "✅"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|");
                 }
 
                 ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
             }
             else // Nodes have plugins.
             {
-                var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength.Value + 2 : 8;
+                var pluginInfoLengths = new int?[] { maxPluginLength, maxPluginVersionLength, maxPluginArgumentsLength, };
+                var pluginInfoLength = pluginInfoLengths.Sum();
+                var pluginFieldWidth = pluginInfoLength > 6 ? pluginInfoLength.Value + 2 : 8;
                 var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength.Value + 2 : 16;
 
                 ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
@@ -389,7 +411,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var (group, nodeName, node) in filteredNodes)
                 {
-                    Console.WriteLine($"|{(node.Deactivated ? "🛑" : "✔"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|{(node.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{(node.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
+                    Console.WriteLine($"|{(node.Deactivated ? "🛑" : "✅"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|{($"{node.Plugin}{(node.PluginVersion is null ? "" : $"@{node.PluginVersion}")}{(node.PluginArguments is null ? "" : $" {node.PluginArguments}")}").PadLeft(pluginFieldWidth)}|{(node.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
                 }
 
                 ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);

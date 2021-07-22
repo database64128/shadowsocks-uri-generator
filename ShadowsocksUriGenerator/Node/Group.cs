@@ -91,16 +91,30 @@ namespace ShadowsocksUriGenerator
         /// <param name="host">Node's hostname.</param>
         /// <param name="port">Node's port number.</param>
         /// <param name="plugin">Optional. Plugin binary name.</param>
+        /// <param name="pluginVersion">Optional. Required plugin version.</param>
         /// <param name="pluginOpts">Optional. Plugin options.</param>
+        /// <param name="pluginArguments">Optional. Plugin startup arguments.</param>
         /// <param name="ownerUuid">Optional. Node owner's user UUID.</param>
         /// <param name="tags">Node's tags.</param>
         /// <returns>0 for success. -1 for duplicated name.</returns>
-        public int AddNode(string name, string host, int port, string? plugin = null, string? pluginOpts = null, string? ownerUuid = null, params string[] tags)
+        public int AddNode(string name, string host, int port, string? plugin = null, string? pluginVersion = null, string? pluginOpts = null, string? pluginArguments = null, string? ownerUuid = null, params string[] tags)
         {
             if (!NodeDict.ContainsKey(name))
             {
-                var node = new Node(host, port, plugin, pluginOpts, ownerUuid, tags);
+                var node = new Node()
+                {
+                    Host = host,
+                    Port = port,
+                    Plugin = plugin,
+                    PluginVersion = pluginVersion,
+                    PluginOpts = pluginOpts,
+                    PluginArguments = pluginArguments,
+                    OwnerUuid = ownerUuid,
+                    Tags = tags.ToList(),
+                };
+
                 NodeDict.Add(name, node);
+
                 return 0;
             }
             else

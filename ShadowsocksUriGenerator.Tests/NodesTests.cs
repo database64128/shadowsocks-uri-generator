@@ -74,8 +74,8 @@ namespace ShadowsocksUriGenerator.Tests
 
             // Add
             var successAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443);
-            var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com");
-            var successAddWithOwnerAndTags = nodes.AddNodeToGroup("C", "MyNode2", "github.com", 443, null, null, "a2865866-5dc8-4eae-9772-692d10c274df", "direct", "US");
+            var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", 443, "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv");
+            var successAddWithOwnerAndTags = nodes.AddNodeToGroup("C", "MyNode2", "github.com", 443, null, null, null, null, "a2865866-5dc8-4eae-9772-692d10c274df", "direct", "US");
             var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443);
             var badGroupAdd = nodes.AddNodeToGroup("D", "MyNode0", "github.com", 443);
 
@@ -97,7 +97,9 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal("github.com", addedNodeInB.Host);
             Assert.Equal(443, addedNodeInB.Port);
             Assert.Equal("v2ray-plugin", addedNodeInB.Plugin);
+            Assert.Equal("1.0", addedNodeInB.PluginVersion);
             Assert.Equal("server;tls;host=github.com", addedNodeInB.PluginOpts);
+            Assert.Equal("-vvvvvv", addedNodeInB.PluginArguments);
 
             Assert.True(nodes.Groups.ContainsKey("C"));
             Assert.True(nodes.Groups["C"].NodeDict.ContainsKey("MyNode2"));

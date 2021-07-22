@@ -5,8 +5,11 @@ namespace ShadowsocksUriGenerator.OnlineConfig
 {
     public class SIP008Server : Shadowsocks.OnlineConfig.SIP008.SIP008Server
     {
+        /// <inheritdoc cref="OOCv1ShadowsocksServer.Group"/>
+        public string? Group { get; set; }
+
         /// <inheritdoc cref="OOCv1ShadowsocksServer.Owner"/>
-        public string? Owner { get; set; } = "";
+        public string? Owner { get; set; }
 
         /// <inheritdoc cref="OOCv1ShadowsocksServer.Tags"/>
         public List<string>? Tags { get; set; }

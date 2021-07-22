@@ -129,50 +129,54 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 if (filteredNodes.Count > 0)
                 {
-                    var maxNodeNameLength = filteredNodes.Max(x => x.nodeName.Length);
-                    var maxGroupNameLength = filteredNodes.Max(x => x.group.Length);
-                    var maxHostnameLength = filteredNodes.Max(x => x.node.Host.Length);
-                    var maxPluginLength = filteredNodes.Max(x => x.node.Plugin?.Length);
-                    var maxPluginOptsLength = filteredNodes.Max(x => x.node.PluginOpts?.Length);
+                    replyBuilder.AppendLine();
 
-                    var nodeNameFieldWidth = maxNodeNameLength > 4 ? maxNodeNameLength + 2 : 6;
-                    var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-                    var hostnameFieldWidth = maxHostnameLength > 4 ? maxHostnameLength + 2 : 6;
-
-                    replyBuilder.AppendLine("```");
-
-                    // Nodes have no plugins. Do not display plugin and plugin options columns.
-                    if (maxPluginLength is null && maxPluginOptsLength is null)
+                    foreach (var (group, nodeName, node) in filteredNodes)
                     {
-                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
-                        replyBuilder.AppendLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|");
-                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+                        replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(group)}*");
+                        replyBuilder.AppendLine($"Node: *{ChatHelper.EscapeMarkdownV2Plaintext(nodeName)}*");
+                        replyBuilder.AppendLine($"UUID: {ChatHelper.EscapeMarkdownV2Plaintext(node.Uuid)}");
+                        replyBuilder.AppendLine($"Status: {(node.Deactivated ? "🛑" : "✅")}");
+                        replyBuilder.AppendLine($"Host: `{ChatHelper.EscapeMarkdownV2CodeBlock(node.Host)}`");
+                        replyBuilder.AppendLine($"Port: {node.Port}");
 
-                        foreach (var (group, nodeName, node) in filteredNodes)
+                        if (node.Plugin is not null)
                         {
-                            replyBuilder.AppendLine($"|{(node.Deactivated ? "🛑" : "✔"),7}|{ChatHelper.EscapeMarkdownV2CodeBlock(nodeName).PadRight(nodeNameFieldWidth)}|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|");
+                            replyBuilder.AppendLine($"Plugin: `{ChatHelper.EscapeMarkdownV2CodeBlock(node.Plugin)}`");
                         }
 
-                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
-                    }
-                    else // Nodes have plugins.
-                    {
-                        var pluginFieldWidth = maxPluginLength > 6 ? maxPluginLength.Value + 2 : 8;
-                        var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength.Value + 2 : 16;
-
-                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
-                        replyBuilder.AppendLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
-                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
-
-                        foreach (var (group, nodeName, node) in filteredNodes)
+                        if (node.PluginVersion is not null)
                         {
-                            replyBuilder.AppendLine($"|{(node.Deactivated ? "🛑" : "✔"),7}|{ChatHelper.EscapeMarkdownV2CodeBlock(nodeName).PadRight(nodeNameFieldWidth)}|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|{ChatHelper.EscapeMarkdownV2CodeBlock(node.Plugin ?? string.Empty).PadLeft(pluginFieldWidth)}|{ChatHelper.EscapeMarkdownV2CodeBlock(node.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
+                            replyBuilder.AppendLine($"Plugin Version: `{ChatHelper.EscapeMarkdownV2CodeBlock(node.PluginVersion)}`");
                         }
 
-                        replyBuilder.AppendTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
-                    }
+                        if (node.PluginOpts is not null)
+                        {
+                            replyBuilder.AppendLine($"Plugin Options: `{ChatHelper.EscapeMarkdownV2CodeBlock(node.PluginOpts)}`");
+                        }
 
-                    replyBuilder.AppendLine("```");
+                        if (node.PluginArguments is not null)
+                        {
+                            replyBuilder.AppendLine($"Plugin Arguments: `{ChatHelper.EscapeMarkdownV2CodeBlock(node.PluginArguments)}`");
+                        }
+
+                        if (node.OwnerUuid is not null)
+                        {
+                            var owner = users.UserDict.Where(x => x.Value.Uuid == node.OwnerUuid)
+                                                      .Select(x => x.Key)
+                                                      .FirstOrDefault();
+                            replyBuilder.AppendLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(owner ?? "N/A")}");
+                        }
+
+                        replyBuilder.AppendLine($"Tags: {node.Tags.Count}");
+
+                        foreach (var tag in node.Tags)
+                        {
+                            replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"- {tag}"));
+                        }
+
+                        replyBuilder.AppendLine();
+                    }
                 }
 
                 replyMarkdownV2 = replyBuilder.ToString();
@@ -275,98 +279,6 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     replyMarkdownV2 = @"The specified user doesn't exist\.";
                     Console.WriteLine(" Response: target user not found.");
                 }
-            }
-            else
-            {
-                replyMarkdownV2 = @"You must link your Telegram account to your user first\.";
-                Console.WriteLine(" Response: user not linked.");
-            }
-
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
-        }
-
-        public static async Task ListNodeAnnotationsAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
-        {
-            Console.Write($"{message.From} executed {message.Text} in {message.Chat.Type.ToString().ToLower()} chat {(string.IsNullOrEmpty(message.Chat.Title) ? string.Empty : $"{message.Chat.Title} ")}({message.Chat.Id}).");
-
-            string replyMarkdownV2;
-
-            var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
-            if (loadBotConfigErrMsg is not null)
-            {
-                Console.WriteLine();
-                Console.WriteLine(loadBotConfigErrMsg);
-                return;
-            }
-
-            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
-            if (loadUsersErrMsg is not null)
-            {
-                Console.WriteLine();
-                Console.WriteLine(loadUsersErrMsg);
-                return;
-            }
-
-            if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
-            {
-                var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
-                if (loadNodesErrMsg is not null)
-                {
-                    Console.WriteLine();
-                    Console.WriteLine(loadNodesErrMsg);
-                    return;
-                }
-                using var nodes = loadedNodes;
-
-                List<(string group, string nodeName, Node node)> filteredNodes = new();
-
-                foreach (var groupEntry in nodes.Groups)
-                {
-                    if ((argument is null || argument == groupEntry.Key) && (botConfig.UsersCanSeeAllGroups || groupEntry.Value.OwnerUuid == userUuid || userEntry.Value.Value.Memberships.ContainsKey(groupEntry.Key)))
-                    {
-                        foreach (var node in groupEntry.Value.NodeDict)
-                        {
-                            filteredNodes.Add((groupEntry.Key, node.Key, node.Value));
-                        }
-                    }
-                }
-
-                var replyBuilder = new StringBuilder();
-
-                replyBuilder.AppendLine($"*Nodes: {filteredNodes.Count}*");
-
-                if (filteredNodes.Count > 0)
-                {
-                    foreach (var (group, nodeName, node) in filteredNodes)
-                    {
-                        replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(group)}*");
-                        replyBuilder.AppendLine($"Node: *{ChatHelper.EscapeMarkdownV2Plaintext(nodeName)}*");
-
-                        if (node.OwnerUuid is not null)
-                        {
-                            var owner = users.UserDict.Where(x => x.Value.Uuid == node.OwnerUuid)
-                                                      .Select(x => x.Key)
-                                                      .FirstOrDefault();
-                            replyBuilder.AppendLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(owner ?? "N/A")}");
-                        }
-
-                        replyBuilder.AppendLine($"Tags: {node.Tags.Count}");
-
-                        foreach (var tag in node.Tags)
-                        {
-                            replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"- {tag}"));
-                        }
-
-                        replyBuilder.AppendLine();
-                    }
-                }
-
-                replyMarkdownV2 = replyBuilder.ToString();
-                Console.WriteLine(" Response: successful query.");
             }
             else
             {

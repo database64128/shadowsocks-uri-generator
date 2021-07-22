@@ -102,8 +102,11 @@ namespace ShadowsocksUriGenerator.Server.Controllers
                                 Port = nodeEntry.Value.Port,
                                 Method = membership.Value.Method,
                                 Password = membership.Value.Password,
-                                PluginPath = nodeEntry.Value.Plugin,
-                                PluginOpts = nodeEntry.Value.PluginOpts,
+                                PluginName = nodeEntry.Value.Plugin,
+                                PluginVersion = nodeEntry.Value.PluginVersion,
+                                PluginOptions = nodeEntry.Value.PluginOpts,
+                                PluginArguments = nodeEntry.Value.PluginArguments,
+                                Group = membership.Key,
                                 Owner = owner,
                                 Tags = tags,
                             });
