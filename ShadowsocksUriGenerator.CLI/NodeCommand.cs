@@ -387,16 +387,16 @@ namespace ShadowsocksUriGenerator.CLI
             // Nodes have no plugins. Do not display plugin and plugin options columns.
             if (maxPluginLength is null && maxPluginVersionLength is null && maxPluginOptsLength is null && maxPluginArgumentsLength is null)
             {
-                ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
-                Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|");
-                ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+                ConsoleHelper.PrintTableBorder(6, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+                Console.WriteLine($"|Status|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|");
+                ConsoleHelper.PrintTableBorder(6, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
 
                 foreach (var (group, nodeName, node) in filteredNodes)
                 {
-                    Console.WriteLine($"|{(node.Deactivated ? "🛑" : "✅"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|");
+                    Console.WriteLine($"|{(node.Deactivated ? "    🛑" : "    ✅")}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|");
                 }
 
-                ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
+                ConsoleHelper.PrintTableBorder(6, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5);
             }
             else // Nodes have plugins.
             {
@@ -405,16 +405,16 @@ namespace ShadowsocksUriGenerator.CLI
                 var pluginFieldWidth = pluginInfoLength > 6 ? pluginInfoLength.Value + 2 : 8;
                 var pluginOptsFieldWidth = maxPluginOptsLength > 14 ? maxPluginOptsLength.Value + 2 : 16;
 
-                ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
-                Console.WriteLine($"|{"Status",7}|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
-                ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                ConsoleHelper.PrintTableBorder(6, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                Console.WriteLine($"|Status|{"Node".PadRight(nodeNameFieldWidth)}|{"Group".PadRight(groupNameFieldWidth)}|{"UUID",36}|{"Host".PadLeft(hostnameFieldWidth)}|{"Port",5}|{"Plugin".PadLeft(pluginFieldWidth)}|{"Plugin Options".PadLeft(pluginOptsFieldWidth)}|");
+                ConsoleHelper.PrintTableBorder(6, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
 
                 foreach (var (group, nodeName, node) in filteredNodes)
                 {
-                    Console.WriteLine($"|{(node.Deactivated ? "🛑" : "✅"),7}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|{($"{node.Plugin}{(node.PluginVersion is null ? "" : $"@{node.PluginVersion}")}{(node.PluginArguments is null ? "" : $" {node.PluginArguments}")}").PadLeft(pluginFieldWidth)}|{(node.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
+                    Console.WriteLine($"|{(node.Deactivated ? "    🛑" : "    ✅")}|{nodeName.PadRight(nodeNameFieldWidth)}|{group.PadRight(groupNameFieldWidth)}|{node.Uuid,36}|{node.Host.PadLeft(hostnameFieldWidth)}|{node.Port,5}|{($"{node.Plugin}{(node.PluginVersion is null ? "" : $"@{node.PluginVersion}")}{(node.PluginArguments is null ? "" : $" {node.PluginArguments}")}").PadLeft(pluginFieldWidth)}|{(node.PluginOpts ?? string.Empty).PadLeft(pluginOptsFieldWidth)}|");
                 }
 
-                ConsoleHelper.PrintTableBorder(7, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
+                ConsoleHelper.PrintTableBorder(6, nodeNameFieldWidth, groupNameFieldWidth, 36, hostnameFieldWidth, 5, pluginFieldWidth, pluginOptsFieldWidth);
             }
 
             return 0;
