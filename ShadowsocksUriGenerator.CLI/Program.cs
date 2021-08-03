@@ -212,9 +212,18 @@ namespace ShadowsocksUriGenerator.CLI
                 Arity = ArgumentArity.OneOrMore,
             };
 
-            var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.");
-            var nodenamesOption = new Option<string[]>("--nodenames", "Target these specific nodes. If unspecified, target all nodes.");
-            var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.");
+            var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
+            var nodenamesOption = new Option<string[]>("--nodenames", "Target these specific nodes. If unspecified, target all nodes.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
+            var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
 
             var hostOption = new Option<string>("--host", "Hostname of the node.");
             var portOption = new Option<int>("--port", Parsers.ParsePortNumber, false, "Port number of the node.");
@@ -229,9 +238,18 @@ namespace ShadowsocksUriGenerator.CLI
 
             var forceOption = new Option<bool>(new string[] { "-f", "--force" }, "Forcibly overwrite existing settings.");
 
-            var tagsOption = new Option<string[]>("--tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.");
-            var addTagsOption = new Option<string[]>("--add-tags", "Tags to add to the node. Will be deduplicated in a case-insensitive manner.");
-            var removeTagsOption = new Option<string[]>("--remove-tags", "Tags to remove from the node. Matched in a case-insensitive manner.");
+            var tagsOption = new Option<string[]>("--tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
+            var addTagsOption = new Option<string[]>("--add-tags", "Tags to add to the node. Will be deduplicated in a case-insensitive manner.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
+            var removeTagsOption = new Option<string[]>("--remove-tags", "Tags to remove from the node. Matched in a case-insensitive manner.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
             var clearTagsOption = new Option<bool>("--clear-tags", "Remove all tags from the node.");
 
             var methodOption = new Option<string>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
