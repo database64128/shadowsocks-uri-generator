@@ -49,7 +49,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 configCommand,
             };
 
-            rootCommand.AddOption(new Option<string?>("--bot-token", "The Telegram bot token."));
+            rootCommand.AddOption(botTokenOption);
             rootCommand.Handler = CommandHandler.Create<string, CancellationToken>(BotRunner.RunBot);
 
             Console.OutputEncoding = Encoding.UTF8;
