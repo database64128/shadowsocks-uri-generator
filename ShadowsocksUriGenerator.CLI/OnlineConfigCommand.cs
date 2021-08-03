@@ -121,6 +121,11 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
+            Console.WriteLine("=== API Docs ===");
+            Console.WriteLine();
+            Console.WriteLine($"Swagger UI URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/swagger/");
+            Console.WriteLine($"ReDoc UI URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/api-docs/");
+
             return commandResult;
 
             static void PrintUserStaticLinks(string username, User user, Settings settings)
