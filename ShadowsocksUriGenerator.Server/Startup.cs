@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using ShadowsocksUriGenerator.Services;
 using System;
+using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 
@@ -40,6 +41,13 @@ namespace ShadowsocksUriGenerator.Server
                     Description = "Shadowsocks URI Generator API Specifications",
                     Version = "v1",
                 });
+
+                var xmlPath = $"{AppContext.BaseDirectory}{Path.GetFileNameWithoutExtension(Environment.GetCommandLineArgs()[0])}.xml";
+
+                if (File.Exists(xmlPath))
+                {
+                    c.IncludeXmlComments(xmlPath);
+                }
             });
             services.Configure<ForwardedHeadersOptions>(options =>
             {
@@ -55,9 +63,10 @@ namespace ShadowsocksUriGenerator.Server
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseSwagger();
-                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShadowsocksUriGenerator.Server v1"));
             }
+
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShadowsocksUriGenerator.Server v1"));
 
             app.UseForwardedHeaders();
 

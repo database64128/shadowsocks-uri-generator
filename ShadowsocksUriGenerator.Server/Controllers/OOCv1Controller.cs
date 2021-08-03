@@ -23,6 +23,48 @@ namespace ShadowsocksUriGenerator.Server.Controllers
             _dataService = dataService;
         }
 
+        /// <summary>
+        /// Gets online config by user ID in Open Online Config 1 format.
+        /// </summary>
+        /// <remarks>
+        /// Returns the online config document.
+        ///
+        ///     GET /[secret]/ooc/v1/[user_id]
+        ///     {
+        ///         "username": "database64128",
+        ///         "bytesUsed": 52940262597,
+        ///         "bytesRemaining": 52940262597,
+        ///         "protocols": [ "shadowsocks" ],
+        ///         "shadowsocks": [
+        ///             {
+        ///                 "id": "27b8a625-4f4b-4428-9f0f-8a2317db7c79",
+        ///                 "name": "ServerName",
+        ///                 "owner": "database64128",
+        ///                 "group": "examples",
+        ///                 "tags": [ "direct" ],
+        ///                 "address": "example.com",
+        ///                 "port": 8388,
+        ///                 "method": "chacha20-ietf-poly1305",
+        ///                 "password": "example",
+        ///                 "pluginName": "plugin-name",
+        ///                 "pluginVersion": "1.0",
+        ///                 "pluginOptions": "whatever",
+        ///                 "pluginArguments": "-vvvvvv"
+        ///             }
+        ///         ]
+        ///     }
+        ///
+        /// </remarks>
+        /// <param name="id">User ID.</param>
+        /// <param name="tag">Select nodes that contain all tags in this array.</param>
+        /// <param name="group">Select nodes from groups in this array.</param>
+        /// <param name="groupOwner">Select nodes from groups that belong to users in this array.</param>
+        /// <param name="nodeOwner">Select nodes that belong to users in this array.</param>
+        /// <param name="sortByName">Whether to sort nodes by name. Defaults to false, or no sorting.</param>
+        /// <returns>The online config document in Open Online Config 1 format.</returns>
+        /// <response code="200">Returns the online config document.</response>
+        /// <response code="400">One or more queries contain invalid values.</response>
+        /// <response code="404">The provided user ID doesn't exist.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -22,6 +22,41 @@ namespace ShadowsocksUriGenerator.Server.Controllers
             _dataService = dataService;
         }
 
+        /// <summary>
+        /// Gets online config by user ID in V2Ray outbound format.
+        /// </summary>
+        /// <remarks>
+        /// Returns the online config document.
+        ///
+        ///     GET /[secret]/v2ray/outbound/[user_id]
+        ///     {
+        ///         "outbounds": [
+        ///             "tag": "ServerName",
+        ///             "protocol": "shadowsocks",
+        ///             "settings": {
+        ///                 "servers": [
+        ///                     {
+        ///                         "address": "example.com",
+        ///                         "port": 8388,
+        ///                         "method": "chacha20-ietf-poly1305",
+        ///                         "password": "example",
+        ///                     }
+        ///                 ]
+        ///             }
+        ///         ]
+        ///     }
+        ///
+        /// </remarks>
+        /// <param name="id">User ID.</param>
+        /// <param name="tag">Select nodes that contain all tags in this array.</param>
+        /// <param name="group">Select nodes from groups in this array.</param>
+        /// <param name="groupOwner">Select nodes from groups that belong to users in this array.</param>
+        /// <param name="nodeOwner">Select nodes that belong to users in this array.</param>
+        /// <param name="sortByName">Whether to sort nodes by name. Defaults to false, or no sorting.</param>
+        /// <returns>The online config document in V2Ray outbound format.</returns>
+        /// <response code="200">Returns the online config document.</response>
+        /// <response code="400">One or more queries contain invalid values.</response>
+        /// <response code="404">The provided user ID doesn't exist.</response>
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
