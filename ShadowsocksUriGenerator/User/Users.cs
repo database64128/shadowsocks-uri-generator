@@ -291,13 +291,15 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Calculates data usage for all users.
         /// This method is intended to be called
-        /// by online config generator.
+        /// on data updates (e.g. Outline server pulls).
         /// </summary>
         /// <param name="nodes">The <see cref="Nodes"/> object.</param>
         public void CalculateDataUsageForAllUsers(Nodes nodes)
         {
             foreach (var userEntry in UserDict)
+            {
                 userEntry.Value.CalculateTotalDataUsage(userEntry.Key, nodes);
+            }
         }
 
         /// <summary>
@@ -319,21 +321,12 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Calculates total data usage for all users
-        /// and returns a list of total data usage tuples of all users.
+        /// Gets data usage records that contain
+        /// each user's total data usage.
         /// </summary>
-        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
-        /// <returns>A list of data usage records as tuples.</returns>
-        public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsageByUser(Nodes nodes)
-        {
-            List<(string username, ulong bytesUsed, ulong bytesRemaining)> records = new();
-            foreach (var userEntry in UserDict)
-            {
-                userEntry.Value.CalculateTotalDataUsage(userEntry.Key, nodes);
-                records.Add((userEntry.Key, userEntry.Value.BytesUsed, userEntry.Value.BytesRemaining));
-            }
-            return records;
-        }
+        /// <returns>A sequence of data usage records as tuples.</returns>
+        public IEnumerable<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsageByUser()
+            => UserDict.Select(userEntry => (userEntry.Key, userEntry.Value.BytesUsed, userEntry.Value.BytesRemaining));
 
         /// <summary>
         /// Sets the global data limit on the specified user.
@@ -379,6 +372,7 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Gets the data limit in effect on the user in the group.
         /// Group existence is not checked.
+        /// Outline's user custom limit is not checked.
         /// </summary>
         /// <param name="username">Target user.</param>
         /// <param name="group">Target group.</param>

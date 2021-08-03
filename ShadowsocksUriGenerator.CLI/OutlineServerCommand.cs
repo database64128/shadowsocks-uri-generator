@@ -49,6 +49,8 @@ namespace ShadowsocksUriGenerator.CLI
 
             Console.WriteLine($"Successfully associated the Outline server with {group}");
 
+            users.CalculateDataUsageForAllUsers(nodes);
+
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)
             {
@@ -182,6 +184,8 @@ namespace ShadowsocksUriGenerator.CLI
             if (removeCreds)
                 users.RemoveCredentialsFromAllUsers(groups);
 
+            users.CalculateDataUsageForAllUsers(nodes);
+
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)
             {
@@ -238,6 +242,8 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine(errMsg);
                 commandResult--;
             }
+
+            users.CalculateDataUsageForAllUsers(nodes);
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)

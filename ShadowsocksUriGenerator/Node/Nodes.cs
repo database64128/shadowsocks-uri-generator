@@ -255,17 +255,12 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Gets data usage records that contains
+        /// Gets data usage records that contain
         /// each group's total data usage.
         /// </summary>
-        /// <returns>A list of data usage records as tuples.</returns>
-        public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetDataUsageByGroup()
-        {
-            List<(string group, ulong bytesUsed, ulong bytesRemaining)> records = new();
-            foreach (var groupEntry in Groups)
-                records.Add((groupEntry.Key, groupEntry.Value.BytesUsed, groupEntry.Value.BytesRemaining));
-            return records;
-        }
+        /// <returns>A sequence of data usage records as tuples.</returns>
+        public IEnumerable<(string group, ulong bytesUsed, ulong bytesRemaining)> GetDataUsageByGroup()
+            => Groups.Select(groupEntry => (groupEntry.Key, groupEntry.Value.BytesUsed, groupEntry.Value.BytesRemaining));
 
         /// <summary>
         /// Sets the global data limit on the group.
@@ -309,8 +304,10 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Associates the Outline server with the node group
-        /// by setting the API key.
+        /// Associates the Outline server with the group.
+        /// Saves the API key. Pulls from the Outline server.
+        /// Optionally sets the admin key username.
+        /// Optionally sets the per-user data limit.
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="apiKey">Outline server API key.</param>
@@ -418,21 +415,25 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Updates every assoicated Outline server's
-        /// information, access keys, and data usage.
+        /// Pulls server information, access keys, and data usage
+        /// from every associated Outline server.
+        /// Optionally updates user membership dictionary
+        /// in the local storage.
+        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
+        /// after all pulls are finished.
         /// </summary>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalUserDB">
-        /// Whether to update local user database from the retrieved access keys.
+        /// <param name="updateLocalUserMemberships">
+        /// Whether to update local user memberships from the retrieved access keys.
         /// Defaults to true.
         /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public IAsyncEnumerable<string> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<string> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserMemberships = true, CancellationToken cancellationToken = default)
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-            => Groups.Select(x => x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserDB, true, cancellationToken).ToAsyncEnumerable())
+            => Groups.Select(x => x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserMemberships, true, cancellationToken).ToAsyncEnumerable())
                      .ConcurrentMerge()
                      .Where(errMsg => errMsg is not null);
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
@@ -440,11 +441,15 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Pulls server information, access keys, and data usage
         /// from the specified group's associated Outline server.
+        /// Optionally updates user membership dictionary
+        /// in the local storage.
+        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
+        /// after all pulls are finished.
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalUserDB">
-        /// Whether to update local user database from the retrieved access keys.
+        /// <param name="updateLocalUserMemberships">
+        /// Whether to update local user memberships from the retrieved access keys.
         /// Defaults to true.
         /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
@@ -452,10 +457,10 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public Task<string?> PullFromGroupOutlineServer(string group, Users users, bool updateLocalUserDB = true, CancellationToken cancellationToken = default)
+        public Task<string?> PullFromGroupOutlineServer(string group, Users users, bool updateLocalUserMemberships = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.PullFromOutlineServer(group, users, updateLocalUserDB, false, cancellationToken);
+                return targetGroup.PullFromOutlineServer(group, users, updateLocalUserMemberships, false, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }

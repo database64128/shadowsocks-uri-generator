@@ -66,6 +66,8 @@ namespace ShadowsocksUriGenerator.CLI
                             Console.WriteLine(errMsg);
                         }
 
+                        users.CalculateDataUsageForAllUsers(nodes);
+
                         Console.WriteLine("Pulled from Outline servers.");
                     }
                     if (deployOutlineServer)

@@ -339,7 +339,7 @@ namespace ShadowsocksUriGenerator
             }
 
             // Sync with local user db
-            UpdateLocalUserDB(group, users);
+            UpdateLocalUserMemberships(group, users);
 
             return null;
         }
@@ -487,13 +487,15 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Pulls server information, access keys, and data usage
         /// from the associated Outline server.
-        /// Optionally updates user credential dictionary
+        /// Optionally updates user membership dictionary
         /// in the local storage.
+        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
+        /// after all pulls are finished.
         /// </summary>
         /// <param name="group">Group name.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalUserDB">
-        /// Whether to update local user database from the retrieved access keys.
+        /// <param name="updateLocalUserMemberships">
+        /// Whether to update local user memberships from the retrieved access keys.
         /// Defaults to true.
         /// </param>
         /// <param name="silentlySkipNonOutline">
@@ -506,7 +508,7 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> PullFromOutlineServer(string group, Users users, bool updateLocalUserDB = true, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
+        public async Task<string?> PullFromOutlineServer(string group, Users users, bool updateLocalUserMemberships = true, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
             {
@@ -545,8 +547,8 @@ namespace ShadowsocksUriGenerator
                     tasks.Remove(finishedTask);
                 }
 
-                if (updateLocalUserDB)
-                    UpdateLocalUserDB(group, users);
+                if (updateLocalUserMemberships)
+                    UpdateLocalUserMemberships(group, users);
 
                 CalculateTotalDataUsage();
             }
@@ -564,13 +566,13 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Reads information from <see cref="OutlineAccessKeys"/>
-        /// and saves to local user database.
+        /// and saves to local user membership dictionary.
         /// This method updates membership status, credential, and custom in-group data limit
         /// for each username matched in <see cref="OutlineAccessKeys"/>.
         /// </summary>
         /// <param name="group">Group name.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
-        private void UpdateLocalUserDB(string group, Users users)
+        private void UpdateLocalUserMemberships(string group, Users users)
         {
             if (OutlineAccessKeys is null)
                 return;

@@ -58,11 +58,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     : 0UL;
 
                 var recordsByGroup = nodes.GetDataUsageByGroup();
-                var recordsByUser = users.GetDataUsageByUser(nodes);
-
-                // sort records
-                recordsByGroup = recordsByGroup.OrderByDescending(x => x.bytesUsed).ToList();
-                recordsByUser = recordsByUser.OrderByDescending(x => x.bytesUsed).ToList();
+                var recordsByUser = users.GetDataUsageByUser();
 
                 // calculate column width
                 var maxGroupNameLength = recordsByGroup.Select(x => x.group.Length)
@@ -73,6 +69,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                                                      .DefaultIfEmpty()
                                                      .Max();
                 var usernameFieldWidth = maxUsernameLength > 4 ? maxUsernameLength + 2 : 6;
+
+                // sort records
+                recordsByGroup = recordsByGroup.OrderByDescending(x => x.bytesUsed);
+                recordsByUser = recordsByUser.OrderByDescending(x => x.bytesUsed);
 
                 // total
                 var replyBuilder = new StringBuilder();

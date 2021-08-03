@@ -221,14 +221,16 @@ namespace ShadowsocksUriGenerator
             foreach (var groupEntry in nodes.Groups)
             {
                 // Filter out access key ids that belongs to the user.
-                var filteredAccessKeyIds = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username).Select(x => x.Id);
-                if (filteredAccessKeyIds is not null)
+                var filteredAccessKeys = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username);
+                if (filteredAccessKeys is not null)
                 {
-                    foreach (var id in filteredAccessKeyIds)
+                    foreach (var accessKey in filteredAccessKeys)
                     {
-                        if (int.TryParse(id, out var keyId)
+                        if (int.TryParse(accessKey.Id, out var keyId)
                             && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) == true)
+                        {
                             BytesUsed += bytesUsedInGroup;
+                        }
                     }
                 }
             }
@@ -256,25 +258,22 @@ namespace ShadowsocksUriGenerator
         {
             List<(string group, ulong bytesUsed, ulong bytesRemaining)> results = new();
             var bytesUsedInGroup = 0UL; // make compiler happy
-            BytesUsed = 0UL;
 
             foreach (var groupEntry in nodes.Groups)
             {
                 // Filter out access key ids that belongs to the user.
-                var filteredAccessKeyIds = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username).Select(x => x.Id);
-                if (filteredAccessKeyIds is not null)
+                var filteredAccessKeys = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username);
+                if (filteredAccessKeys is not null)
                 {
-                    foreach (var id in filteredAccessKeyIds)
+                    foreach (var accessKey in filteredAccessKeys)
                     {
-                        if (int.TryParse(id, out var keyId)
-                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) is bool hasDataUsage
-                            && hasDataUsage)
+                        if (int.TryParse(accessKey.Id, out var keyId)
+                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) == true)
                         {
-                            var group = groupEntry.Key;
-                            var bytesUsed = bytesUsedInGroup;
-                            var bytesRemaining = DataLimitInBytes == 0 ? 0 : DataLimitInBytes - bytesUsed;
-                            BytesUsed += bytesUsed;
-                            results.Add((group, bytesUsed, bytesRemaining));
+                            var dataLimitInBytes = accessKey.DataLimit?.Bytes ?? groupEntry.Value.DataLimitInBytes;
+                            var bytesRemaining = DataLimitInBytes > 0UL ? DataLimitInBytes - bytesUsedInGroup : 0UL;
+
+                            results.Add((groupEntry.Key, bytesUsedInGroup, bytesRemaining));
                         }
                     }
                 }
@@ -286,6 +285,7 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Gets the data limit of the user in the specified group.
         /// Group existence is not checked.
+        /// Outline's user custom limit is not checked.
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <returns>The data limit in bytes.</returns>

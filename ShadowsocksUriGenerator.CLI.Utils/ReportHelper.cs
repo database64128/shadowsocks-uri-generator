@@ -6,8 +6,8 @@ namespace ShadowsocksUriGenerator.CLI.Utils
     public static class ReportHelper
     {
         public static (string dataUsageByGroup, string dataUsageByUser) GenerateDataUsageCSV(
-            List<(string group, ulong bytesUsed, ulong bytesRemaining)> recordsByGroup,
-            List<(string username, ulong bytesUsed, ulong bytesRemaining)> recordsByUser)
+            IEnumerable<(string group, ulong bytesUsed, ulong bytesRemaining)> recordsByGroup,
+            IEnumerable<(string username, ulong bytesUsed, ulong bytesRemaining)> recordsByUser)
         {
             var groupSB = new StringBuilder();
             groupSB.Append("Group,Data Used,Data Remaining\r\n");

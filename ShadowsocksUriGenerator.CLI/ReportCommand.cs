@@ -40,7 +40,7 @@ namespace ShadowsocksUriGenerator.CLI
                 : 0UL;
 
             var recordsByGroup = nodes.GetDataUsageByGroup();
-            var recordsByUser = users.GetDataUsageByUser(nodes);
+            var recordsByUser = users.GetDataUsageByUser();
 
             // calculate column width
             var maxGroupNameLength = recordsByGroup.Select(x => x.group.Length)
@@ -54,60 +54,32 @@ namespace ShadowsocksUriGenerator.CLI
 
             // sort
             var groupSortByInEffect = groupSortBy ?? settings.GroupDataUsageDefaultSortBy;
-            switch (groupSortByInEffect)
+            recordsByGroup = groupSortByInEffect switch
             {
-                case SortBy.DefaultAscending:
-                    break;
-                case SortBy.DefaultDescending:
-                    recordsByGroup.Reverse();
-                    break;
-                case SortBy.NameAscending:
-                    recordsByGroup = recordsByGroup.OrderBy(x => x.group).ToList();
-                    break;
-                case SortBy.NameDescending:
-                    recordsByGroup = recordsByGroup.OrderByDescending(x => x.group).ToList();
-                    break;
-                case SortBy.DataUsedAscending:
-                    recordsByGroup = recordsByGroup.OrderBy(x => x.bytesUsed).ToList();
-                    break;
-                case SortBy.DataUsedDescending:
-                    recordsByGroup = recordsByGroup.OrderByDescending(x => x.bytesUsed).ToList();
-                    break;
-                case SortBy.DataRemainingAscending:
-                    recordsByGroup = recordsByGroup.OrderBy(x => x.bytesRemaining).ToList();
-                    break;
-                case SortBy.DataRemainingDescending:
-                    recordsByGroup = recordsByGroup.OrderByDescending(x => x.bytesRemaining).ToList();
-                    break;
-            }
+                SortBy.DefaultAscending => recordsByGroup,
+                SortBy.DefaultDescending => recordsByGroup.Reverse(),
+                SortBy.NameAscending => recordsByGroup.OrderBy(x => x.group),
+                SortBy.NameDescending => recordsByGroup.OrderByDescending(x => x.group),
+                SortBy.DataUsedAscending => recordsByGroup.OrderBy(x => x.bytesUsed),
+                SortBy.DataUsedDescending => recordsByGroup.OrderByDescending(x => x.bytesUsed),
+                SortBy.DataRemainingAscending => recordsByGroup.OrderBy(x => x.bytesRemaining),
+                SortBy.DataRemainingDescending => recordsByGroup.OrderByDescending(x => x.bytesRemaining),
+                _ => throw new NotImplementedException("This sort method is not implemented!"),
+            };
 
             var userSortByInEffect = userSortBy ?? settings.UserDataUsageDefaultSortBy;
-            switch (userSortByInEffect)
+            recordsByUser = userSortByInEffect switch
             {
-                case SortBy.DefaultAscending:
-                    break;
-                case SortBy.DefaultDescending:
-                    recordsByUser.Reverse();
-                    break;
-                case SortBy.NameAscending:
-                    recordsByUser = recordsByUser.OrderBy(x => x.username).ToList();
-                    break;
-                case SortBy.NameDescending:
-                    recordsByUser = recordsByUser.OrderByDescending(x => x.username).ToList();
-                    break;
-                case SortBy.DataUsedAscending:
-                    recordsByUser = recordsByUser.OrderBy(x => x.bytesUsed).ToList();
-                    break;
-                case SortBy.DataUsedDescending:
-                    recordsByUser = recordsByUser.OrderByDescending(x => x.bytesUsed).ToList();
-                    break;
-                case SortBy.DataRemainingAscending:
-                    recordsByUser = recordsByUser.OrderBy(x => x.bytesRemaining).ToList();
-                    break;
-                case SortBy.DataRemainingDescending:
-                    recordsByUser = recordsByUser.OrderByDescending(x => x.bytesRemaining).ToList();
-                    break;
-            }
+                SortBy.DefaultAscending => recordsByUser,
+                SortBy.DefaultDescending => recordsByUser.Reverse(),
+                SortBy.NameAscending => recordsByUser.OrderBy(x => x.username),
+                SortBy.NameDescending => recordsByUser.OrderByDescending(x => x.username),
+                SortBy.DataUsedAscending => recordsByUser.OrderBy(x => x.bytesUsed),
+                SortBy.DataUsedDescending => recordsByUser.OrderByDescending(x => x.bytesUsed),
+                SortBy.DataRemainingAscending => recordsByUser.OrderBy(x => x.bytesRemaining),
+                SortBy.DataRemainingDescending => recordsByUser.OrderByDescending(x => x.bytesRemaining),
+                _ => throw new NotImplementedException("This sort method is not implemented!"),
+            };
 
             // total
             Console.WriteLine("In the last 30 days:");

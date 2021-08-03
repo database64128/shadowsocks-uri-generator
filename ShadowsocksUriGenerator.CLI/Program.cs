@@ -668,7 +668,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             outlineServerPullCommand.AddAlias("update");
             outlineServerPullCommand.AddArgument(groupsArgumentZeroOrMore);
-            outlineServerPullCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user credential storage from retrieved access key list."));
+            outlineServerPullCommand.AddOption(new Option<bool>("--no-sync", "Do not update local user membership storage from retrieved access key list."));
             outlineServerPullCommand.Handler = CommandHandler.Create<string[], bool, CancellationToken>(OutlineServerCommand.Pull);
 
             outlineServerDeployCommand.AddArgument(groupsArgumentZeroOrMore);
