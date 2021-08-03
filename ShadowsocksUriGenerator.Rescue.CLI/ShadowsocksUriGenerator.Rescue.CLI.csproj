@@ -17,6 +17,7 @@
     <PackageIcon>ss-uri-gen-rescue.png</PackageIcon>
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>
     <RepositoryType>Public</RepositoryType>
+    <PublishReferencesDocumentationFiles>false</PublishReferencesDocumentationFiles>
   </PropertyGroup>
 
   <ItemGroup>

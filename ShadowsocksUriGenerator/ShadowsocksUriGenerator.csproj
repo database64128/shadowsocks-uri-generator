@@ -15,6 +15,7 @@
     <RepositoryType>Public</RepositoryType>
     <PackageTags>shadowsocks;online-config;open-online-config;outline-server</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PublishDocumentationFiles>false</PublishDocumentationFiles>
     <NoWarn>CS1591</NoWarn>
   </PropertyGroup>
 
