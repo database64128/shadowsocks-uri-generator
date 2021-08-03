@@ -37,7 +37,7 @@ namespace ShadowsocksUriGenerator.Server
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
-                    Title = "ShadowsocksUriGenerator.Server",
+                    Title = "Shadowsocks URI Generator API Server",
                     Description = "Shadowsocks URI Generator API Specifications",
                     Version = "v1",
                 });
@@ -66,7 +66,9 @@ namespace ShadowsocksUriGenerator.Server
             }
 
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ShadowsocksUriGenerator.Server v1"));
+            app.UseSwaggerUI();
+
+            app.UseReDoc();
 
             app.UseForwardedHeaders();
 
