@@ -7,7 +7,7 @@
     <AssemblyName>ss-uri-gen</AssemblyName>
     <ApplicationIcon>ss-uri-gen.ico</ApplicationIcon>
     <PackageId>ShadowsocksUriGenerator.CLI</PackageId>
-    <Version>5.0.0</Version>
+    <Version>5.1.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator CLI</Product>
     <Description>Shadowsocks URI Generator command-line interface.</Description>

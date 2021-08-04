@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <AssemblyName>ss-uri-gen-server</AssemblyName>
     <PackageId>ShadowsocksUriGenerator.Server</PackageId>
-    <Version>5.0.0</Version>
+    <Version>5.1.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator API Server</Product>
     <Description>Shadowsocks URI Generator API Server provides an API endpoint for basic management tasks and online config.</Description>
