@@ -406,6 +406,7 @@ namespace ShadowsocksUriGenerator
         /// <summary>
         /// Changes settings for the associated Outline server.
         /// </summary>
+        /// <param name="group">Group name.</param>
         /// <param name="name">Server name.</param>
         /// <param name="hostname">Server hostname.</param>
         /// <param name="port">Port number for new access keys.</param>
@@ -413,10 +414,10 @@ namespace ShadowsocksUriGenerator
         /// <param name="defaultUser">The default username for access key id 0.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the operation. An optional error message.</returns>
-        public async Task<string?> SetOutlineServer(string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
+        public async Task<string?> SetOutlineServer(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
-                return "Error: the group is not linked to any Outline server.";
+                return $"Error: Group {group} is not linked to any Outline server.";
 
             _apiClient ??= new(OutlineApiKey);
 
@@ -515,7 +516,7 @@ namespace ShadowsocksUriGenerator
                 if (silentlySkipNonOutline)
                     return null;
                 else
-                    return "Error: the group is not linked to any Outline server.";
+                    return $"Error: Group {group} is not linked to any Outline server.";
             }
 
             _apiClient ??= new(OutlineApiKey);
@@ -623,7 +624,7 @@ namespace ShadowsocksUriGenerator
             if (OutlineApiKey is null)
             {
                 if (!silentlySkipNonOutline)
-                    yield return "Error: the group is not linked to any Outline server.";
+                    yield return $"Error: Group {group} is not linked to any Outline server.";
 
                 yield break;
             }
@@ -704,7 +705,7 @@ namespace ShadowsocksUriGenerator
         public async Task<string?> RenameUser(string oldName, string newName, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null || OutlineAccessKeys is null)
-                return "Error: the group is not linked to any Outline server.";
+                return null;
 
             _apiClient ??= new(OutlineApiKey);
 
@@ -757,7 +758,7 @@ namespace ShadowsocksUriGenerator
             {
                 if (!silentlySkipNonOutline)
                 {
-                    yield return "Error: the group is not linked to any Outline server.";
+                    yield return $"Warning: Group {group} does not support automatic password rotation, because it is not linked to any Outline server. You have to manually change the password if you intend to rotate it.";
                 }
 
                 yield break;

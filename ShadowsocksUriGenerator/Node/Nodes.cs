@@ -392,7 +392,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> SetOutlineServerInGroup(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.SetOutlineServer(name, hostname, port, metrics, defaultUser, cancellationToken);
+                return targetGroup.SetOutlineServer(group, name, hostname, port, metrics, defaultUser, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -518,7 +518,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="group">Target group.</param>
         /// <param name="users">The object which contains all users' information.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <param name="usernames">Optional. The list of target users.</param>
+        /// <param name="usernames">Optional. Only target these members in group if specified.</param>
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
@@ -535,12 +535,12 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <param name="usernames">Only target these members in group if specified.</param>
+        /// <param name="usernames">Optional. Only target these members in group if specified.</param>
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
         public IAsyncEnumerable<string> RotatePasswordForAllGroups(Users users, CancellationToken cancellationToken = default, params string[] usernames)
-            => Groups.Select(x => x.Value.RotatePassword(x.Key, users, true, cancellationToken, usernames)).ConcurrentMerge();
+            => Groups.Select(x => x.Value.RotatePassword(x.Key, users, false, cancellationToken, usernames)).ConcurrentMerge();
 
         /// <summary>
         /// Loads nodes from Nodes.json.

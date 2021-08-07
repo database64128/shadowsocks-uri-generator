@@ -317,14 +317,20 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static string? ValidateRotatePassword(CommandResult commandResult)
         {
-            if (commandResult.Children.Contains("--usernames") ||
-                commandResult.Children.Contains("--groups"))
-                return null;
-            else
-                return "Please provide either a username or a group, or both.";
+            var hasUsernames = commandResult.Children.Contains("--usernames");
+            var hasGroups = commandResult.Children.Contains("--groups");
+            var hasAll = commandResult.Children.Contains("--all");
+
+            if (hasAll && (hasUsernames || hasGroups))
+                return "You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.";
+
+            if (!hasUsernames && !hasGroups && !hasAll)
+                return "Target specific users with '--usernames', groups with '--groups'. You can also combine both, or target all groups and users with '--all'.";
+
+            return null;
         }
 
-        public static async Task<int> RotatePassword(string[] usernames, string[] groups, CancellationToken cancellationToken = default)
+        public static async Task<int> RotatePassword(string[] usernames, string[] groups, bool allGroups, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
 
@@ -345,12 +351,18 @@ namespace ShadowsocksUriGenerator.CLI
 
             IAsyncEnumerable<string> errMsgs;
 
-            if (groups.Length > 0)
+            if (allGroups)
             {
+                errMsgs = nodes.RotatePasswordForAllGroups(users, cancellationToken);
+            }
+            else if (groups.Length > 0)
+            {
+                // Rotate for specified or all users in these groups.
                 errMsgs = groups.Select(x => nodes.RotateGroupPassword(x, users, cancellationToken, usernames)).ConcurrentMerge();
             }
             else if (usernames.Length > 0)
             {
+                // Find the groups these users are in and rotate for them in these groups.
                 var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
                                             .SelectMany(x => users.UserDict[x].Memberships.Keys)
                                             .Distinct();

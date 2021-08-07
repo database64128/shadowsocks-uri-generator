@@ -695,8 +695,9 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerRotatePasswordCommand.AddAlias("rotate");
             outlineServerRotatePasswordCommand.AddOption(usernamesOption);
             outlineServerRotatePasswordCommand.AddOption(groupsOption);
+            outlineServerRotatePasswordCommand.AddOption(allGroupsOption);
             outlineServerRotatePasswordCommand.AddValidator(OutlineServerCommand.ValidateRotatePassword);
-            outlineServerRotatePasswordCommand.Handler = CommandHandler.Create<string[], string[], CancellationToken>(OutlineServerCommand.RotatePassword);
+            outlineServerRotatePasswordCommand.Handler = CommandHandler.Create<string[], string[], bool, CancellationToken>(OutlineServerCommand.RotatePassword);
 
             reportCommand.AddOption(groupSortByOption);
             reportCommand.AddOption(userSortByOption);
