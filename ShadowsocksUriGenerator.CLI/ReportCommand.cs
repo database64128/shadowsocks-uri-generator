@@ -159,7 +159,7 @@ namespace ShadowsocksUriGenerator.CLI
                         Console.WriteLine($"{string.Empty,11}|");
                 }
 
-                ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11, 16);
+                ConsoleHelper.PrintTableBorder(usernameFieldWidth, 11);
             }
             else
             {
