@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,8 +43,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.CLI
                 await bot.SetMyCommandsAsync(UpdateHandler.BotCommandsPublic, null, null, cancellationToken);
                 Console.WriteLine($"Registered {UpdateHandler.BotCommandsPublic.Length} bot commands for all chats.");
 
-                await bot.SetMyCommandsAsync(UpdateHandler.BotCommandsPrivate, BotCommandScope.AllPrivateChats(), null, cancellationToken);
-                Console.WriteLine($"Registered {UpdateHandler.BotCommandsPrivate.Length} bot commands for private chats.");
+                var privateChatCommands = UpdateHandler.BotCommandsPrivate.Concat(UpdateHandler.BotCommandsPublic);
+                await bot.SetMyCommandsAsync(privateChatCommands, BotCommandScope.AllPrivateChats(), null, cancellationToken);
+                Console.WriteLine($"Registered {privateChatCommands.Count()} bot commands for private chats.");
 
                 Console.WriteLine($"Started Telegram bot: @{me.Username} ({me.Id}).");
 
