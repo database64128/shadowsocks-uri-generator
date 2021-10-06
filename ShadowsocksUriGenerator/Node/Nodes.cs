@@ -86,6 +86,8 @@ namespace ShadowsocksUriGenerator
 
         /// <summary>
         /// Removes the group from storage.
+        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
+        /// after removing the group.
         /// </summary>
         /// <param name="group">The group to be removed.</param>
         /// <returns>

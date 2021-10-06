@@ -209,6 +209,7 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = loadedNodes;
 
             users.RemoveAllUsersFromGroups(groups);
+
             foreach (var group in groups)
             {
                 if (nodes.RemoveGroup(group))
@@ -219,6 +220,8 @@ namespace ShadowsocksUriGenerator.CLI
                     commandResult -= 1;
                 }
             }
+
+            users.CalculateDataUsageForAllUsers(nodes);
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)
