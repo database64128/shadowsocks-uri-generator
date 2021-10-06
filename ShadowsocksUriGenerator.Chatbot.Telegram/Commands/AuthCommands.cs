@@ -47,7 +47,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 reply = "The admin has disabled Telegram association.";
                 Console.WriteLine(" Response: command disabled.");
             }
-            else if (message.Chat.Type != ChatType.Private)
+            else if (message.Chat.Type != ChatType.Private || message.From is null)
             {
                 reply = "Associations must be made in a private chat.";
                 Console.WriteLine(" Response: not in private chat.");
@@ -128,7 +128,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 reply = "The admin has disabled Telegram association.";
                 Console.WriteLine(" Response: command disabled.");
             }
-            else if (message.Chat.Type != ChatType.Private)
+            else if (message.Chat.Type != ChatType.Private || message.From is null)
             {
                 reply = "Associations must be made in a private chat.";
                 Console.WriteLine(" Response: not in private chat.");

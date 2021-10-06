@@ -36,7 +36,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 return;
             }
 
-            if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            if (message.From is null)
+            {
+                replyMarkdownV2 = @"Can't determine your Telegram user ID\. Are you sending from a channel?";
+                Console.WriteLine(" Response: missing message sender.");
+            }
+            else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 if (argument is not null && userEntry.Value.Key != argument) // look up specified user
                 {
@@ -166,7 +171,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 return;
             }
 
-            if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
+            if (message.From is null)
+            {
+                replyMarkdownV2 = @"Can't determine your Telegram user ID\. Are you sending from a channel?";
+                Console.WriteLine(" Response: missing message sender.");
+            }
+            else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 if (argument is not null && userEntry.Value.Key != argument) // look up specified user
                 {
@@ -274,6 +284,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
             {
                 replyMarkdownV2 = @"The admin has disabled the command\.";
                 Console.WriteLine(" Response: permission denied.");
+            }
+            else if (message.From is null)
+            {
+                replyMarkdownV2 = @"Can't determine your Telegram user ID\. Are you sending from a channel?";
+                Console.WriteLine(" Response: missing message sender.");
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
@@ -423,6 +438,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
             {
                 replyMarkdownV2 = @"Please specify a group\.";
                 Console.WriteLine(" Response: missing argument.");
+            }
+            else if (message.From is null)
+            {
+                replyMarkdownV2 = @"Can't determine your Telegram user ID\. Are you sending from a channel?";
+                Console.WriteLine(" Response: missing message sender.");
             }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {

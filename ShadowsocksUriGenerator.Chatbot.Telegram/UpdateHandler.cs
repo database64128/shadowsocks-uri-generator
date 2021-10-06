@@ -13,11 +13,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 {
     public class UpdateHandler
     {
-        public static BotCommand[] BotCommands => new BotCommand[]
+        /// <summary>
+        /// Gets public bot commands that are available to all types of chats.
+        /// </summary>
+        public static BotCommand[] BotCommandsPublic => new BotCommand[]
         {
             new() { Command = "start", Description = "Cleared for takeoff!", },
-            new() { Command = "link", Description = "Link your Telegram account to a user", },
-            new() { Command = "unlink", Description = "Unlink your Telegram account from the user", },
             new() { Command = "list_users", Description = "List all users", },
             new() { Command = "list_nodes", Description = "List all nodes or nodes from the specified group", },
             new() { Command = "list_groups", Description = "List all groups", },
@@ -28,11 +29,20 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             new() { Command = "get_user_data_limit", Description = "Get data limit settings of the associated user or the specified user", },
             new() { Command = "get_group_data_usage", Description = "Get data usage statistics of groups you own or the specified group", },
             new() { Command = "get_group_data_limit", Description = "Get data limit settings of the specified group", },
+            new() { Command = "report", Description = "Generate server usage report", },
+            new() { Command = "report_csv", Description = "Generate server usage report in CSV format", },
+        };
+
+        /// <summary>
+        /// Gets private bot commands that are only available to private chats.
+        /// </summary>
+        public static BotCommand[] BotCommandsPrivate => new BotCommand[]
+        {
+            new() { Command = "link", Description = "Link your Telegram account to a user", },
+            new() { Command = "unlink", Description = "Unlink your Telegram account from the user", },
             new() { Command = "get_ss_links", Description = "Get your ss:// links to all servers or servers from the specified group", },
             new() { Command = "get_online_config_links", Description = "Get online config API URLs and tokens", },
             new() { Command = "get_credentials", Description = "Get your credentials to all servers or servers from the specified group", },
-            new() { Command = "report", Description = "Generate server usage report", },
-            new() { Command = "report_csv", Description = "Generate server usage report in CSV format", },
         };
 
         private readonly string _botUsername;
@@ -46,11 +56,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
 
         public async Task HandleUpdateStreamAsync(ITelegramBotClient botClient, IAsyncEnumerable<Update> updates, CancellationToken cancellationToken = default)
         {
-            await foreach (var update in updates)
+            await foreach (var update in updates.WithCancellation(cancellationToken))
             {
                 try
                 {
-                    if (update.Type == UpdateType.Message)
+                    if (update.Type == UpdateType.Message && update.Message is not null)
                         await HandleCommandAsync(botClient, update.Message, cancellationToken);
                 }
                 catch (Exception ex)

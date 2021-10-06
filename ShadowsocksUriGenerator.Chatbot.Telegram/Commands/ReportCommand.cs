@@ -40,6 +40,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 replyMarkdownV2 = @"You are not authorized to view the report\.";
                 Console.WriteLine(" Response: permission denied.");
             }
+            else if (message.From is null)
+            {
+                replyMarkdownV2 = @"Can't determine your Telegram user ID\. Are you sending from a channel?";
+                Console.WriteLine(" Response: missing message sender.");
+            }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out _))
             {
                 var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);

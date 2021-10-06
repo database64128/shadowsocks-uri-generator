@@ -19,17 +19,17 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// Short messages are sent as text messages.
         /// Long messages are sent as text files.
         /// </summary>
-        /// <inheritdoc cref="ITelegramBotClient.SendTextMessageAsync(ChatId, string, ParseMode, IEnumerable{MessageEntity}, bool, bool, int, bool, IReplyMarkup, CancellationToken)"/>
+        /// <inheritdoc cref="TelegramBotClientExtensions.SendTextMessageAsync(ITelegramBotClient, ChatId, string, ParseMode?, IEnumerable{MessageEntity}?, bool?, bool?, int?, bool?, IReplyMarkup?, CancellationToken)"/>
         public static Task SendPossiblyLongTextMessageAsync(
             this ITelegramBotClient botClient,
             ChatId chatId,
             string text,
-            ParseMode parseMode = ParseMode.Default,
+            ParseMode? parseMode = null,
             IEnumerable<MessageEntity>? entities = null,
-            bool disableWebPagePreview = false,
-            bool disableNotification = false,
-            int replyToMessageId = 0,
-            bool allowSendingWithoutReply = false,
+            bool? disableWebPagePreview = null,
+            bool? disableNotification = null,
+            int? replyToMessageId = null,
+            bool? allowSendingWithoutReply = null,
             IReplyMarkup? replyMarkup = null,
             CancellationToken cancellationToken = default)
         {
@@ -50,11 +50,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             {
                 var filename = parseMode switch
                 {
-                    ParseMode.Default => "long-message.txt",
                     ParseMode.Markdown => "long-message.md",
                     ParseMode.Html => "long-message.html",
                     ParseMode.MarkdownV2 => "long-message.md",
-                    _ => "long-message",
+                    _ => "long-message.txt",
                 };
 
                 return botClient.SendTextFileFromStringAsync(chatId,
@@ -64,10 +63,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                                                              null,
                                                              parseMode,
                                                              entities,
-                                                             false,
+                                                             null,
                                                              disableNotification,
                                                              replyToMessageId,
-                                                             false,
+                                                             null,
                                                              replyMarkup,
                                                              cancellationToken);
             }
@@ -78,7 +77,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// </summary>
         /// <param name="filename">Filename.</param>
         /// <param name="text">The string to send.</param>
-        /// <inheritdoc cref="ITelegramBotClient.SendDocumentAsync(ChatId, InputOnlineFile, InputMedia, string, ParseMode, IEnumerable{MessageEntity}, bool, bool, int, bool, IReplyMarkup, CancellationToken)"/>
+        /// <inheritdoc cref="TelegramBotClientExtensions.SendDocumentAsync(ITelegramBotClient, ChatId, InputOnlineFile, InputMedia?, string?, ParseMode?, IEnumerable{MessageEntity}?, bool?, bool?, int?, bool?, IReplyMarkup?, CancellationToken)"/>
         public static async Task<Message> SendTextFileFromStringAsync(
             this ITelegramBotClient botClient,
             ChatId chatId,
@@ -86,12 +85,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             string text,
             InputMedia? thumb = null,
             string? caption = null,
-            ParseMode parseMode = ParseMode.Default,
+            ParseMode? parseMode = null,
             IEnumerable<MessageEntity>? captionEntities = null,
-            bool disableContentTypeDetection = false,
-            bool disableNotification = false,
-            int replyToMessageId = 0,
-            bool allowSendingWithoutReply = false,
+            bool? disableContentTypeDetection = null,
+            bool? disableNotification = null,
+            int? replyToMessageId = null,
+            bool? allowSendingWithoutReply = null,
             IReplyMarkup? replyMarkup = null,
             CancellationToken cancellationToken = default)
         {
@@ -137,7 +136,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// Command is null if the text message is not a command to the bot.
         /// Argument can be null.
         /// </returns>
-        public static (string? command, string? argument) ParseMessageIntoCommandAndArgument(string text, string botUsername)
+        public static (string? command, string? argument) ParseMessageIntoCommandAndArgument(string? text, string botUsername)
         {
             // Empty message
             if (string.IsNullOrWhiteSpace(text))

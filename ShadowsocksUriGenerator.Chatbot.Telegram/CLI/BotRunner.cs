@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
+using Telegram.Bot.Types;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram.CLI
 {
@@ -38,16 +39,17 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.CLI
                 if (string.IsNullOrEmpty(me.Username))
                     throw new Exception("Error: bot username is null or empty.");
 
-                var updateHandler = new UpdateHandler(me.Username, botConfig);
-                await bot.SetMyCommandsAsync(UpdateHandler.BotCommands, cancellationToken);
-                Console.WriteLine($"Registered {UpdateHandler.BotCommands.Length} bot commands.");
+                await bot.SetMyCommandsAsync(UpdateHandler.BotCommandsPublic, null, null, cancellationToken);
+                Console.WriteLine($"Registered {UpdateHandler.BotCommandsPublic.Length} bot commands for all chats.");
+
+                await bot.SetMyCommandsAsync(UpdateHandler.BotCommandsPrivate, BotCommandScope.AllPrivateChats(), null, cancellationToken);
+                Console.WriteLine($"Registered {UpdateHandler.BotCommandsPrivate.Length} bot commands for private chats.");
+
                 Console.WriteLine($"Started Telegram bot: @{me.Username} ({me.Id}).");
 
-                var updateReceiver = new QueuedUpdateReceiver(bot);
-                updateReceiver.StartReceiving(null, UpdateHandler.HandleErrorAsync, cancellationToken);
-
-                var updateStream = updateReceiver.YieldUpdatesAsync();
-                await updateHandler.HandleUpdateStreamAsync(bot, updateStream, cancellationToken);
+                var updateHandler = new UpdateHandler(me.Username, botConfig);
+                var updateReceiver = new QueuedUpdateReceiver(bot, null, UpdateHandler.HandleErrorAsync);
+                await updateHandler.HandleUpdateStreamAsync(bot, updateReceiver, cancellationToken);
             }
             catch (ArgumentException ex)
             {

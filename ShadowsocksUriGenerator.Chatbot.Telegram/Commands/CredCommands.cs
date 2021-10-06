@@ -37,7 +37,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 return;
             }
 
-            if (message.Chat.Type != ChatType.Private)
+            if (message.Chat.Type != ChatType.Private || message.From is null)
             {
                 reply = "Retrieval of sensitive information is only allowed in private chats.";
                 Console.WriteLine(" Response: not in private chat.");
@@ -106,7 +106,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 return;
             }
 
-            if (message.Chat.Type != ChatType.Private)
+            if (message.Chat.Type != ChatType.Private || message.From is null)
             {
                 replyMarkdownV2 = @"Retrieval of sensitive information is only allowed in private chats\.";
                 Console.WriteLine(" Response: not in private chat.");
@@ -199,8 +199,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 return;
             }
 
-            if (message.Chat.Type != ChatType.Private)
+            if (message.Chat.Type != ChatType.Private || message.From is null)
+            {
                 replyMarkdownV2 = @"Retrieval of sensitive information is only allowed in private chats\.";
+                Console.WriteLine(" Response: not in private chat.");
+            }
             else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid) && DataHelper.TryLocateUserFromUuid(userUuid, users, out var userEntry))
             {
                 var username = userEntry.Value.Key;
