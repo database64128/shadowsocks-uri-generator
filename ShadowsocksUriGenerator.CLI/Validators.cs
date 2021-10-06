@@ -10,8 +10,8 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static string? EnforceZeroUsernamesWhenAll(CommandResult commandResult)
         {
-            var hasUsernames = commandResult.Children.Contains("usernames") || commandResult.Children.Contains("--usernames");
-            var hasAllUsers = commandResult.Children.Contains("--all-users");
+            var hasUsernames = commandResult.Children.ContainsAlias("usernames") || commandResult.Children.ContainsAlias("--usernames");
+            var hasAllUsers = commandResult.Children.ContainsAlias("--all-users");
 
             if (!hasUsernames && !hasAllUsers)
                 return "Please either specify target users, or use `--all-users` to target all users.";
@@ -23,8 +23,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static string? EnforceZeroNodenamesWhenAll(CommandResult commandResult)
         {
-            var hasNodenames = commandResult.Children.Contains("nodenames") || commandResult.Children.Contains("--nodenames");
-            var hasAllNodes = commandResult.Children.Contains("--all-nodes");
+            var hasNodenames = commandResult.Children.ContainsAlias("nodenames") || commandResult.Children.ContainsAlias("--nodenames");
+            var hasAllNodes = commandResult.Children.ContainsAlias("--all-nodes");
 
             if (!hasNodenames && !hasAllNodes)
                 return "Please either specify target nodes, or use `--all-nodes` to target all nodes.";
@@ -36,8 +36,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static string? EnforceZeroGroupsWhenAll(CommandResult commandResult)
         {
-            var hasGroups = commandResult.Children.Contains("groups") || commandResult.Children.Contains("--groups");
-            var hasAllGroups = commandResult.Children.Contains("--all-groups");
+            var hasGroups = commandResult.Children.ContainsAlias("groups") || commandResult.Children.ContainsAlias("--groups");
+            var hasAllGroups = commandResult.Children.ContainsAlias("--all-groups");
 
             if (!hasGroups && !hasAllGroups)
                 return "Please either specify target groups, or use `--all-groups` to target all groups.";
@@ -49,8 +49,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static string? ValidateOwnerOptions(CommandResult commandResult)
         {
-            var setOwner = commandResult.Children.Contains("--owner");
-            var unsetOwner = commandResult.Children.Contains("--unset-owner");
+            var setOwner = commandResult.Children.ContainsAlias("--owner");
+            var unsetOwner = commandResult.Children.ContainsAlias("--unset-owner");
 
             if (setOwner && unsetOwner)
                 return "You can't set and unset owner at the same time.";
@@ -60,9 +60,9 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static string? ValidateAddCredential(CommandResult commandResult)
         {
-            var hasMethod = commandResult.Children.Contains("--method");
-            var hasPassword = commandResult.Children.Contains("--password");
-            var hasUserinfo = commandResult.Children.Contains("--userinfo-base64url");
+            var hasMethod = commandResult.Children.ContainsAlias("--method");
+            var hasPassword = commandResult.Children.ContainsAlias("--password");
+            var hasUserinfo = commandResult.Children.ContainsAlias("--userinfo-base64url");
 
             if (hasMethod && hasPassword && !hasUserinfo ||
                 !hasMethod && !hasPassword && hasUserinfo)

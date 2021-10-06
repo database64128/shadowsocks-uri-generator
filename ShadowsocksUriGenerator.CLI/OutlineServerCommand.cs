@@ -317,9 +317,9 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static string? ValidateRotatePassword(CommandResult commandResult)
         {
-            var hasUsernames = commandResult.Children.Contains("--usernames");
-            var hasGroups = commandResult.Children.Contains("--groups");
-            var hasAll = commandResult.Children.Contains("--all");
+            var hasUsernames = commandResult.Children.ContainsAlias("--usernames");
+            var hasGroups = commandResult.Children.ContainsAlias("--groups");
+            var hasAll = commandResult.Children.ContainsAlias("--all");
 
             if (hasAll && (hasUsernames || hasGroups))
                 return "You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.";

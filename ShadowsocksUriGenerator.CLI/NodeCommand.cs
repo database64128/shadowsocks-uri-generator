@@ -12,11 +12,11 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static string? ValidateNodePlugin(CommandResult commandResult)
         {
-            var hasPluginName = commandResult.Children.Contains("--plugin-name");
-            var hasPluginVersion = commandResult.Children.Contains("--plugin-version");
-            var hasPluginOptions = commandResult.Children.Contains("--plugin-options");
-            var hasPluginArguments = commandResult.Children.Contains("--plugin-arguments");
-            var hasUnsetPlugin = commandResult.Children.Contains("--unset-plugin");
+            var hasPluginName = commandResult.Children.ContainsAlias("--plugin-name");
+            var hasPluginVersion = commandResult.Children.ContainsAlias("--plugin-version");
+            var hasPluginOptions = commandResult.Children.ContainsAlias("--plugin-options");
+            var hasPluginArguments = commandResult.Children.ContainsAlias("--plugin-arguments");
+            var hasUnsetPlugin = commandResult.Children.ContainsAlias("--unset-plugin");
 
             if (!hasPluginName && (hasPluginVersion || hasPluginOptions || hasPluginArguments))
                 return "You didn't specify a plugin.";

@@ -26,7 +26,7 @@ namespace ShadowsocksUriGenerator.Rescue.CLI
 
         private static string? ValidateRootCommand(CommandResult commandResult)
         {
-            var hasOnlineConfigDir = commandResult.Children.Contains("--online-config-dir");
+            var hasOnlineConfigDir = commandResult.Children.ContainsAlias("--online-config-dir");
 
             if (!hasOnlineConfigDir)
                 return "Specify path to online config directory with `--online-config-dir`.";
