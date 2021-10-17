@@ -463,7 +463,7 @@ namespace ShadowsocksUriGenerator.CLI
                 }
             }
 
-            Console.WriteLine($"{"Credentials",-16}{filteredCreds.Count}");
+            Console.WriteLine($"Credentials: {filteredCreds.Count}");
 
             if (filteredCreds.Count == 0)
             {
