@@ -273,6 +273,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="group">Group name.</param>
         /// <param name="apiKey">The Outline server API key.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="globalDefaultUser">The global default user setting.</param>
         /// <param name="applyDataLimit">Whether to apply the per-user data limit.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
@@ -280,7 +281,7 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> AssociateOutlineServer(string group, string apiKey, Users users, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
+        public async Task<string?> AssociateOutlineServer(string group, string apiKey, Users users, HttpClient httpClient, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -310,22 +311,22 @@ namespace ShadowsocksUriGenerator
             }
 
             // Validate CertSha256
-            if (OutlineApiKey.CertSha256.Length != 64)
+            if (!string.IsNullOrEmpty(OutlineApiKey.CertSha256) && OutlineApiKey.CertSha256.Length != 64)
                 return "Error: Malformed CertSha256: length is not 64.";
 
             // Clean up potential leftover API client
             _apiClient?.Dispose();
-            _apiClient = new(OutlineApiKey);
+            _apiClient = new(OutlineApiKey, httpClient);
 
             // Pull from Outline server without syncing with local user db
-            var errMsg = await PullFromOutlineServer(group, users, false, false, cancellationToken);
+            var errMsg = await PullFromOutlineServer(group, users, httpClient, false, false, cancellationToken);
             if (errMsg is not null)
                 return errMsg;
 
             // Apply default username
             if (!string.IsNullOrEmpty(globalDefaultUser))
             {
-                var defaultUserErrMsg = await SetOutlineDefaultUser(globalDefaultUser, cancellationToken);
+                var defaultUserErrMsg = await SetOutlineDefaultUser(globalDefaultUser, httpClient, cancellationToken);
                 if (defaultUserErrMsg is not null)
                     return defaultUserErrMsg;
             }
@@ -333,7 +334,7 @@ namespace ShadowsocksUriGenerator
             // Apply per-user data limit
             if (applyDataLimit)
             {
-                var dataLimitErrMsg = await ApplyPerUserDataLimitToOutlineServer(group, cancellationToken);
+                var dataLimitErrMsg = await ApplyPerUserDataLimitToOutlineServer(group, httpClient, cancellationToken);
                 if (dataLimitErrMsg is not null)
                     return dataLimitErrMsg;
             }
@@ -372,14 +373,15 @@ namespace ShadowsocksUriGenerator
         /// Make sure you have pulled from Outline server before calling this method.
         /// </summary>
         /// <param name="defaultUser">The default username for access key id 0.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the operation. An optional error message.</returns>
-        public async Task<string?> SetOutlineDefaultUser(string defaultUser, CancellationToken cancellationToken = default)
+        public async Task<string?> SetOutlineDefaultUser(string defaultUser, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             try
             {
@@ -412,14 +414,15 @@ namespace ShadowsocksUriGenerator
         /// <param name="port">Port number for new access keys.</param>
         /// <param name="metrics">Enable telemetry.</param>
         /// <param name="defaultUser">The default username for access key id 0.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the operation. An optional error message.</returns>
-        public async Task<string?> SetOutlineServer(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
+        public async Task<string?> SetOutlineServer(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 return $"Error: Group {group} is not linked to any Outline server.";
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             var tasks = new List<Task<HttpResponseMessage>>();
             var errMsgSB = new StringBuilder();
@@ -495,6 +498,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Group name.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="updateLocalUserMemberships">
         /// Whether to update local user memberships from the retrieved access keys.
         /// Defaults to true.
@@ -509,7 +513,7 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> PullFromOutlineServer(string group, Users users, bool updateLocalUserMemberships = true, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
+        public async Task<string?> PullFromOutlineServer(string group, Users users, HttpClient httpClient, bool updateLocalUserMemberships = true, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
             {
@@ -519,7 +523,7 @@ namespace ShadowsocksUriGenerator
                     return $"Error: Group {group} is not linked to any Outline server.";
             }
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             try
             {
@@ -610,6 +614,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="silentlySkipNonOutline">
         /// Set to true to silently return without emitting an error
         /// if this server is not linked to any Outline server.
@@ -619,7 +624,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public async IAsyncEnumerable<string> DeployToOutlineServer(string group, Users users, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<string> DeployToOutlineServer(string group, Users users, HttpClient httpClient, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
             {
@@ -631,7 +636,7 @@ namespace ShadowsocksUriGenerator
 
             if (OutlineAccessKeys is null)
             {
-                var errMsg = await PullFromOutlineServer(group, users, true, false, cancellationToken);
+                var errMsg = await PullFromOutlineServer(group, users, httpClient, true, false, cancellationToken);
                 if (errMsg is not null)
                 {
                     yield return errMsg;
@@ -640,7 +645,7 @@ namespace ShadowsocksUriGenerator
             }
 
             OutlineAccessKeys ??= new();
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             // Filter out
             // a list of users to create
@@ -663,20 +668,20 @@ namespace ShadowsocksUriGenerator
             var tasks = new List<Task<string?>>
             {
                 // Per-user data limit
-                ApplyPerUserDataLimitToOutlineServer(group, cancellationToken),
+                ApplyPerUserDataLimitToOutlineServer(group, httpClient, cancellationToken),
             };
 
             // Add
-            tasks.AddRange(usersToCreate.Select(userEntry => AddUserToOutlineServer(userEntry.Key, userEntry.Value, group, cancellationToken)));
+            tasks.AddRange(usersToCreate.Select(userEntry => AddUserToOutlineServer(userEntry.Key, userEntry.Value, group, httpClient, cancellationToken)));
 
             // Remove
-            tasks.AddRange(accessKeysToRemove.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, cancellationToken)));
+            tasks.AddRange(accessKeysToRemove.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken)));
 
             // Update data limit
-            tasks.AddRange(accessKeysToUpdateDataLimit.Select(x => SetAccessKeyDataLimitOnOutlineServer(x.accessKey, x.DataLimitInBytes, group, cancellationToken)));
+            tasks.AddRange(accessKeysToUpdateDataLimit.Select(x => SetAccessKeyDataLimitOnOutlineServer(x.accessKey, x.DataLimitInBytes, group, httpClient, cancellationToken)));
 
             // Remove data limit
-            tasks.AddRange(accessKeysToRemoveDataLimit.Select(accessKey => DeleteAccessKeyDataLimitOnOutlineServer(accessKey, group, cancellationToken)));
+            tasks.AddRange(accessKeysToRemoveDataLimit.Select(accessKey => DeleteAccessKeyDataLimitOnOutlineServer(accessKey, group, httpClient, cancellationToken)));
 
             while (tasks.Count > 0)
             {
@@ -697,17 +702,18 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="oldName">The old username.</param>
         /// <param name="newName">The new username.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> RenameUser(string oldName, string newName, CancellationToken cancellationToken = default)
+        public async Task<string?> RenameUser(string oldName, string newName, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null || OutlineAccessKeys is null)
                 return null;
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             // Find access key
             var filteredAccessKeys = OutlineAccessKeys.Where(x => x.Name == oldName);
@@ -742,6 +748,7 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="silentlySkipNonOutline">
         /// Set to true to silently return without emitting an error
         /// if this server is not linked to any Outline server.
@@ -752,7 +759,7 @@ namespace ShadowsocksUriGenerator
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public async IAsyncEnumerable<string> RotatePassword(string group, Users users, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default, params string[] usernames)
+        public async IAsyncEnumerable<string> RotatePassword(string group, Users users, HttpClient httpClient, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (OutlineApiKey is null)
             {
@@ -766,7 +773,7 @@ namespace ShadowsocksUriGenerator
 
             if (OutlineAccessKeys is null)
             {
-                var errMsg = await PullFromOutlineServer(group, users, true, false, cancellationToken);
+                var errMsg = await PullFromOutlineServer(group, users, httpClient, true, false, cancellationToken);
                 if (errMsg is not null)
                 {
                     yield return errMsg;
@@ -775,7 +782,7 @@ namespace ShadowsocksUriGenerator
             }
 
             OutlineAccessKeys ??= new();
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             // Filter out access keys that are linked to a user.
             // This is important because later we need to access UserDict with key names.
@@ -787,7 +794,7 @@ namespace ShadowsocksUriGenerator
                 : accessKeysLinkedToUser.ToArray();
 
             // Remove
-            var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, cancellationToken)).ToList();
+            var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken)).ToList();
             while (removalTasks.Count > 0)
             {
                 var finishedTask = await Task.WhenAny(removalTasks);
@@ -802,7 +809,7 @@ namespace ShadowsocksUriGenerator
             }
 
             // Add
-            var addTasks = targetAccessKeys.Select(accessKey => AddUserToOutlineServer(accessKey.Name, users.UserDict[accessKey.Name], group, cancellationToken)).ToList();
+            var addTasks = targetAccessKeys.Select(accessKey => AddUserToOutlineServer(accessKey.Name, users.UserDict[accessKey.Name], group, httpClient, cancellationToken)).ToList();
             while (addTasks.Count > 0)
             {
                 var finishedTask = await Task.WhenAny(addTasks);
@@ -824,18 +831,19 @@ namespace ShadowsocksUriGenerator
         /// <param name="username">Target username.</param>
         /// <param name="user">Target <see cref="User"/> object.</param>
         /// <param name="group">Target group.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An optional error message.
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task<string?> AddUserToOutlineServer(string username, User user, string group, CancellationToken cancellationToken = default)
+        private async Task<string?> AddUserToOutlineServer(string username, User user, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
             OutlineAccessKeys ??= new();
 
             try
@@ -902,18 +910,19 @@ namespace ShadowsocksUriGenerator
         /// <param name="accessKey">The access key to be deleted.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="group">Target group.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An optional error message.
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task<string?> RemoveUserFromOutlineServer(AccessKey accessKey, Users users, string group, CancellationToken cancellationToken = default)
+        private async Task<string?> RemoveUserFromOutlineServer(AccessKey accessKey, Users users, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null || OutlineAccessKeys is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             try
             {
@@ -946,20 +955,21 @@ namespace ShadowsocksUriGenerator
         /// Updates <see cref="OutlineServerInfo"/>.
         /// </summary>
         /// <param name="group">The group name. Used in the returned error message.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An optional error message.
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task<string?> ApplyPerUserDataLimitToOutlineServer(string group, CancellationToken cancellationToken = default)
+        private async Task<string?> ApplyPerUserDataLimitToOutlineServer(string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
             if (OutlineServerInfo is null)
                 throw new InvalidOperationException("Outline server information is not found.");
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             try
             {
@@ -1002,18 +1012,19 @@ namespace ShadowsocksUriGenerator
         /// <param name="accessKey">The access key to apply the custom data limit on.</param>
         /// <param name="dataLimitInBytes">The custom data limit in bytes.</param>
         /// <param name="group">The group name. Used in the returned error message.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An optional error message.
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task<string?> SetAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, ulong dataLimitInBytes, string group, CancellationToken cancellationToken = default)
+        private async Task<string?> SetAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, ulong dataLimitInBytes, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             try
             {
@@ -1042,18 +1053,19 @@ namespace ShadowsocksUriGenerator
         /// </summary>
         /// <param name="accessKey">The access key to apply the custom data limit on.</param>
         /// <param name="group">The group name. Used in the returned error message.</param>
+        /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An optional error message.
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task<string?> DeleteAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, string group, CancellationToken cancellationToken = default)
+        private async Task<string?> DeleteAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey);
+            _apiClient ??= new(OutlineApiKey, httpClient);
 
             try
             {

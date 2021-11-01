@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ namespace ShadowsocksUriGenerator
     public class Nodes : IDisposable
     {
         private bool disposedValue;
+        private HttpClient _httpClient = new();
 
         /// <summary>
         /// Gets the default configuration version
@@ -324,7 +326,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> AssociateOutlineServerWithGroup(string group, string apiKey, Users users, string? globalDefaultUser = null, bool applyDataLimit = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.AssociateOutlineServer(group, apiKey, users, globalDefaultUser, applyDataLimit, cancellationToken);
+                return targetGroup.AssociateOutlineServer(group, apiKey, users, _httpClient, globalDefaultUser, applyDataLimit, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -394,7 +396,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> SetOutlineServerInGroup(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.SetOutlineServer(group, name, hostname, port, metrics, defaultUser, cancellationToken);
+                return targetGroup.SetOutlineServer(group, name, hostname, port, metrics, defaultUser, _httpClient, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -435,7 +437,7 @@ namespace ShadowsocksUriGenerator
         /// </returns>
         public IAsyncEnumerable<string> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserMemberships = true, CancellationToken cancellationToken = default)
 #pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-            => Groups.Select(x => x.Value.PullFromOutlineServer(x.Key, users, updateLocalUserMemberships, true, cancellationToken).ToAsyncEnumerable())
+            => Groups.Select(x => x.Value.PullFromOutlineServer(x.Key, users, _httpClient, updateLocalUserMemberships, true, cancellationToken).ToAsyncEnumerable())
                      .ConcurrentMerge()
                      .Where(errMsg => errMsg is not null);
 #pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
@@ -462,7 +464,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> PullFromGroupOutlineServer(string group, Users users, bool updateLocalUserMemberships = true, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.PullFromOutlineServer(group, users, updateLocalUserMemberships, false, cancellationToken);
+                return targetGroup.PullFromOutlineServer(group, users, _httpClient, updateLocalUserMemberships, false, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -479,7 +481,7 @@ namespace ShadowsocksUriGenerator
         public IAsyncEnumerable<string> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.DeployToOutlineServer(group, users, false, cancellationToken);
+                return targetGroup.DeployToOutlineServer(group, users, _httpClient, false, cancellationToken);
             else
                 return AsyncEnumerableEx.Return($"Error: Group {group} doesn't exist.");
         }
@@ -493,7 +495,7 @@ namespace ShadowsocksUriGenerator
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
         public IAsyncEnumerable<string> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
-            => Groups.Select(x => x.Value.DeployToOutlineServer(x.Key, users, true, cancellationToken)).ConcurrentMerge();
+            => Groups.Select(x => x.Value.DeployToOutlineServer(x.Key, users, _httpClient, true, cancellationToken)).ConcurrentMerge();
 
         /// <summary>
         /// Renames the user and syncs with Outline server in the group.
@@ -509,7 +511,7 @@ namespace ShadowsocksUriGenerator
         public Task<string?> RenameUserInGroup(string group, string oldName, string newName, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.RenameUser(oldName, newName, cancellationToken);
+                return targetGroup.RenameUser(oldName, newName, _httpClient, cancellationToken);
             else
                 return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
@@ -527,7 +529,7 @@ namespace ShadowsocksUriGenerator
         public IAsyncEnumerable<string> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.RotatePassword(group, users, false, cancellationToken, usernames);
+                return targetGroup.RotatePassword(group, users, _httpClient, false, cancellationToken, usernames);
             else
                 return AsyncEnumerableEx.Return($"Error: Group {group} doesn't exist.");
         }
@@ -542,7 +544,7 @@ namespace ShadowsocksUriGenerator
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
         public IAsyncEnumerable<string> RotatePasswordForAllGroups(Users users, CancellationToken cancellationToken = default, params string[] usernames)
-            => Groups.Select(x => x.Value.RotatePassword(x.Key, users, false, cancellationToken, usernames)).ConcurrentMerge();
+            => Groups.Select(x => x.Value.RotatePassword(x.Key, users, _httpClient, false, cancellationToken, usernames)).ConcurrentMerge();
 
         /// <summary>
         /// Loads nodes from Nodes.json.

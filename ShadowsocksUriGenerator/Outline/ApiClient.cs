@@ -11,19 +11,27 @@ namespace ShadowsocksUriGenerator.Outline
 {
     public class ApiClient : IDisposable
     {
-        public ApiClient(ApiKey apiKey)
+        public ApiClient(ApiKey apiKey, HttpClient httpClient)
         {
             _apiKey = apiKey;
 
-            SslClientAuthenticationOptions sslClientAuthenticationOptions = new()
+            if (string.IsNullOrEmpty(_apiKey.CertSha256))
             {
-                RemoteCertificateValidationCallback = ValidateServerCertificate,
-            };
-            SocketsHttpHandler socketsHttpHandler = new()
+                _httpClient = httpClient;
+            }
+            else
             {
-                SslOptions = sslClientAuthenticationOptions,
-            };
-            _httpClient = new(socketsHttpHandler);
+                SslClientAuthenticationOptions sslClientAuthenticationOptions = new()
+                {
+                    RemoteCertificateValidationCallback = ValidateServerCertificate,
+                };
+                SocketsHttpHandler socketsHttpHandler = new()
+                {
+                    SslOptions = sslClientAuthenticationOptions,
+                };
+                _httpClient = new(socketsHttpHandler);
+            }
+
             _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
