@@ -15,7 +15,10 @@ namespace ShadowsocksUriGenerator
     public class Nodes : IDisposable
     {
         private bool disposedValue;
-        private HttpClient _httpClient = new();
+        private HttpClient _httpClient = new()
+        {
+            Timeout = TimeSpan.FromSeconds(30),
+        };
 
         /// <summary>
         /// Gets the default configuration version

@@ -11,6 +11,15 @@ namespace ShadowsocksUriGenerator.Outline
 {
     public class ApiClient : IDisposable
     {
+        /// <summary>
+        /// Creates an Outline API client for the specified API key.
+        /// </summary>
+        /// <param name="apiKey">Outline API key.</param>
+        /// <param name="httpClient">
+        /// Generic HTTP client to use when the API key does not pin a certificate fingerprint.
+        /// This <see cref="HttpClient"/> instance is ignored when the API key pins a certificate fingerprint with <see cref="ApiKey.CertSha256"/>.
+        /// Remember to set a timeout on the instance before passing it to this method. A 30s timeout is recommended.
+        /// </param>
         public ApiClient(ApiKey apiKey, HttpClient httpClient)
         {
             _apiKey = apiKey;
@@ -29,10 +38,11 @@ namespace ShadowsocksUriGenerator.Outline
                 {
                     SslOptions = sslClientAuthenticationOptions,
                 };
-                _httpClient = new(socketsHttpHandler);
+                _httpClient = new(socketsHttpHandler)
+                {
+                    Timeout = TimeSpan.FromSeconds(30),
+                };
             }
-
-            _httpClient.Timeout = TimeSpan.FromSeconds(30);
         }
 
         private readonly ApiKey _apiKey;
