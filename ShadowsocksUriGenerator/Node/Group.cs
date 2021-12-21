@@ -417,7 +417,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the operation. An optional error message.</returns>
-        public async Task<string?> SetOutlineServer(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, HttpClient httpClient, CancellationToken cancellationToken = default)
+        public async Task<string?> SetOutlineServer(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 return $"Error: Group {group} is not linked to any Outline server.";

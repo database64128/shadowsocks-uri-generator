@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.Collections.Generic;
 using System.CommandLine.Parsing;
 using System.Linq;
@@ -107,11 +108,11 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static async Task<int> Set(
             string group,
-            string name,
-            string hostname,
+            string? name,
+            string? hostname,
             int? port,
             bool? metrics,
-            string defaultUser,
+            string? defaultUser,
             CancellationToken cancellationToken = default)
         {
             var commandResult = 0;

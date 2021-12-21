@@ -61,11 +61,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
                 try
                 {
                     if (update.Type == UpdateType.Message && update.Message is not null)
+                    {
                         await HandleCommandAsync(botClient, update.Message, cancellationToken);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    await HandleErrorAsync(ex, cancellationToken);
+                    HandleError(ex);
                 }
             }
         }
@@ -99,7 +101,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             };
         }
 
-        public static Task HandleErrorAsync(Exception ex, CancellationToken _ = default)
+        public static void HandleError(Exception ex)
         {
             var errorMessage = ex switch
             {
@@ -108,6 +110,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
             };
 
             Console.WriteLine(errorMessage);
+        }
+
+        public static Task HandleErrorAsync(Exception ex, CancellationToken _ = default)
+        {
+            HandleError(ex);
             return Task.CompletedTask;
         }
     }

@@ -396,7 +396,7 @@ namespace ShadowsocksUriGenerator
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public Task<string?> SetOutlineServerInGroup(string group, string name, string hostname, int? port, bool? metrics, string defaultUser, CancellationToken cancellationToken = default)
+        public Task<string?> SetOutlineServerInGroup(string group, string? name, string? hostname, int? port, bool? metrics, string? defaultUser, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
                 return targetGroup.SetOutlineServer(group, name, hostname, port, metrics, defaultUser, _httpClient, cancellationToken);

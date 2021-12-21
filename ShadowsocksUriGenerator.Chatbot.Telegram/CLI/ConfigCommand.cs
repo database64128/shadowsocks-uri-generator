@@ -34,7 +34,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.CLI
             return 0;
         }
 
-        public static async Task<int> Set(string botToken, string serviceName, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? usersCanSeeGroupDataLimit, bool? allowChatAssociation, CancellationToken cancellationToken = default)
+        public static async Task<int> Set(string? botToken, string? serviceName, bool? usersCanSeeAllUsers, bool? usersCanSeeAllGroups, bool? usersCanSeeGroupDataUsage, bool? usersCanSeeGroupDataLimit, bool? allowChatAssociation, CancellationToken cancellationToken = default)
         {
             var (botConfig, loadBotConfigErrMsg) = await BotConfig.LoadBotConfigAsync(cancellationToken);
             if (loadBotConfigErrMsg is not null)

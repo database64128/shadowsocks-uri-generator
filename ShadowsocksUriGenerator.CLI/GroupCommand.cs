@@ -10,7 +10,7 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class GroupCommand
     {
-        public static async Task<int> Add(string[] groups, string owner, CancellationToken cancellationToken = default)
+        public static async Task<int> Add(string[] groups, string? owner, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;
 
@@ -71,7 +71,7 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task<int> Edit(string[] groups, string owner, bool unsetOwner, CancellationToken cancellationToken = default)
+        public static async Task<int> Edit(string[] groups, string? owner, bool unsetOwner, CancellationToken cancellationToken = default)
         {
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)
@@ -489,9 +489,9 @@ namespace ShadowsocksUriGenerator.CLI
         public static async Task<int> AddCredential(
             string group,
             string[] usernames,
-            string method,
-            string password,
-            string userinfoBase64url,
+            string? method,
+            string? password,
+            string? userinfoBase64url,
             bool allUsers,
             CancellationToken cancellationToken = default)
         {

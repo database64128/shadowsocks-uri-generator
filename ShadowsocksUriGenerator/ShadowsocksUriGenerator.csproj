@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <Version>5.1.0</Version>
     <Authors>database64128</Authors>
@@ -32,8 +32,8 @@
 
   <ItemGroup>
     <PackageReference Include="Shadowsocks.OnlineConfig" Version="1.1.0" />
-    <PackageReference Include="System.Interactive.Async" Version="5.0.0" />
-    <PackageReference Include="System.Linq.Async" Version="5.0.0" />
+    <PackageReference Include="System.Interactive.Async" Version="5.1.0" />
+    <PackageReference Include="System.Linq.Async" Version="5.1.0" />
   </ItemGroup>
 
 </Project>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>ss-uri-gen</AssemblyName>
     <ApplicationIcon>ss-uri-gen.ico</ApplicationIcon>
@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21525.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21618.1" />
   </ItemGroup>
 
   <ItemGroup>

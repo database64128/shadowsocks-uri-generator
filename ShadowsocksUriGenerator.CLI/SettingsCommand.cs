@@ -45,13 +45,13 @@ namespace ShadowsocksUriGenerator.CLI
             bool? onlineConfigSortByName,
             bool? onlineConfigDeliverByGroup,
             bool? onlineConfigCleanOnUserRemoval,
-            string onlineConfigOutputDirectory,
-            string onlineConfigDeliveryRootUri,
+            string? onlineConfigOutputDirectory,
+            string? onlineConfigDeliveryRootUri,
             bool? outlineServerApplyDefaultUserOnAssociation,
             bool? outlineServerApplyDataLimitOnAssociation,
-            string outlineServerGlobalDefaultUser,
-            string apiServerBaseUrl,
-            string apiServerSecretPath,
+            string? outlineServerGlobalDefaultUser,
+            string? apiServerBaseUrl,
+            string? apiServerSecretPath,
             CancellationToken cancellationToken = default)
         {
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);

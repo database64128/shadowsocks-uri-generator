@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -136,53 +137,71 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// Command is null if the text message is not a command to the bot.
         /// Argument can be null.
         /// </returns>
-        public static (string? command, string? argument) ParseMessageIntoCommandAndArgument(string? text, string botUsername)
+        public static (string? command, string? argument) ParseMessageIntoCommandAndArgument(ReadOnlySpan<char> text, string botUsername)
         {
             // Empty message
-            if (string.IsNullOrWhiteSpace(text))
+            if (text.IsEmpty)
                 return (null, null);
 
             // Not a command
-            if (!text.StartsWith('/') || text.Length < 2)
+            if (text[0] != '/' || text.Length < 2)
                 return (null, null);
 
             // Remove the leading '/'
             text = text[1..];
 
             // Split command and argument
-            var parsedText = text.Split(' ', 2);
-            string command;
-            string? argument = null;
-            switch (parsedText.Length)
+            ReadOnlySpan<char> command, argument;
+            var spacePos = text.IndexOf(' ');
+            if (spacePos == -1)
             {
-                case <= 0:
-                    return (null, null);
-                case 2:
-                    argument = parsedText[1];
-                    goto default;
-                default:
-                    command = parsedText[0];
-                    break;
+                command = text;
+                argument = ReadOnlySpan<char>.Empty;
+            }
+            else if (spacePos == text.Length - 1)
+            {
+                command = text[..spacePos];
+                argument = ReadOnlySpan<char>.Empty;
+            }
+            else
+            {
+                command = text[..spacePos];
+                argument = text[(spacePos + 1)..];
             }
 
             // Verify and remove trailing '@bot' from command
             var atSignIndex = command.IndexOf('@');
             if (atSignIndex != -1)
             {
-                var atUsername = command[atSignIndex..];
-                if (atUsername != $"@{botUsername}")
-                    return (null, null);
+                if (atSignIndex != command.Length - 1)
+                {
+                    var atUsername = command[(atSignIndex + 1)..];
+                    if (!atUsername.SequenceEqual(botUsername))
+                    {
+                        return (null, null);
+                    }
+                }
 
                 command = command[..atSignIndex];
             }
 
             // Trim leading and trailing spaces from argument
-            if (argument is not null)
+            argument = argument.Trim();
+
+            // Convert back to string
+            string? commandString = null;
+            string? argumentString = null;
+            if (!command.IsEmpty)
             {
-                argument = argument.Trim();
+                commandString = command.ToString();
+
+                if (!argument.IsEmpty)
+                {
+                    argumentString = argument.ToString();
+                }
             }
 
-            return (command, argument);
+            return (commandString, argumentString);
         }
     }
 }

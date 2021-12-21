@@ -27,7 +27,7 @@ Shadowsocks URI Generator is a management and distribution platform for censorsh
 
 ## Build
 
-Prerequisites: .NET 5 SDK
+Prerequisites: .NET 6 SDK
 
 Note for packagers: The application by default uses executable directory as config directory. To use user's config directory, define the constant `PACKAGED` when building.
 
@@ -40,10 +40,8 @@ $ dotnet publish ShadowsocksUriGenerator -c Release
 
 $ # Publish as self-contained for Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
-    -p:PublishReadyToRun=true \
     -p:PublishSingleFile=true \
     -p:PublishTrimmed=true \
-    -p:TrimMode=link \
     -p:DebuggerSupport=false \
     -p:EnableUnsafeBinaryFormatterSerialization=false \
     -p:EnableUnsafeUTF7Encoding=false \
@@ -53,10 +51,8 @@ $ dotnet publish ShadowsocksUriGenerator -c Release \
 $ # Publish as self-contained for packaging on Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
     -p:DefineConstants=PACKAGED \
-    -p:PublishReadyToRun=true \
     -p:PublishSingleFile=true \
     -p:PublishTrimmed=true \
-    -p:TrimMode=link \
     -p:DebuggerSupport=false \
     -p:EnableUnsafeBinaryFormatterSerialization=false \
     -p:EnableUnsafeUTF7Encoding=false \

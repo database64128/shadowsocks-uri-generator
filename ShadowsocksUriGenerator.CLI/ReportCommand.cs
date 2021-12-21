@@ -9,7 +9,7 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class ReportCommand
     {
-        public static async Task<int> Generate(SortBy? groupSortBy, SortBy? userSortBy, string csvOutdir, CancellationToken cancellationToken = default)
+        public static async Task<int> Generate(SortBy? groupSortBy, SortBy? userSortBy, string? csvOutdir, CancellationToken cancellationToken = default)
         {
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)

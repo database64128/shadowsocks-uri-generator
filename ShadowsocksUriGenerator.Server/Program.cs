@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
-using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
 using System.Threading;
@@ -16,10 +15,9 @@ namespace ShadowsocksUriGenerator.Server
     {
         private static Task Main(string[] args)
         {
-            var rootCommand = new RootCommand("Shadowsocks URI Generator API Server provides an API endpoint for basic management tasks and online config.")
-            {
-                Handler = CommandHandler.Create<CancellationToken>(cancellationToken => cancellationToken.WaitHandle.WaitOne()),
-            };
+            var rootCommand = new RootCommand("Shadowsocks URI Generator API Server provides an API endpoint for basic management tasks and online config.");
+
+            rootCommand.SetHandler<CancellationToken>(cancellationToken => cancellationToken.WaitHandle.WaitOne());
 
             var parser = new CommandLineBuilder(rootCommand)
                 .UseHost(_ => Host.CreateDefaultBuilder()
