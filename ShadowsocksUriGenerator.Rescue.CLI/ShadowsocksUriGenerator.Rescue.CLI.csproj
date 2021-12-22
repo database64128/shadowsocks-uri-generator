@@ -7,7 +7,7 @@
     <AssemblyName>ss-uri-gen-rescue</AssemblyName>
     <ApplicationIcon>ss-uri-gen-rescue.ico</ApplicationIcon>
     <PackageId>ShadowsocksUriGenerator.Rescue.CLI</PackageId>
-    <Version>5.1.0</Version>
+    <Version>5.2.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Rescue CLI</Product>
     <Description>A rescue tool CLI for restoring ss-uri-gen config from generated online config directory.</Description>
@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21618.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21621.1" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@
     <AssemblyName>ss-uri-gen-chatbot-telegram</AssemblyName>
     <ApplicationIcon>ss-uri-gen-chatbot-telegram.ico</ApplicationIcon>
     <PackageId>ShadowsocksUriGenerator.Chatbot.Telegram</PackageId>
-    <Version>5.1.0</Version>
+    <Version>5.2.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator - Telegram Chatbot</Product>
     <Description>A Telegram bot for user interactions with Shadowsocks URI Generator.</Description>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21618.1" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21621.1" />
     <PackageReference Include="Telegram.Bot" Version="17.0.0" />
     <PackageReference Include="Telegram.Bot.Extensions.Polling" Version="1.0.1" />
   </ItemGroup>

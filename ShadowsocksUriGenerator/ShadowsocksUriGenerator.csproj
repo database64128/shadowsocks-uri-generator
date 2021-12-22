@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>5.1.0</Version>
+    <Version>5.2.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Library</Product>
     <Description>Shadowsocks URI Generator is a management and distribution platform for censorship circumvention services.</Description>
