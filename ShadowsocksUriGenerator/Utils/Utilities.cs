@@ -63,11 +63,13 @@ namespace ShadowsocksUriGenerator
         /// <param name="dataLimit">The data limit string to parse.</param>
         /// <param name="dataLimitInBytes">The parsed data limit in bytes.</param>
         /// <returns>True on successful parsing. False on failure.</returns>
-        public static bool TryParseDataLimitString(string dataLimit, out ulong dataLimitInBytes)
+        public static bool TryParseDataLimitString(ReadOnlySpan<char> dataLimit, out ulong dataLimitInBytes)
         {
             dataLimitInBytes = 0UL;
-            if (string.IsNullOrEmpty(dataLimit))
+
+            if (dataLimit.Length == 0)
                 return false;
+
             var multiplier = dataLimit[^1] switch
             {
                 'K' => 1024UL,
@@ -78,15 +80,20 @@ namespace ShadowsocksUriGenerator
                 'E' => 1024UL * 1024UL * 1024UL * 1024UL * 1024UL * 1024UL,
                 _ => 1UL,
             };
+
             if (multiplier == 1UL)
+            {
                 return ulong.TryParse(dataLimit, out dataLimitInBytes);
+            }
             else if (ulong.TryParse(dataLimit[0..^1], out var dataLimitBeforeMultiplication))
             {
                 dataLimitInBytes = dataLimitBeforeMultiplication * multiplier;
                 return true;
             }
             else
+            {
                 return false;
+            }
         }
 
         /// <summary>
