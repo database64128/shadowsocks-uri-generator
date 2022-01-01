@@ -7,7 +7,7 @@
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Rescue Library</Product>
     <Description>A rescue tool library for restoring ss-uri-gen config from generated online config directory.</Description>
-    <Copyright>© 2021 database64128</Copyright>
+    <Copyright>© 2022 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
     <PackageIcon>ss-uri-gen-rescue.png</PackageIcon>

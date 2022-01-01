@@ -11,7 +11,7 @@
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator - Telegram Chatbot</Product>
     <Description>A Telegram bot for user interactions with Shadowsocks URI Generator.</Description>
-    <Copyright>© 2021 database64128</Copyright>
+    <Copyright>© 2022 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
     <PackageIcon>ss-uri-gen-chatbot-telegram.png</PackageIcon>

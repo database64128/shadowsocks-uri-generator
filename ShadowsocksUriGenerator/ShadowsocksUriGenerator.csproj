@@ -7,7 +7,7 @@
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Library</Product>
     <Description>Shadowsocks URI Generator is a management and distribution platform for censorship circumvention services.</Description>
-    <Copyright>© 2021 database64128</Copyright>
+    <Copyright>© 2022 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
     <PackageIcon>ss-uri-gen.png</PackageIcon>
