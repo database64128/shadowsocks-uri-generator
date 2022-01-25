@@ -27,7 +27,7 @@ namespace ShadowsocksUriGenerator.Rescue
         /// </returns>
         public static async Task<(Users? users, Nodes? nodes, string? errMsg)> FromOnlineConfig(string onlineConfigDir, CancellationToken cancellationToken = default)
         {
-            onlineConfigDir = Utilities.GetAbsolutePath(onlineConfigDir);
+            onlineConfigDir = FileHelper.GetAbsolutePath(onlineConfigDir);
 
             try
             {
@@ -92,7 +92,7 @@ namespace ShadowsocksUriGenerator.Rescue
 
                     // retrieve group credential
                     using var userCredJsonFS = userCredJson.OpenRead();
-                    var userCred = await JsonSerializer.DeserializeAsync<SIP008Config>(userCredJsonFS, Utilities.snakeCaseJsonSerializerOptions, cancellationToken);
+                    var userCred = await JsonSerializer.DeserializeAsync<SIP008Config>(userCredJsonFS, FileHelper.snakeCaseJsonSerializerOptions, cancellationToken);
                     if (userCred is null)
                         continue;
 
@@ -160,7 +160,7 @@ namespace ShadowsocksUriGenerator.Rescue
 
                 // retrieve user credentials
                 using var userJsonFS = userJson.OpenRead();
-                var userCreds = await JsonSerializer.DeserializeAsync<SIP008Config>(userJsonFS, Utilities.snakeCaseJsonSerializerOptions, cancellationToken);
+                var userCreds = await JsonSerializer.DeserializeAsync<SIP008Config>(userJsonFS, FileHelper.snakeCaseJsonSerializerOptions, cancellationToken);
                 if (userCreds is null)
                     continue;
 

@@ -175,10 +175,10 @@ namespace ShadowsocksUriGenerator.OnlineConfig
             var errMsgSB = new StringBuilder();
             foreach (var x in onlineConfigDict)
             {
-                var errMsg = await Utilities.SaveJsonAsync(
+                var errMsg = await FileHelper.SaveJsonAsync(
                     $"{settings.OnlineConfigOutputDirectory}/{x.Key}.json",
                     x.Value,
-                    Utilities.snakeCaseJsonSerializerOptions,
+                    FileHelper.snakeCaseJsonSerializerOptions,
                     false,
                     true,
                     cancellationToken);
@@ -218,7 +218,7 @@ namespace ShadowsocksUriGenerator.OnlineConfig
         /// <param name="userUuids">The list of users whose online config file will be removed.</param>
         public static void Remove(string directory, params string[] userUuids)
         {
-            directory = Utilities.GetAbsolutePath(directory);
+            directory = FileHelper.GetAbsolutePath(directory);
             if (Directory.Exists(directory))
                 foreach (var uuid in userUuids)
                 {

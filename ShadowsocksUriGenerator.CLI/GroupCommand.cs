@@ -723,11 +723,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (nodes.Groups.TryGetValue(group, out var targetGroup))
             {
-                Console.WriteLine($"{"Data used",-16}{Utilities.HumanReadableDataString1024(targetGroup.BytesUsed),-32}");
+                Console.WriteLine($"{"Data used",-16}{InteractionHelper.HumanReadableDataString1024(targetGroup.BytesUsed),-32}");
                 if (targetGroup.BytesRemaining != 0UL)
-                    Console.WriteLine($"{"Data remaining",-16}{Utilities.HumanReadableDataString1024(targetGroup.BytesRemaining),-32}");
+                    Console.WriteLine($"{"Data remaining",-16}{InteractionHelper.HumanReadableDataString1024(targetGroup.BytesRemaining),-32}");
                 if (targetGroup.DataLimitInBytes != 0UL)
-                    Console.WriteLine($"{"Data limit",-16}{Utilities.HumanReadableDataString1024(targetGroup.DataLimitInBytes),-32}");
+                    Console.WriteLine($"{"Data limit",-16}{InteractionHelper.HumanReadableDataString1024(targetGroup.DataLimitInBytes),-32}");
             }
 
             if (records.All(x => x.bytesRemaining == 0UL)) // Omit data remaining column if no data.
@@ -738,7 +738,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var (username, bytesUsed, _) in records)
                 {
-                    Console.WriteLine($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                    Console.WriteLine($"|{username.PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                 }
 
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 11);
@@ -751,10 +751,10 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var (username, bytesUsed, bytesRemaining) in records)
                 {
-                    Console.Write($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                    Console.Write($"|{username.PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
 
                     if (bytesRemaining != 0UL)
-                        Console.WriteLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
+                        Console.WriteLine($"{InteractionHelper.HumanReadableDataString1024(bytesRemaining),16}|");
                     else
                         Console.WriteLine($"{string.Empty,16}|");
                 }
@@ -779,9 +779,9 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 Console.WriteLine($"{"Group",-24}{group,-32}");
                 if (targetGroup.DataLimitInBytes != 0UL)
-                    Console.WriteLine($"{"Global data limit",-24}{Utilities.HumanReadableDataString1024(targetGroup.DataLimitInBytes),-32}");
+                    Console.WriteLine($"{"Global data limit",-24}{InteractionHelper.HumanReadableDataString1024(targetGroup.DataLimitInBytes),-32}");
                 if (targetGroup.PerUserDataLimitInBytes != 0UL)
-                    Console.WriteLine($"{"Per-user data limit",-24}{Utilities.HumanReadableDataString1024(targetGroup.PerUserDataLimitInBytes),-32}");
+                    Console.WriteLine($"{"Per-user data limit",-24}{InteractionHelper.HumanReadableDataString1024(targetGroup.PerUserDataLimitInBytes),-32}");
 
                 var outlineAccessKeyCustomLimits = targetGroup.OutlineAccessKeys?.Where(x => x.DataLimit is not null).Select(x => (x.Name, x.DataLimit!.Bytes));
 
@@ -801,7 +801,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach ((var username, var dataLimitInBytes) in outlineAccessKeyCustomLimits)
                 {
-                    Console.WriteLine($"|{username.PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(dataLimitInBytes),19}|");
+                    Console.WriteLine($"|{username.PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(dataLimitInBytes),19}|");
                 }
 
                 ConsoleHelper.PrintTableBorder(nameFieldWidth, 19);

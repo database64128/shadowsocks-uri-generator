@@ -25,15 +25,15 @@ namespace ShadowsocksUriGenerator.Rescue
             if (!string.IsNullOrEmpty(configDir) && !(configDir.EndsWith('/') || configDir.EndsWith('\\')))
                 configDir = $"{configDir}/";
 
-            var usersErrMsg = await Utilities.SaveJsonAsync($"{configDir}Users.json",
+            var usersErrMsg = await FileHelper.SaveJsonAsync($"{configDir}Users.json",
                                                             users,
-                                                            Utilities.dataJsonSerializerOptions,
+                                                            FileHelper.dataJsonSerializerOptions,
                                                             false,
                                                             false,
                                                             cancellationToken);
-            var nodesErrMsg = await Utilities.SaveJsonAsync($"{configDir}Nodes.json",
+            var nodesErrMsg = await FileHelper.SaveJsonAsync($"{configDir}Nodes.json",
                                                             nodes,
-                                                            Utilities.dataJsonSerializerOptions,
+                                                            FileHelper.dataJsonSerializerOptions,
                                                             false,
                                                             false,
                                                             cancellationToken);

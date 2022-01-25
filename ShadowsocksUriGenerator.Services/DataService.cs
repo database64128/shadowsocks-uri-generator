@@ -24,7 +24,7 @@ namespace ShadowsocksUriGenerator.Services
         public DataService(ILogger<DataService> logger)
         {
             _logger = logger;
-            _watcher = new(Utilities.configDirectory, "*.json");
+            _watcher = new(FileHelper.configDirectory, "*.json");
         }
 
         public async Task StartAsync(CancellationToken cancellationToken = default)

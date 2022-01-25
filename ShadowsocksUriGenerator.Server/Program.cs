@@ -29,7 +29,7 @@ namespace ShadowsocksUriGenerator.Server
                         config.Sources.RemoveAt(2);
                         config.Sources.RemoveAt(1);
 
-                        config.SetBasePath(Utilities.configDirectory)
+                        config.SetBasePath(FileHelper.configDirectory)
                               .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                               .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 

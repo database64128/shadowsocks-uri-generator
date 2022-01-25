@@ -77,7 +77,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return null;
             }
 
-            if (Utilities.TryParseDataLimitString(dataString, out var dataLimitInBytes))
+            if (InteractionHelper.TryParseDataLimitString(dataString, out var dataLimitInBytes))
             {
                 return dataLimitInBytes;
             }

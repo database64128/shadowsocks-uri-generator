@@ -86,10 +86,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 replyBuilder.AppendLine();
 
                 if (totalBytesUsed != 0UL)
-                    replyBuilder.AppendLine($"Total data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(totalBytesUsed))}*");
+                    replyBuilder.AppendLine($"Total data used: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(totalBytesUsed))}*");
 
                 if (totalBytesRemaining != 0UL)
-                    replyBuilder.AppendLine($"Total data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(totalBytesRemaining))}*");
+                    replyBuilder.AppendLine($"Total data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(totalBytesRemaining))}*");
 
                 // CSV
                 if (string.Equals(argument, "csv", StringComparison.OrdinalIgnoreCase))
@@ -136,7 +136,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         byGroupSB.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            byGroupSB.AppendLine($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                            byGroupSB.AppendLine($"{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             byGroupSB.AppendLine($"{string.Empty,11}|");
                     }
@@ -154,12 +154,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         byGroupSB.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            byGroupSB.Append($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                            byGroupSB.Append($"{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             byGroupSB.Append($"{string.Empty,11}|");
 
                         if (bytesRemaining != 0UL)
-                            byGroupSB.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
+                            byGroupSB.AppendLine($"{InteractionHelper.HumanReadableDataString1024(bytesRemaining),16}|");
                         else
                             byGroupSB.AppendLine($"{string.Empty,16}|");
                     }
@@ -186,7 +186,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         byUserSB.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            byUserSB.AppendLine($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                            byUserSB.AppendLine($"{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             byUserSB.AppendLine($"{string.Empty,11}|");
                     }
@@ -204,12 +204,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         byUserSB.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(usernameFieldWidth)}|");
 
                         if (bytesUsed != 0UL)
-                            byUserSB.Append($"{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                            byUserSB.Append($"{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                         else
                             byUserSB.Append($"{string.Empty,11}|");
 
                         if (bytesRemaining != 0UL)
-                            byUserSB.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
+                            byUserSB.AppendLine($"{InteractionHelper.HumanReadableDataString1024(bytesRemaining),16}|");
                         else
                             byUserSB.AppendLine($"{string.Empty,16}|");
                     }

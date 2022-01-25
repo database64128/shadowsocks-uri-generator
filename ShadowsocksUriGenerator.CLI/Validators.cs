@@ -30,11 +30,11 @@ namespace ShadowsocksUriGenerator.CLI
             var hasAllNodes = commandResult.Children.ContainsAlias("--all-nodes");
 
             if (!hasNodenames && !hasAllNodes)
-                {
+            {
                 commandResult.ErrorMessage = "Please either specify target nodes, or use `--all-nodes` to target all nodes.";
             }
             else if (hasNodenames && hasAllNodes)
-                {
+            {
                 commandResult.ErrorMessage = "You can't specify target nodes when targeting all nodes with `--all-nodes`.";
             }
         }
@@ -45,11 +45,11 @@ namespace ShadowsocksUriGenerator.CLI
             var hasAllGroups = commandResult.Children.ContainsAlias("--all-groups");
 
             if (!hasGroups && !hasAllGroups)
-                {
+            {
                 commandResult.ErrorMessage = "Please either specify target groups, or use `--all-groups` to target all groups.";
             }
             else if (hasGroups && hasAllGroups)
-                {
+            {
                 commandResult.ErrorMessage = "You can't specify target groups when targeting all users with `--all-groups`.";
             }
         }

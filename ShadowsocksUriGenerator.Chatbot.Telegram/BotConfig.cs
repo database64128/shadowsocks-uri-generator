@@ -81,7 +81,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         /// </returns>
         public static async Task<(BotConfig botConfig, string? errMsg)> LoadBotConfigAsync(CancellationToken cancellationToken = default)
         {
-            var (botConfig, errMsg) = await Utilities.LoadJsonAsync<BotConfig>("TelegramBotConfig.json", Utilities.commonJsonDeserializerOptions, cancellationToken);
+            var (botConfig, errMsg) = await FileHelper.LoadJsonAsync<BotConfig>("TelegramBotConfig.json", FileHelper.commonJsonDeserializerOptions, cancellationToken);
             if (errMsg is null && botConfig.Version != DefaultVersion)
             {
                 botConfig.UpdateBotConfig();
@@ -100,7 +100,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram
         /// Null if no errors occurred.
         /// </returns>
         public static Task<string?> SaveBotConfigAsync(BotConfig botConfig, CancellationToken cancellationToken = default)
-            => Utilities.SaveJsonAsync("TelegramBotConfig.json", botConfig, Utilities.commonJsonSerializerOptions, false, false, cancellationToken);
+            => FileHelper.SaveJsonAsync("TelegramBotConfig.json", botConfig, FileHelper.commonJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the current object to the latest version.

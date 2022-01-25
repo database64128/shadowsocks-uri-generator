@@ -88,13 +88,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     var replyBuilder = new StringBuilder();
 
                     replyBuilder.AppendLine($"User: *{ChatHelper.EscapeMarkdownV2Plaintext(username)}*");
-                    replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(user.BytesUsed))}*");
+                    replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(user.BytesUsed))}*");
 
                     if (user.BytesRemaining != 0UL)
-                        replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(user.BytesRemaining))}*");
+                        replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(user.BytesRemaining))}*");
 
                     if (user.DataLimitInBytes != 0UL)
-                        replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(user.DataLimitInBytes))}*");
+                        replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(user.DataLimitInBytes))}*");
 
                     replyBuilder.AppendLine("```");
 
@@ -106,7 +106,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                         foreach (var (group, bytesUsed, _) in records)
                         {
-                            replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                            replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                         }
 
                         replyBuilder.AppendTableBorder(nameFieldWidth, 11);
@@ -119,10 +119,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                         foreach (var (group, bytesUsed, bytesRemaining) in records)
                         {
-                            replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                            replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
 
                             if (bytesRemaining != 0UL)
-                                replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
+                                replyBuilder.AppendLine($"{InteractionHelper.HumanReadableDataString1024(bytesRemaining),16}|");
                             else
                                 replyBuilder.AppendLine($"{string.Empty,16}|");
                         }
@@ -215,10 +215,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     replyBuilder.AppendLine($"User: *{ChatHelper.EscapeMarkdownV2Plaintext(username)}*");
 
                     if (user.DataLimitInBytes != 0UL)
-                        replyBuilder.AppendLine($"Global data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(user.DataLimitInBytes))}*");
+                        replyBuilder.AppendLine($"Global data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(user.DataLimitInBytes))}*");
 
                     if (user.PerGroupDataLimitInBytes != 0UL)
-                        replyBuilder.AppendLine($"Per-group data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(user.PerGroupDataLimitInBytes))}*");
+                        replyBuilder.AppendLine($"Per-group data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(user.PerGroupDataLimitInBytes))}*");
 
                     var customLimits = user.Memberships.Where(x => x.Value.DataLimitInBytes > 0UL).Select(x => (x.Key, x.Value.DataLimitInBytes));
 
@@ -234,7 +234,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                         foreach ((var group, var dataLimitInBytes) in customLimits)
                         {
-                            replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(dataLimitInBytes),19}|");
+                            replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(dataLimitInBytes),19}|");
                         }
 
                         replyBuilder.AppendTableBorder(nameFieldWidth, 19);
@@ -364,11 +364,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
             var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
             replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(groupEntry.Key)}*");
-            replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(groupEntry.Value.BytesUsed))}*");
+            replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(groupEntry.Value.BytesUsed))}*");
             if (groupEntry.Value.BytesRemaining != 0UL)
-                replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(groupEntry.Value.BytesRemaining))}*");
+                replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(groupEntry.Value.BytesRemaining))}*");
             if (groupEntry.Value.DataLimitInBytes != 0UL)
-                replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(groupEntry.Value.DataLimitInBytes))}*");
+                replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(groupEntry.Value.DataLimitInBytes))}*");
 
             replyBuilder.AppendLine("```");
 
@@ -380,7 +380,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 foreach (var (username, bytesUsed, bytesRemaining) in records)
                 {
-                    replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                    replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
                 }
 
                 replyBuilder.AppendTableBorder(nameFieldWidth, 11);
@@ -393,10 +393,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 foreach (var (username, bytesUsed, bytesRemaining) in records)
                 {
-                    replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(bytesUsed),11}|");
+                    replyBuilder.Append($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(bytesUsed),11}|");
 
                     if (bytesRemaining != 0UL)
-                        replyBuilder.AppendLine($"{Utilities.HumanReadableDataString1024(bytesRemaining),16}|");
+                        replyBuilder.AppendLine($"{InteractionHelper.HumanReadableDataString1024(bytesRemaining),16}|");
                     else
                         replyBuilder.AppendLine($"{string.Empty,16}|");
                 }
@@ -464,10 +464,10 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(argument)}*");
 
                         if (targetGroup.DataLimitInBytes != 0UL)
-                            replyBuilder.AppendLine($"Global data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(targetGroup.DataLimitInBytes))}*");
+                            replyBuilder.AppendLine($"Global data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(targetGroup.DataLimitInBytes))}*");
 
                         if (targetGroup.PerUserDataLimitInBytes != 0UL)
-                            replyBuilder.AppendLine($"Per-user data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(Utilities.HumanReadableDataString1024(targetGroup.PerUserDataLimitInBytes))}*");
+                            replyBuilder.AppendLine($"Per-user data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(targetGroup.PerUserDataLimitInBytes))}*");
 
                         var outlineAccessKeyCustomLimits = targetGroup.OutlineAccessKeys?.Where(x => x.DataLimit is not null).Select(x => (x.Name, x.DataLimit!.Bytes));
 
@@ -483,7 +483,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                             foreach ((var username, var dataLimitInBytes) in outlineAccessKeyCustomLimits)
                             {
-                                replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{Utilities.HumanReadableDataString1024(dataLimitInBytes),19}|");
+                                replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(username).PadRight(nameFieldWidth)}|{InteractionHelper.HumanReadableDataString1024(dataLimitInBytes),19}|");
                             }
 
                             replyBuilder.AppendTableBorder(nameFieldWidth, 19);

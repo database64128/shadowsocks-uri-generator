@@ -22,7 +22,7 @@ namespace ShadowsocksUriGenerator.Tests
         [InlineData("65535MEM", false, 0UL)]
         public void Parse_DataLimitString_ReturnsBoolUlong(string dataLimitString, bool expectedResult, ulong expectedDataLimit)
         {
-            var parseResult = Utilities.TryParseDataLimitString(dataLimitString, out var parsedDataLimit);
+            var parseResult = InteractionHelper.TryParseDataLimitString(dataLimitString, out var parsedDataLimit);
 
             Assert.Equal(expectedResult, parseResult);
             Assert.Equal(expectedDataLimit, parsedDataLimit);
@@ -59,7 +59,7 @@ namespace ShadowsocksUriGenerator.Tests
         [InlineData(6917529027641081856UL, true, true, "6 EiB")]
         public void HumanReadableDataString_FromUlong_ToString(ulong dataInBytes, bool middle_i, bool trailingB, string expectedDataString)
         {
-            var dataString = Utilities.HumanReadableDataString(dataInBytes, middle_i, trailingB);
+            var dataString = InteractionHelper.HumanReadableDataString(dataInBytes, middle_i, trailingB);
 
             Assert.Equal(expectedDataString, dataString);
         }
