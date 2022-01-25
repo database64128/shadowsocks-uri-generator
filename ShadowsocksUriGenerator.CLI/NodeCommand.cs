@@ -10,7 +10,7 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class NodeCommand
     {
-        public static string? ValidateNodePlugin(CommandResult commandResult)
+        public static void ValidateNodePlugin(CommandResult commandResult)
         {
             var hasPluginName = commandResult.Children.ContainsAlias("--plugin-name");
             var hasPluginVersion = commandResult.Children.ContainsAlias("--plugin-version");
@@ -19,12 +19,10 @@ namespace ShadowsocksUriGenerator.CLI
             var hasUnsetPlugin = commandResult.Children.ContainsAlias("--unset-plugin");
 
             if (!hasPluginName && (hasPluginVersion || hasPluginOptions || hasPluginArguments))
-                return "You didn't specify a plugin.";
+                commandResult.ErrorMessage = "You didn't specify a plugin.";
 
             if (hasPluginName && hasUnsetPlugin)
-                return "You can't set and unset plugin at the same time.";
-
-            return null;
+                commandResult.ErrorMessage = "You can't set and unset plugin at the same time.";
         }
 
         public static async Task<int> Add(

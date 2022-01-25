@@ -689,19 +689,17 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static string? ValidateSetDataLimit(CommandResult commandResult)
+        public static void ValidateSetDataLimit(CommandResult commandResult)
         {
             var hasGlobal = commandResult.Children.ContainsAlias("--global");
             var hasPerGroup = commandResult.Children.ContainsAlias("--per-group");
             var hasGroups = commandResult.Children.ContainsAlias("--groups");
 
             if (!hasGlobal && !hasPerGroup)
-                return "Please specify either a global data limit with `--global`, or a per-group data limit with `--per-group`.";
+                commandResult.ErrorMessage = "Please specify either a global data limit with `--global`, or a per-group data limit with `--per-group`.";
 
             if (!hasPerGroup && hasGroups)
-                return "Custom group targets must be used with per-group limits.";
-
-            return null;
+                commandResult.ErrorMessage = "Custom group targets must be used with per-group limits.";
         }
 
         public static async Task<int> SetDataLimit(string[] usernames, ulong? global, ulong? perGroup, string[] groups, CancellationToken cancellationToken = default)

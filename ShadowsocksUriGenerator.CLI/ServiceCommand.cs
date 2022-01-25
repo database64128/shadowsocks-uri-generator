@@ -9,13 +9,13 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class ServiceCommand
     {
-        public static string? ValidateRun(CommandResult commandResult)
+        public static void ValidateRun(CommandResult commandResult)
         {
             if (commandResult.Children.ContainsAlias("--generate-online-config") &&
                 commandResult.Children.ContainsAlias("--regenerate-online-config"))
-                return "You don't need to generate online config twice.";
-            else
-                return null;
+            {
+                commandResult.ErrorMessage = "You don't need to generate online config twice.";
+            }
         }
 
         public static async Task<int> Run(

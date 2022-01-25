@@ -316,19 +316,17 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static string? ValidateRotatePassword(CommandResult commandResult)
+        public static void ValidateRotatePassword(CommandResult commandResult)
         {
             var hasUsernames = commandResult.Children.ContainsAlias("--usernames");
             var hasGroups = commandResult.Children.ContainsAlias("--groups");
             var hasAll = commandResult.Children.ContainsAlias("--all");
 
             if (hasAll && (hasUsernames || hasGroups))
-                return "You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.";
+                commandResult.ErrorMessage = "You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.";
 
             if (!hasUsernames && !hasGroups && !hasAll)
-                return "Target specific users with '--usernames', groups with '--groups'. You can also combine both, or target all groups and users with '--all'.";
-
-            return null;
+                commandResult.ErrorMessage = "Target specific users with '--usernames', groups with '--groups'. You can also combine both, or target all groups and users with '--all'.";
         }
 
         public static async Task<int> RotatePassword(string[] usernames, string[] groups, bool allGroups, CancellationToken cancellationToken = default)
