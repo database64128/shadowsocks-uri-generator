@@ -817,9 +817,9 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void ValidateSetDataLimit(CommandResult commandResult)
         {
-            var hasGlobal = commandResult.Children.ContainsAlias("--global");
-            var hasPerUser = commandResult.Children.ContainsAlias("--per-user");
-            var hasUsernames = commandResult.Children.ContainsAlias("--usernames");
+            var hasGlobal = commandResult.ContainsSymbolWithName("global");
+            var hasPerUser = commandResult.ContainsSymbolWithName("per-user");
+            var hasUsernames = commandResult.ContainsSymbolWithName("usernames");
 
             if (!hasGlobal && !hasPerUser)
                 commandResult.ErrorMessage = "Please specify either a global data limit with `--global`, or a per-user data limit with `--per-user`.";

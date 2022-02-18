@@ -11,8 +11,8 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static void EnforceZeroUsernamesWhenAll(CommandResult commandResult)
         {
-            var hasUsernames = commandResult.Children.ContainsAlias("usernames") || commandResult.Children.ContainsAlias("--usernames");
-            var hasAllUsers = commandResult.Children.ContainsAlias("--all-users");
+            var hasUsernames = commandResult.ContainsSymbolWithName("usernames");
+            var hasAllUsers = commandResult.ContainsSymbolWithName("all-users");
 
             if (!hasUsernames && !hasAllUsers)
             {
@@ -26,8 +26,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void EnforceZeroNodenamesWhenAll(CommandResult commandResult)
         {
-            var hasNodenames = commandResult.Children.ContainsAlias("nodenames") || commandResult.Children.ContainsAlias("--nodenames");
-            var hasAllNodes = commandResult.Children.ContainsAlias("--all-nodes");
+            var hasNodenames = commandResult.ContainsSymbolWithName("nodenames");
+            var hasAllNodes = commandResult.ContainsSymbolWithName("all-nodes");
 
             if (!hasNodenames && !hasAllNodes)
             {
@@ -41,8 +41,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void EnforceZeroGroupsWhenAll(CommandResult commandResult)
         {
-            var hasGroups = commandResult.Children.ContainsAlias("groups") || commandResult.Children.ContainsAlias("--groups");
-            var hasAllGroups = commandResult.Children.ContainsAlias("--all-groups");
+            var hasGroups = commandResult.ContainsSymbolWithName("groups");
+            var hasAllGroups = commandResult.ContainsSymbolWithName("all-groups");
 
             if (!hasGroups && !hasAllGroups)
             {
@@ -56,8 +56,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void ValidateOwnerOptions(CommandResult commandResult)
         {
-            var setOwner = commandResult.Children.ContainsAlias("--owner");
-            var unsetOwner = commandResult.Children.ContainsAlias("--unset-owner");
+            var setOwner = commandResult.ContainsSymbolWithName("owner");
+            var unsetOwner = commandResult.ContainsSymbolWithName("unset-owner");
 
             if (setOwner && unsetOwner)
             {
@@ -67,9 +67,9 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void ValidateAddCredential(CommandResult commandResult)
         {
-            var hasMethod = commandResult.Children.ContainsAlias("--method");
-            var hasPassword = commandResult.Children.ContainsAlias("--password");
-            var hasUserinfo = commandResult.Children.ContainsAlias("--userinfo-base64url");
+            var hasMethod = commandResult.ContainsSymbolWithName("method");
+            var hasPassword = commandResult.ContainsSymbolWithName("password");
+            var hasUserinfo = commandResult.ContainsSymbolWithName("userinfo-base64url");
 
             if (hasMethod && hasPassword && !hasUserinfo ||
                 !hasMethod && !hasPassword && hasUserinfo)

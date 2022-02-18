@@ -11,8 +11,8 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static void ValidateRun(CommandResult commandResult)
         {
-            if (commandResult.Children.ContainsAlias("--generate-online-config") &&
-                commandResult.Children.ContainsAlias("--regenerate-online-config"))
+            if (commandResult.ContainsSymbolWithName("generate-online-config") &&
+                commandResult.ContainsSymbolWithName("regenerate-online-config"))
             {
                 commandResult.ErrorMessage = "You don't need to generate online config twice.";
             }
