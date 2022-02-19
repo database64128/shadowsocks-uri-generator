@@ -5,6 +5,12 @@ After=network-online.target
 
 [Service]
 ExecStart=/usr/bin/ss-uri-gen-server
+ProtectSystem=strict
+ProtectHome=yes
+NoNewPrivileges=yes
+PrivateTmp=yes
+Restart=on-abnormal
+RestartSec=3s
 
 [Install]
 WantedBy=multi-user.target default.target
