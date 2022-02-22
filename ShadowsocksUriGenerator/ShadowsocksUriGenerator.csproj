@@ -31,7 +31,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Shadowsocks.OnlineConfig" Version="1.1.0" />
+    <PackageReference Include="OpenOnlineConfig" Version="1.2.0" />
+    <PackageReference Include="Shadowsocks.OnlineConfig" Version="1.2.0" />
     <PackageReference Include="System.Interactive.Async" Version="6.0.1" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
