@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using ShadowsocksUriGenerator.CLI.Utils;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Server
@@ -15,9 +15,10 @@ namespace ShadowsocksUriGenerator.Server
     {
         private static Task Main(string[] args)
         {
+            var cancellationTokenBinder = new CancellationTokenBinder();
             var rootCommand = new RootCommand("Shadowsocks URI Generator API Server provides an API endpoint for basic management tasks and online config.");
 
-            rootCommand.SetHandler<CancellationToken>(cancellationToken => cancellationToken.WaitHandle.WaitOne());
+            rootCommand.SetHandler(cancellationToken => cancellationToken.WaitHandle.WaitOne(), cancellationTokenBinder);
 
             var parser = new CommandLineBuilder(rootCommand)
                 .UseHost(_ => Host.CreateDefaultBuilder()

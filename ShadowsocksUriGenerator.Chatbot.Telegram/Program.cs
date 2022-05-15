@@ -1,8 +1,8 @@
 ﻿using ShadowsocksUriGenerator.Chatbot.Telegram.CLI;
+using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.CommandLine;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram;
@@ -32,8 +32,10 @@ internal class Program
             allowChatAssociationOption,
         };
 
-        configGetCommand.SetHandler<CancellationToken>(ConfigCommand.Get);
-        configSetCommand.SetHandler<string?, string?, bool?, bool?, bool?, bool?, bool?, CancellationToken>(ConfigCommand.Set, botTokenOption, serviceNameOption, usersCanSeeAllUsersOption, usersCanSeeAllGroupsOption, usersCanSeeGroupDataUsageOption, usersCanSeeGroupDataLimitOption, allowChatAssociationOption);
+        var cancellationTokenBinder = new CancellationTokenBinder();
+
+        configGetCommand.SetHandler(ConfigCommand.Get, cancellationTokenBinder);
+        configSetCommand.SetHandler(ConfigCommand.Set, botTokenOption, serviceNameOption, usersCanSeeAllUsersOption, usersCanSeeAllGroupsOption, usersCanSeeGroupDataUsageOption, usersCanSeeGroupDataLimitOption, allowChatAssociationOption, cancellationTokenBinder);
 
         var configCommand = new Command("config", "Print or change bot config.")
         {
@@ -47,7 +49,7 @@ internal class Program
         };
 
         rootCommand.AddOption(botTokenOption);
-        rootCommand.SetHandler<string?, CancellationToken>(BotRunner.RunBot, botTokenOption);
+        rootCommand.SetHandler(BotRunner.RunBot, botTokenOption, cancellationTokenBinder);
 
         Console.OutputEncoding = Encoding.UTF8;
         return rootCommand.InvokeAsync(args);

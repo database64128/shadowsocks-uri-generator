@@ -17,7 +17,7 @@ namespace ShadowsocksUriGenerator
     /// Nodes in a group share the same credential for a user.
     /// They may provide different credentials for different users.
     /// </summary>
-    public class Group : IDisposable, IDataUsage, IDataLimit
+    public class Group : IDisposable
     {
         /// <summary>
         /// Gets or sets the Outline Access Keys Management API key object.

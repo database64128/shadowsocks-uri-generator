@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Binders;
+using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.CommandLine;
 using System.Text;
 using System.Threading;
@@ -306,6 +308,11 @@ namespace ShadowsocksUriGenerator.CLI
             var serviceGenerateOnlineConfigOption = new Option<bool>("--generate-online-config", "Generate online config.");
             var serviceRegenerateOnlineConfigOption = new Option<bool>("--regenerate-online-config", "Clean and regenerate online config.");
 
+            var cancellationTokenBinder = new CancellationTokenBinder();
+            var nodeAddBinder = new NodeAddBinder(groupArgument, nodenameArgument, hostArgument, portArgument, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, ownerOption, tagsOption);
+            var nodeEditBinder = new NodeEditBinder(groupArgument, nodenameArgument, hostOption, portOption, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, unsetPluginOption, ownerOption, unsetOwnerOption, clearTagsOption, addTagsOption, removeTagsOption);
+            var settingsSetBinder = new SettingsSetBinder(settingsUserDataUsageDefaultSortByOption, settingsGroupDataUsageDefaultSortByOption, settingsOnlineConfigSortByNameOption, settingsOnlineConfigDeliverByGroupOption, settingsOnlineConfigCleanOnUserRemovalOption, settingsOnlineConfigOutputDirectoryOption, settingsOnlineConfigDeliveryRootUriOption, settingsOutlineServerApplyDefaultUserOnAssociationOption, settingsOutlineServerApplyDataLimitOnAssociationOption, settingsOutlineServerGlobalDefaultUserOption, settingsApiServerBaseUrlOption, settingsApiServerSecretPathOption);
+
             userCommand.AddAlias("u");
             nodeCommand.AddAlias("n");
             groupCommand.AddAlias("g");
@@ -321,35 +328,35 @@ namespace ShadowsocksUriGenerator.CLI
 
             userAddCommand.AddAlias("a");
             userAddCommand.AddArgument(usernamesArgumentOneOrMore);
-            userAddCommand.SetHandler<string[], CancellationToken>(UserCommand.Add, usernamesArgumentOneOrMore);
+            userAddCommand.SetHandler(UserCommand.Add, usernamesArgumentOneOrMore, cancellationTokenBinder);
 
             userRenameCommand.AddArgument(oldNameArgument);
             userRenameCommand.AddArgument(newNameArgument);
-            userRenameCommand.SetHandler<string, string, CancellationToken>(UserCommand.Rename, oldNameArgument, newNameArgument);
+            userRenameCommand.SetHandler(UserCommand.Rename, oldNameArgument, newNameArgument, cancellationTokenBinder);
 
             userRemoveCommand.AddAlias("rm");
             userRemoveCommand.AddAlias("del");
             userRemoveCommand.AddAlias("delete");
             userRemoveCommand.AddArgument(usernamesArgumentOneOrMore);
-            userRemoveCommand.SetHandler<string[], CancellationToken>(UserCommand.Remove, usernamesArgumentOneOrMore);
+            userRemoveCommand.SetHandler(UserCommand.Remove, usernamesArgumentOneOrMore, cancellationTokenBinder);
 
             userListCommand.AddAlias("l");
             userListCommand.AddAlias("ls");
             userListCommand.AddOption(namesOnlyOption);
             userListCommand.AddOption(onePerLineOption);
-            userListCommand.SetHandler<bool, bool, CancellationToken>(UserCommand.List, namesOnlyOption, onePerLineOption);
+            userListCommand.SetHandler(UserCommand.List, namesOnlyOption, onePerLineOption, cancellationTokenBinder);
 
             userJoinGroupsCommand.AddArgument(usernameArgument);
             userJoinGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
             userJoinGroupsCommand.AddOption(allGroupsOption);
             userJoinGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userJoinGroupsCommand.SetHandler<string, string[], bool, CancellationToken>(UserCommand.JoinGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
+            userJoinGroupsCommand.SetHandler(UserCommand.JoinGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userLeaveGroupsCommand.AddArgument(usernameArgument);
             userLeaveGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
             userLeaveGroupsCommand.AddOption(allGroupsOption);
             userLeaveGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userLeaveGroupsCommand.SetHandler<string, string[], bool, CancellationToken>(UserCommand.LeaveGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
+            userLeaveGroupsCommand.SetHandler(UserCommand.LeaveGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userAddCredentialCommand.AddAlias("ac");
             userAddCredentialCommand.AddArgument(usernameArgument);
@@ -360,36 +367,36 @@ namespace ShadowsocksUriGenerator.CLI
             userAddCredentialCommand.AddOption(allGroupsOption);
             userAddCredentialCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            userAddCredentialCommand.SetHandler<string, string[], string?, string?, string?, bool, CancellationToken>(UserCommand.AddCredential, usernameArgument, groupsArgumentZeroOrMore, methodOption, passwordOption, userinfoBase64urlOption, allGroupsOption);
+            userAddCredentialCommand.SetHandler<string, string[], string?, string?, string?, bool, CancellationToken>(UserCommand.AddCredential, usernameArgument, groupsArgumentZeroOrMore, methodOption, passwordOption, userinfoBase64urlOption, allGroupsOption, cancellationTokenBinder);
 
             userRemoveCredentialsCommand.AddAlias("rc");
             userRemoveCredentialsCommand.AddArgument(usernameArgument);
             userRemoveCredentialsCommand.AddArgument(groupsArgumentZeroOrMore);
             userRemoveCredentialsCommand.AddOption(allGroupsOption);
             userRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userRemoveCredentialsCommand.SetHandler<string, string[], bool, CancellationToken>(UserCommand.RemoveCredentials, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
+            userRemoveCredentialsCommand.SetHandler(UserCommand.RemoveCredentials, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userListCredentialsCommand.AddAlias("lc");
             userListCredentialsCommand.AddOption(usernamesOption);
             userListCredentialsCommand.AddOption(groupsOption);
-            userListCredentialsCommand.SetHandler<string[], string[], CancellationToken>(UserCommand.ListCredentials, usernamesOption, groupsOption);
+            userListCredentialsCommand.SetHandler(UserCommand.ListCredentials, usernamesOption, groupsOption, cancellationTokenBinder);
 
             userGetSSLinksCommand.AddAlias("ss");
             userGetSSLinksCommand.AddArgument(usernameArgument);
             userGetSSLinksCommand.AddOption(groupsOption);
-            userGetSSLinksCommand.SetHandler<string, string[], CancellationToken>(UserCommand.GetSSLinks, usernameArgument, groupsOption);
+            userGetSSLinksCommand.SetHandler(UserCommand.GetSSLinks, usernameArgument, groupsOption, cancellationTokenBinder);
 
             userGetDataUsageCommand.AddAlias("data");
             userGetDataUsageCommand.AddArgument(usernameArgument);
             userGetDataUsageCommand.AddOption(sortByOption);
-            userGetDataUsageCommand.SetHandler<string, SortBy?, CancellationToken>(UserCommand.GetDataUsage, usernameArgument, sortByOption);
+            userGetDataUsageCommand.SetHandler(UserCommand.GetDataUsage, usernameArgument, sortByOption, cancellationTokenBinder);
 
             userGetDataLimitCommand.AddAlias("gl");
             userGetDataLimitCommand.AddAlias("gdl");
             userGetDataLimitCommand.AddAlias("limit");
             userGetDataLimitCommand.AddAlias("get-limit");
             userGetDataLimitCommand.AddArgument(usernameArgument);
-            userGetDataLimitCommand.SetHandler<string, CancellationToken>(UserCommand.GetDataLimit, usernameArgument);
+            userGetDataLimitCommand.SetHandler(UserCommand.GetDataLimit, usernameArgument, cancellationTokenBinder);
 
             userSetDataLimitCommand.AddAlias("sl");
             userSetDataLimitCommand.AddAlias("sdl");
@@ -399,7 +406,7 @@ namespace ShadowsocksUriGenerator.CLI
             userSetDataLimitCommand.AddOption(perGroupDataLimitOption);
             userSetDataLimitCommand.AddOption(groupsOption);
             userSetDataLimitCommand.AddValidator(UserCommand.ValidateSetDataLimit);
-            userSetDataLimitCommand.SetHandler<string[], ulong?, ulong?, string[], CancellationToken>(UserCommand.SetDataLimit, usernamesArgumentOneOrMore, globalDataLimitOption, perGroupDataLimitOption, groupsOption);
+            userSetDataLimitCommand.SetHandler(UserCommand.SetDataLimit, usernamesArgumentOneOrMore, globalDataLimitOption, perGroupDataLimitOption, groupsOption, cancellationTokenBinder);
 
             userOwnGroupsCommand.AddAlias("og");
             userOwnGroupsCommand.AddArgument(usernameArgument);
@@ -407,14 +414,14 @@ namespace ShadowsocksUriGenerator.CLI
             userOwnGroupsCommand.AddOption(allGroupsOption);
             userOwnGroupsCommand.AddOption(forceOption);
             userOwnGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userOwnGroupsCommand.SetHandler<string, string[], bool, bool, CancellationToken>(UserCommand.OwnGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, forceOption);
+            userOwnGroupsCommand.SetHandler(UserCommand.OwnGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, forceOption, cancellationTokenBinder);
 
             userDisownGroupsCommand.AddAlias("dg");
             userDisownGroupsCommand.AddArgument(usernameArgument);
             userDisownGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
             userDisownGroupsCommand.AddOption(allGroupsOption);
             userDisownGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userDisownGroupsCommand.SetHandler<string, string[], bool, CancellationToken>(UserCommand.DisownGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
+            userDisownGroupsCommand.SetHandler(UserCommand.DisownGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userOwnNodesCommand.AddAlias("on");
             userOwnNodesCommand.AddArgument(usernameArgument);
@@ -425,7 +432,7 @@ namespace ShadowsocksUriGenerator.CLI
             userOwnNodesCommand.AddOption(forceOption);
             userOwnNodesCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userOwnNodesCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            userOwnNodesCommand.SetHandler<string, string[], bool, string[], bool, bool, CancellationToken>(UserCommand.OwnNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, forceOption);
+            userOwnNodesCommand.SetHandler(UserCommand.OwnNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, forceOption, cancellationTokenBinder);
 
             userDisownNodesCommand.AddAlias("dn");
             userDisownNodesCommand.AddArgument(usernameArgument);
@@ -435,16 +442,16 @@ namespace ShadowsocksUriGenerator.CLI
             userDisownNodesCommand.AddOption(allNodesNoAliasesOption);
             userDisownNodesCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userDisownNodesCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            userDisownNodesCommand.SetHandler<string, string[], bool, string[], bool, CancellationToken>(UserCommand.DisownNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
+            userDisownNodesCommand.SetHandler(UserCommand.DisownNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             userListOwnedGroupsCommand.AddAlias("log");
             userListOwnedGroupsCommand.AddArgument(usernameArgument);
-            userListOwnedGroupsCommand.SetHandler<string, CancellationToken>(UserCommand.ListOwnedGroups, usernameArgument);
+            userListOwnedGroupsCommand.SetHandler(UserCommand.ListOwnedGroups, usernameArgument, cancellationTokenBinder);
 
             userListOwnedNodesCmmand.AddAlias("lon");
             userListOwnedNodesCmmand.AddArgument(usernameArgument);
             userListOwnedNodesCmmand.AddArgument(groupsArgumentZeroOrMore);
-            userListOwnedNodesCmmand.SetHandler<string, string[], CancellationToken>(UserCommand.ListOwnedNodes, usernameArgument, groupsArgumentZeroOrMore);
+            userListOwnedNodesCmmand.SetHandler(UserCommand.ListOwnedNodes, usernameArgument, groupsArgumentZeroOrMore, cancellationTokenBinder);
 
             nodeAddCommand.AddAlias("a");
             nodeAddCommand.AddArgument(groupArgument);
@@ -458,7 +465,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddCommand.AddOption(ownerOption);
             nodeAddCommand.AddOption(tagsOption);
             nodeAddCommand.AddValidator(NodeCommand.ValidateNodePlugin);
-            nodeAddCommand.SetHandler<string, string, string, int, string?, string?, string?, string?, string?, string[], CancellationToken>(NodeCommand.Add, groupArgument, nodenameArgument, hostArgument, portArgument, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, ownerOption, tagsOption);
+            nodeAddCommand.SetHandler(NodeCommand.Add, nodeAddBinder, cancellationTokenBinder);
 
             nodeEditCommand.AddAlias("e");
             nodeEditCommand.AddArgument(groupArgument);
@@ -477,32 +484,32 @@ namespace ShadowsocksUriGenerator.CLI
             nodeEditCommand.AddOption(removeTagsOption);
             nodeEditCommand.AddValidator(NodeCommand.ValidateNodePlugin);
             nodeEditCommand.AddValidator(Validators.ValidateOwnerOptions);
-            nodeEditCommand.SetHandler<string, string, string?, int, string?, string?, string?, string?, bool, string?, bool, bool, string[], string[], CancellationToken>(NodeCommand.Edit, groupArgument, nodenameArgument, hostOption, portOption, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, unsetPluginOption, ownerOption, unsetOwnerOption, clearTagsOption, addTagsOption, removeTagsOption);
+            nodeEditCommand.SetHandler(NodeCommand.Edit, nodeEditBinder, cancellationTokenBinder);
 
             nodeRenameCommand.AddArgument(groupArgument);
             nodeRenameCommand.AddArgument(oldNameArgument);
             nodeRenameCommand.AddArgument(newNameArgument);
-            nodeRenameCommand.SetHandler<string, string, string, CancellationToken>(NodeCommand.Rename, groupArgument, oldNameArgument, newNameArgument);
+            nodeRenameCommand.SetHandler(NodeCommand.Rename, groupArgument, oldNameArgument, newNameArgument, cancellationTokenBinder);
 
             nodeRemoveCommand.AddAlias("rm");
             nodeRemoveCommand.AddAlias("del");
             nodeRemoveCommand.AddAlias("delete");
             nodeRemoveCommand.AddArgument(groupArgument);
             nodeRemoveCommand.AddArgument(nodenamesArgumentOneOrMore);
-            nodeRemoveCommand.SetHandler<string, string[], CancellationToken>(NodeCommand.Remove, groupArgument, nodenamesArgumentOneOrMore);
+            nodeRemoveCommand.SetHandler(NodeCommand.Remove, groupArgument, nodenamesArgumentOneOrMore, cancellationTokenBinder);
 
             nodeListCommand.AddAlias("l");
             nodeListCommand.AddAlias("ls");
             nodeListCommand.AddArgument(groupsArgumentZeroOrMore);
             nodeListCommand.AddOption(namesOnlyOption);
             nodeListCommand.AddOption(onePerLineOption);
-            nodeListCommand.SetHandler<string[], bool, bool, CancellationToken>(NodeCommand.List, groupsArgumentZeroOrMore, namesOnlyOption, onePerLineOption);
+            nodeListCommand.SetHandler(NodeCommand.List, groupsArgumentZeroOrMore, namesOnlyOption, onePerLineOption, cancellationTokenBinder);
 
             nodeListAnnotationsCommand.AddAlias("la");
             nodeListAnnotationsCommand.AddAlias("lsa");
             nodeListAnnotationsCommand.AddArgument(groupsArgumentZeroOrMore);
             nodeListAnnotationsCommand.AddOption(onePerLineOption);
-            nodeListAnnotationsCommand.SetHandler<string[], bool, CancellationToken>(NodeCommand.ListAnnotations, groupsArgumentZeroOrMore, onePerLineOption);
+            nodeListAnnotationsCommand.SetHandler(NodeCommand.ListAnnotations, groupsArgumentZeroOrMore, onePerLineOption, cancellationTokenBinder);
 
             nodeActivateCommand.AddAlias("enable");
             nodeActivateCommand.AddAlias("unhide");
@@ -510,7 +517,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeActivateCommand.AddArgument(nodenamesArgumentZeroOrMore);
             nodeActivateCommand.AddOption(allNodesOption);
             nodeActivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeActivateCommand.SetHandler<string, string[], bool, CancellationToken>(NodeCommand.Activate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption);
+            nodeActivateCommand.SetHandler(NodeCommand.Activate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption, cancellationTokenBinder);
 
             nodeDeactivateCommand.AddAlias("disable");
             nodeDeactivateCommand.AddAlias("hide");
@@ -518,7 +525,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeDeactivateCommand.AddArgument(nodenamesArgumentZeroOrMore);
             nodeDeactivateCommand.AddOption(allNodesOption);
             nodeDeactivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeDeactivateCommand.SetHandler<string, string[], bool, CancellationToken>(NodeCommand.Deactivate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption);
+            nodeDeactivateCommand.SetHandler(NodeCommand.Deactivate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption, cancellationTokenBinder);
 
             nodeAddTagsCommand.AddAlias("at");
             nodeAddTagsCommand.AddArgument(tagsArgument);
@@ -528,7 +535,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddTagsCommand.AddOption(allNodesNoAliasesOption);
             nodeAddTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             nodeAddTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeAddTagsCommand.SetHandler<string[], string[], bool, string[], bool, CancellationToken>(NodeCommand.AddTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
+            nodeAddTagsCommand.SetHandler(NodeCommand.AddTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeEditTagsCommand.AddAlias("et");
             nodeEditTagsCommand.AddOption(groupsOption);
@@ -540,7 +547,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeEditTagsCommand.AddOption(removeTagsOption);
             nodeEditTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             nodeEditTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeEditTagsCommand.SetHandler<string[], bool, string[], bool, bool, string[], string[], CancellationToken>(NodeCommand.EditTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, clearTagsOption, addTagsOption, removeTagsOption);
+            nodeEditTagsCommand.SetHandler(NodeCommand.EditTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, clearTagsOption, addTagsOption, removeTagsOption, cancellationTokenBinder);
 
             nodeRemoveTagsCommand.AddAlias("rt");
             nodeRemoveTagsCommand.AddArgument(tagsArgument);
@@ -550,7 +557,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeRemoveTagsCommand.AddOption(allNodesNoAliasesOption);
             nodeRemoveTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             nodeRemoveTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeRemoveTagsCommand.SetHandler<string[], string[], bool, string[], bool, CancellationToken>(NodeCommand.RemoveTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
+            nodeRemoveTagsCommand.SetHandler(NodeCommand.RemoveTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeClearTagsCommand.AddAlias("ct");
             nodeClearTagsCommand.AddOption(groupsOption);
@@ -559,7 +566,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeClearTagsCommand.AddOption(allNodesNoAliasesOption);
             nodeClearTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             nodeClearTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeClearTagsCommand.SetHandler<string[], bool, string[], bool, CancellationToken>(NodeCommand.ClearTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
+            nodeClearTagsCommand.SetHandler(NodeCommand.ClearTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeSetOwnerCommand.AddAlias("so");
             nodeSetOwnerCommand.AddArgument(ownerArgument);
@@ -569,7 +576,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeSetOwnerCommand.AddOption(allNodesNoAliasesOption);
             nodeSetOwnerCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             nodeSetOwnerCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeSetOwnerCommand.SetHandler<string, string[], bool, string[], bool, CancellationToken>(NodeCommand.SetOwner, ownerArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
+            nodeSetOwnerCommand.SetHandler(NodeCommand.SetOwner, ownerArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeUnsetOwnerCommand.AddAlias("uo");
             nodeUnsetOwnerCommand.AddOption(groupsOption);
@@ -578,49 +585,49 @@ namespace ShadowsocksUriGenerator.CLI
             nodeUnsetOwnerCommand.AddOption(allNodesNoAliasesOption);
             nodeUnsetOwnerCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             nodeUnsetOwnerCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
-            nodeUnsetOwnerCommand.SetHandler<string[], bool, string[], bool, CancellationToken>(NodeCommand.UnsetOwner, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
+            nodeUnsetOwnerCommand.SetHandler(NodeCommand.UnsetOwner, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             groupAddCommand.AddAlias("a");
             groupAddCommand.AddArgument(groupsArgumentOneOrMore);
             groupAddCommand.AddOption(ownerOption);
-            groupAddCommand.SetHandler<string[], string?, CancellationToken>(GroupCommand.Add, groupsArgumentOneOrMore, ownerOption);
+            groupAddCommand.SetHandler(GroupCommand.Add, groupsArgumentOneOrMore, ownerOption, cancellationTokenBinder);
 
             groupEditCommand.AddAlias("e");
             groupEditCommand.AddArgument(groupsArgumentOneOrMore);
             groupEditCommand.AddOption(ownerOption);
             groupEditCommand.AddOption(unsetOwnerOption);
             groupEditCommand.AddValidator(Validators.ValidateOwnerOptions);
-            groupEditCommand.SetHandler<string[], string?, bool, CancellationToken>(GroupCommand.Edit, groupsArgumentOneOrMore, ownerOption, unsetOwnerOption);
+            groupEditCommand.SetHandler(GroupCommand.Edit, groupsArgumentOneOrMore, ownerOption, unsetOwnerOption, cancellationTokenBinder);
 
             groupRenameCommand.AddArgument(oldNameArgument);
             groupRenameCommand.AddArgument(newNameArgument);
-            groupRenameCommand.SetHandler<string, string, CancellationToken>(GroupCommand.Rename, oldNameArgument, newNameArgument);
+            groupRenameCommand.SetHandler(GroupCommand.Rename, oldNameArgument, newNameArgument, cancellationTokenBinder);
 
             groupRemoveCommand.AddAlias("rm");
             groupRemoveCommand.AddAlias("del");
             groupRemoveCommand.AddAlias("delete");
             groupRemoveCommand.AddArgument(groupsArgumentOneOrMore);
-            groupRemoveCommand.SetHandler<string[], CancellationToken>(GroupCommand.Remove, groupsArgumentOneOrMore);
+            groupRemoveCommand.SetHandler(GroupCommand.Remove, groupsArgumentOneOrMore, cancellationTokenBinder);
 
             groupListCommand.AddAlias("l");
             groupListCommand.AddAlias("ls");
             groupListCommand.AddOption(namesOnlyOption);
             groupListCommand.AddOption(onePerLineOption);
-            groupListCommand.SetHandler<bool, bool, CancellationToken>(GroupCommand.List, namesOnlyOption, onePerLineOption);
+            groupListCommand.SetHandler(GroupCommand.List, namesOnlyOption, onePerLineOption, cancellationTokenBinder);
 
             groupAddUsersCommand.AddAlias("au");
             groupAddUsersCommand.AddArgument(groupArgument);
             groupAddUsersCommand.AddArgument(usernamesArgumentZeroOrMore);
             groupAddUsersCommand.AddOption(allUsersOption);
             groupAddUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
-            groupAddUsersCommand.SetHandler<string, string[], bool, CancellationToken>(GroupCommand.AddUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption);
+            groupAddUsersCommand.SetHandler(GroupCommand.AddUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupRemoveUsersCommand.AddAlias("ru");
             groupRemoveUsersCommand.AddArgument(groupArgument);
             groupRemoveUsersCommand.AddArgument(usernamesArgumentZeroOrMore);
             groupRemoveUsersCommand.AddOption(allUsersOption);
             groupRemoveUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
-            groupRemoveUsersCommand.SetHandler<string, string[], bool, CancellationToken>(GroupCommand.RemoveUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption);
+            groupRemoveUsersCommand.SetHandler(GroupCommand.RemoveUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupListUsersCommand.AddAlias("lc");
             groupListUsersCommand.AddAlias("lm");
@@ -628,7 +635,7 @@ namespace ShadowsocksUriGenerator.CLI
             groupListUsersCommand.AddAlias("list-credentials");
             groupListUsersCommand.AddAlias("list-members");
             groupListUsersCommand.AddArgument(groupArgument);
-            groupListUsersCommand.SetHandler<string, CancellationToken>(GroupCommand.ListUsers, groupArgument);
+            groupListUsersCommand.SetHandler(GroupCommand.ListUsers, groupArgument, cancellationTokenBinder);
 
             groupAddCredentialCommand.AddAlias("ac");
             groupAddCredentialCommand.AddArgument(groupArgument);
@@ -639,26 +646,26 @@ namespace ShadowsocksUriGenerator.CLI
             groupAddCredentialCommand.AddOption(allUsersOption);
             groupAddCredentialCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            groupAddCredentialCommand.SetHandler<string, string[], string?, string?, string?, bool, CancellationToken>(GroupCommand.AddCredential, groupArgument, usernamesArgumentZeroOrMore, methodOption, passwordOption, userinfoBase64urlOption, allUsersOption);
+            groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, usernamesArgumentZeroOrMore, methodOption, passwordOption, userinfoBase64urlOption, allUsersOption, cancellationTokenBinder);
 
             groupRemoveCredentialsCommand.AddAlias("rc");
             groupRemoveCredentialsCommand.AddArgument(groupArgument);
             groupRemoveCredentialsCommand.AddArgument(usernamesArgumentZeroOrMore);
             groupRemoveCredentialsCommand.AddOption(allUsersOption);
             groupRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
-            groupRemoveCredentialsCommand.SetHandler<string, string[], bool, CancellationToken>(GroupCommand.RemoveCredentials, groupArgument, usernamesArgumentZeroOrMore, allUsersOption);
+            groupRemoveCredentialsCommand.SetHandler(GroupCommand.RemoveCredentials, groupArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupGetDataUsageCommand.AddAlias("data");
             groupGetDataUsageCommand.AddArgument(groupArgument);
             groupGetDataUsageCommand.AddOption(sortByOption);
-            groupGetDataUsageCommand.SetHandler<string, SortBy?, CancellationToken>(GroupCommand.GetDataUsage, groupArgument, sortByOption);
+            groupGetDataUsageCommand.SetHandler(GroupCommand.GetDataUsage, groupArgument, sortByOption, cancellationTokenBinder);
 
             groupGetDataLimitCommand.AddAlias("gl");
             groupGetDataLimitCommand.AddAlias("gdl");
             groupGetDataLimitCommand.AddAlias("limit");
             groupGetDataLimitCommand.AddAlias("get-limit");
             groupGetDataLimitCommand.AddArgument(groupArgument);
-            groupGetDataLimitCommand.SetHandler<string, CancellationToken>(GroupCommand.GetDataLimit, groupArgument);
+            groupGetDataLimitCommand.SetHandler(GroupCommand.GetDataLimit, groupArgument, cancellationTokenBinder);
 
             groupSetDataLimitCommand.AddAlias("sl");
             groupSetDataLimitCommand.AddAlias("sdl");
@@ -668,12 +675,12 @@ namespace ShadowsocksUriGenerator.CLI
             groupSetDataLimitCommand.AddOption(perUserDataLimitOption);
             groupSetDataLimitCommand.AddOption(usernamesOption);
             groupSetDataLimitCommand.AddValidator(GroupCommand.ValidateSetDataLimit);
-            groupSetDataLimitCommand.SetHandler<string[], ulong?, ulong?, string[], CancellationToken>(GroupCommand.SetDataLimit, groupsArgumentOneOrMore, globalDataLimitOption, perUserDataLimitOption, usernamesOption);
+            groupSetDataLimitCommand.SetHandler(GroupCommand.SetDataLimit, groupsArgumentOneOrMore, globalDataLimitOption, perUserDataLimitOption, usernamesOption, cancellationTokenBinder);
 
             onlineConfigGenerateCommand.AddAlias("g");
             onlineConfigGenerateCommand.AddAlias("gen");
             onlineConfigGenerateCommand.AddArgument(usernamesArgumentZeroOrMore);
-            onlineConfigGenerateCommand.SetHandler<string[], CancellationToken>(OnlineConfigCommand.Generate, usernamesArgumentZeroOrMore);
+            onlineConfigGenerateCommand.SetHandler(OnlineConfigCommand.Generate, usernamesArgumentZeroOrMore, cancellationTokenBinder);
 
             onlineConfigGetLinksCommand.AddAlias("l");
             onlineConfigGetLinksCommand.AddAlias("link");
@@ -683,22 +690,22 @@ namespace ShadowsocksUriGenerator.CLI
             onlineConfigGetLinksCommand.AddAlias("url");
             onlineConfigGetLinksCommand.AddAlias("urls");
             onlineConfigGetLinksCommand.AddArgument(usernamesArgumentZeroOrMore);
-            onlineConfigGetLinksCommand.SetHandler<string[], CancellationToken>(OnlineConfigCommand.GetLinks, usernamesArgumentZeroOrMore);
+            onlineConfigGetLinksCommand.SetHandler(OnlineConfigCommand.GetLinks, usernamesArgumentZeroOrMore, cancellationTokenBinder);
 
             onlineConfigCleanCommand.AddAlias("c");
             onlineConfigCleanCommand.AddAlias("clear");
             onlineConfigCleanCommand.AddArgument(usernamesArgumentZeroOrMore);
             onlineConfigCleanCommand.AddOption(allUsersOption);
             onlineConfigCleanCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
-            onlineConfigCleanCommand.SetHandler<string[], CancellationToken>(OnlineConfigCommand.Clean, usernamesArgumentZeroOrMore, allUsersOption);
+            onlineConfigCleanCommand.SetHandler(OnlineConfigCommand.Clean, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             outlineServerAddCommand.AddAlias("a");
             outlineServerAddCommand.AddArgument(groupArgument);
             outlineServerAddCommand.AddArgument(outlineApiKeyArgument);
-            outlineServerAddCommand.SetHandler<string, string, CancellationToken>(OutlineServerCommand.Add, groupArgument, outlineApiKeyArgument);
+            outlineServerAddCommand.SetHandler(OutlineServerCommand.Add, groupArgument, outlineApiKeyArgument, cancellationTokenBinder);
 
             outlineServerGetCommand.AddArgument(groupArgument);
-            outlineServerGetCommand.SetHandler<string, CancellationToken>(OutlineServerCommand.Get, groupArgument);
+            outlineServerGetCommand.SetHandler(OutlineServerCommand.Get, groupArgument, cancellationTokenBinder);
 
             outlineServerSetCommand.AddArgument(groupArgument);
             outlineServerSetCommand.AddOption(outlineServerNameOption);
@@ -706,34 +713,34 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerSetCommand.AddOption(outlineServerPortOption);
             outlineServerSetCommand.AddOption(outlineServerMetricsOption);
             outlineServerSetCommand.AddOption(outlineServerDefaultUserOption);
-            outlineServerSetCommand.SetHandler<string, string?, string?, int?, bool?, string?, CancellationToken>(OutlineServerCommand.Set, groupArgument, outlineServerNameOption, outlineServerHostnameOption, outlineServerPortOption, outlineServerMetricsOption, outlineServerDefaultUserOption);
+            outlineServerSetCommand.SetHandler(OutlineServerCommand.Set, groupArgument, outlineServerNameOption, outlineServerHostnameOption, outlineServerPortOption, outlineServerMetricsOption, outlineServerDefaultUserOption, cancellationTokenBinder);
 
             outlineServerRemoveCommand.AddAlias("rm");
             outlineServerRemoveCommand.AddArgument(groupsArgumentOneOrMore);
             outlineServerRemoveCommand.AddOption(removeCredsOption);
-            outlineServerRemoveCommand.SetHandler<string[], bool, CancellationToken>(OutlineServerCommand.Remove, groupsArgumentOneOrMore, removeCredsOption);
+            outlineServerRemoveCommand.SetHandler(OutlineServerCommand.Remove, groupsArgumentOneOrMore, removeCredsOption, cancellationTokenBinder);
 
             outlineServerPullCommand.AddAlias("update");
             outlineServerPullCommand.AddArgument(groupsArgumentZeroOrMore);
             outlineServerPullCommand.AddOption(noSyncOption);
-            outlineServerPullCommand.SetHandler<string[], bool, CancellationToken>(OutlineServerCommand.Pull, groupsArgumentZeroOrMore, noSyncOption);
+            outlineServerPullCommand.SetHandler(OutlineServerCommand.Pull, groupsArgumentZeroOrMore, noSyncOption, cancellationTokenBinder);
 
             outlineServerDeployCommand.AddArgument(groupsArgumentZeroOrMore);
-            outlineServerDeployCommand.SetHandler<string[], CancellationToken>(OutlineServerCommand.Deploy, groupsArgumentZeroOrMore);
+            outlineServerDeployCommand.SetHandler(OutlineServerCommand.Deploy, groupsArgumentZeroOrMore, cancellationTokenBinder);
 
             outlineServerRotatePasswordCommand.AddAlias("rotate");
             outlineServerRotatePasswordCommand.AddOption(usernamesOption);
             outlineServerRotatePasswordCommand.AddOption(groupsOption);
             outlineServerRotatePasswordCommand.AddOption(allGroupsOption);
             outlineServerRotatePasswordCommand.AddValidator(OutlineServerCommand.ValidateRotatePassword);
-            outlineServerRotatePasswordCommand.SetHandler<string[], string[], bool, CancellationToken>(OutlineServerCommand.RotatePassword, usernamesOption, groupsOption, allGroupsOption);
+            outlineServerRotatePasswordCommand.SetHandler(OutlineServerCommand.RotatePassword, usernamesOption, groupsOption, allGroupsOption, cancellationTokenBinder);
 
             reportCommand.AddOption(groupSortByOption);
             reportCommand.AddOption(userSortByOption);
             reportCommand.AddOption(csvOutdirOption);
-            reportCommand.SetHandler<SortBy?, SortBy?, string?, CancellationToken>(ReportCommand.Generate, groupSortByOption, userSortByOption, csvOutdirOption);
+            reportCommand.SetHandler(ReportCommand.Generate, groupSortByOption, userSortByOption, csvOutdirOption, cancellationTokenBinder);
 
-            settingsGetCommand.SetHandler<CancellationToken>(SettingsCommand.Get);
+            settingsGetCommand.SetHandler(SettingsCommand.Get, cancellationTokenBinder);
 
             settingsSetCommand.AddOption(settingsUserDataUsageDefaultSortByOption);
             settingsSetCommand.AddOption(settingsGroupDataUsageDefaultSortByOption);
@@ -747,7 +754,7 @@ namespace ShadowsocksUriGenerator.CLI
             settingsSetCommand.AddOption(settingsOutlineServerGlobalDefaultUserOption);
             settingsSetCommand.AddOption(settingsApiServerBaseUrlOption);
             settingsSetCommand.AddOption(settingsApiServerSecretPathOption);
-            settingsSetCommand.SetHandler<SortBy?, SortBy?, bool?, bool?, bool?, string?, string?, bool?, bool?, string?, string?, string?, CancellationToken>(SettingsCommand.Set, settingsUserDataUsageDefaultSortByOption, settingsGroupDataUsageDefaultSortByOption, settingsOnlineConfigSortByNameOption, settingsOnlineConfigDeliverByGroupOption, settingsOnlineConfigCleanOnUserRemovalOption, settingsOnlineConfigOutputDirectoryOption, settingsOnlineConfigDeliveryRootUriOption, settingsOutlineServerApplyDefaultUserOnAssociationOption, settingsOutlineServerApplyDataLimitOnAssociationOption, settingsOutlineServerGlobalDefaultUserOption, settingsApiServerBaseUrlOption, settingsApiServerSecretPathOption);
+            settingsSetCommand.SetHandler(SettingsCommand.Set, settingsSetBinder, cancellationTokenBinder);
 
             interactiveCommand.SetHandler(
                 async () =>
@@ -776,7 +783,7 @@ namespace ShadowsocksUriGenerator.CLI
             serviceCommand.AddOption(serviceGenerateOnlineConfigOption);
             serviceCommand.AddOption(serviceRegenerateOnlineConfigOption);
             serviceCommand.AddValidator(ServiceCommand.ValidateRun);
-            serviceCommand.SetHandler<int, bool, bool, bool, bool, CancellationToken>(ServiceCommand.Run, serviceIntervalOption, servicePullOutlineServerOption, serviceDeployOutlineServerOption, serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption);
+            serviceCommand.SetHandler(ServiceCommand.Run, serviceIntervalOption, servicePullOutlineServerOption, serviceDeployOutlineServerOption, serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption, cancellationTokenBinder);
 
             Console.OutputEncoding = Encoding.UTF8;
             return rootCommand.InvokeAsync(args);

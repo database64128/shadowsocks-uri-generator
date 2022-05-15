@@ -55,8 +55,10 @@ namespace ShadowsocksUriGenerator.CLI
                     return "aes-256-gcm";
                 case "AEAD_CHACHA20_POLY1305" or "chacha20-poly1305" or "chacha20-ietf-poly1305":
                     return "chacha20-ietf-poly1305";
+                case "2022-blake3-aes-128-gcm" or "2022-blake3-aes-256-gcm" or "2022-blake3-chacha8-poly1305" or "2022-blake3-chacha12-poly1305" or "2022-blake3-chacha20-poly1305":
+                    return method;
                 default:
-                    argumentResult.ErrorMessage = $"Invalid Shadowsocks AEAD method: {method}";
+                    argumentResult.ErrorMessage = $"Invalid Shadowsocks AEAD or 2022 method: {method}";
                     return string.Empty;
             }
         }

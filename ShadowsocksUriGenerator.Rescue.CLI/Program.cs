@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
+using System;
 using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Text;
@@ -26,7 +27,9 @@ internal class Program
             outputDirOption,
         };
 
-        rootCommand.SetHandler<string, string, CancellationToken>(HandleRootCommand, onlineConfigDirOption, outputDirOption);
+        var cancellationTokenBinder = new CancellationTokenBinder();
+
+        rootCommand.SetHandler(HandleRootCommand, onlineConfigDirOption, outputDirOption, cancellationTokenBinder);
 
         Console.OutputEncoding = Encoding.UTF8;
         return rootCommand.InvokeAsync(args);

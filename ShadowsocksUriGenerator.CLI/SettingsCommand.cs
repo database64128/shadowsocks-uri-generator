@@ -1,4 +1,5 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
+﻿using ShadowsocksUriGenerator.CLI.Binders;
+using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -40,18 +41,7 @@ namespace ShadowsocksUriGenerator.CLI
         }
 
         public static async Task<int> Set(
-            SortBy? userDataUsageDefaultSortBy,
-            SortBy? groupDataUsageDefaultSortBy,
-            bool? onlineConfigSortByName,
-            bool? onlineConfigDeliverByGroup,
-            bool? onlineConfigCleanOnUserRemoval,
-            string? onlineConfigOutputDirectory,
-            string? onlineConfigDeliveryRootUri,
-            bool? outlineServerApplyDefaultUserOnAssociation,
-            bool? outlineServerApplyDataLimitOnAssociation,
-            string? outlineServerGlobalDefaultUser,
-            string? apiServerBaseUrl,
-            string? apiServerSecretPath,
+            SettingsSetChangeSet settingsSetChangeSet,
             CancellationToken cancellationToken = default)
         {
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
@@ -61,33 +51,33 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            if (userDataUsageDefaultSortBy is SortBy userSortBy)
+            if (settingsSetChangeSet.UserDataUsageDefaultSortBy is SortBy userSortBy)
                 settings.UserDataUsageDefaultSortBy = userSortBy;
-            if (groupDataUsageDefaultSortBy is SortBy groupSortBy)
+            if (settingsSetChangeSet.GroupDataUsageDefaultSortBy is SortBy groupSortBy)
                 settings.GroupDataUsageDefaultSortBy = groupSortBy;
 
-            if (onlineConfigSortByName is bool sortByName)
+            if (settingsSetChangeSet.OnlineConfigSortByName is bool sortByName)
                 settings.OnlineConfigSortByName = sortByName;
-            if (onlineConfigDeliverByGroup is bool deliverByGroup)
+            if (settingsSetChangeSet.OnlineConfigDeliverByGroup is bool deliverByGroup)
                 settings.OnlineConfigDeliverByGroup = deliverByGroup;
-            if (onlineConfigCleanOnUserRemoval is bool cleanOnUserRemoval)
+            if (settingsSetChangeSet.OnlineConfigCleanOnUserRemoval is bool cleanOnUserRemoval)
                 settings.OnlineConfigCleanOnUserRemoval = cleanOnUserRemoval;
-            if (!string.IsNullOrEmpty(onlineConfigOutputDirectory))
-                settings.OnlineConfigOutputDirectory = onlineConfigOutputDirectory;
-            if (!string.IsNullOrEmpty(onlineConfigDeliveryRootUri))
-                settings.OnlineConfigDeliveryRootUri = onlineConfigDeliveryRootUri;
+            if (!string.IsNullOrEmpty(settingsSetChangeSet.OnlineConfigOutputDirectory))
+                settings.OnlineConfigOutputDirectory = settingsSetChangeSet.OnlineConfigOutputDirectory;
+            if (!string.IsNullOrEmpty(settingsSetChangeSet.OnlineConfigDeliveryRootUri))
+                settings.OnlineConfigDeliveryRootUri = settingsSetChangeSet.OnlineConfigDeliveryRootUri;
 
-            if (outlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
+            if (settingsSetChangeSet.OutlineServerApplyDefaultUserOnAssociation is bool applyDefaultUserOnAssociation)
                 settings.OutlineServerApplyDefaultUserOnAssociation = applyDefaultUserOnAssociation;
-            if (outlineServerApplyDataLimitOnAssociation is bool applyDataLimitOnAssociation)
+            if (settingsSetChangeSet.OutlineServerApplyDataLimitOnAssociation is bool applyDataLimitOnAssociation)
                 settings.OutlineServerApplyDataLimitOnAssociation = applyDataLimitOnAssociation;
-            if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
-                settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
+            if (!string.IsNullOrEmpty(settingsSetChangeSet.OutlineServerGlobalDefaultUser))
+                settings.OutlineServerGlobalDefaultUser = settingsSetChangeSet.OutlineServerGlobalDefaultUser;
 
-            if (!string.IsNullOrEmpty(apiServerBaseUrl))
-                settings.ApiServerBaseUrl = apiServerBaseUrl;
-            if (!string.IsNullOrEmpty(apiServerSecretPath))
-                settings.ApiServerSecretPath = apiServerSecretPath;
+            if (!string.IsNullOrEmpty(settingsSetChangeSet.ApiServerBaseUrl))
+                settings.ApiServerBaseUrl = settingsSetChangeSet.ApiServerBaseUrl;
+            if (!string.IsNullOrEmpty(settingsSetChangeSet.ApiServerSecretPath))
+                settings.ApiServerSecretPath = settingsSetChangeSet.ApiServerSecretPath;
 
             var saveSettingsErrMsg = await Settings.SaveSettingsAsync(settings, cancellationToken);
             if (saveSettingsErrMsg is not null)

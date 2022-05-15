@@ -161,7 +161,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static async Task<int> Clean(string[] usernames, CancellationToken cancellationToken = default)
+        public static async Task<int> Clean(string[] usernames, bool _, CancellationToken cancellationToken = default)
         {
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)

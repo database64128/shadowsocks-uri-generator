@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator
     /// <summary>
     /// Each user has a unique name and a list of credentials.
     /// </summary>
-    public class User : IDataUsage, IDataLimit
+    public class User
     {
         /// <summary>
         /// Gets or sets the UUID of the user.
