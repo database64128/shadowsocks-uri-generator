@@ -6,27 +6,27 @@ using Microsoft.OpenApi.Models;
 using ShadowsocksUriGenerator;
 using ShadowsocksUriGenerator.Services;
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Host.ConfigureAppConfiguration((hostingContext, config) =>
-{
-    Trace.Assert(config.Sources.Count == 4);
+// Workaround for https://github.com/dotnet/runtime/issues/61675.
+// Can be removed in .NET 7.
+IConfigurationBuilder config = builder.Configuration;
 
-    config.Sources.RemoveAt(3);
-    config.Sources.RemoveAt(2);
-    config.Sources.RemoveAt(1);
+// Remove JSON and env providers.
+// This appears to be the only way. If we clear Sources, ASPNETCORE_URLS won't work.
+config.Sources.RemoveAt(config.Sources.Count - 1);
+config.Sources.RemoveAt(config.Sources.Count - 1);
+config.Sources.RemoveAt(config.Sources.Count - 1);
 
-    config.SetBasePath(FileHelper.configDirectory)
-          .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-          .AddJsonFile($"appsettings.{hostingContext.HostingEnvironment.EnvironmentName}.json", optional: true, reloadOnChange: true);
+builder.Configuration.SetBasePath(FileHelper.configDirectory)
+                     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true);
 
-    config.AddEnvironmentVariables();
-});
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddSingleton<IDataService, DataService>();
 builder.Services.AddHostedService(provider => provider.GetService<IDataService>() as DataService ?? throw new Exception("Injected IDataService is not DataService."));
