@@ -53,6 +53,10 @@ builder.Services.AddSwaggerGen(c =>
     {
         c.IncludeXmlComments(xmlPath);
     }
+    else
+    {
+        Console.WriteLine("Warning: XML comment file not found.");
+    }
 });
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
