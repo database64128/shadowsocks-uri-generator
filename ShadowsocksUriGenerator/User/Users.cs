@@ -138,15 +138,6 @@ namespace ShadowsocksUriGenerator
                 return -1;
         }
 
-        /// <inheritdoc cref="AddCredentialToUser(string, string, string, string)"/>
-        public int AddCredentialToUser(string user, string group, string userinfoBase64url)
-        {
-            if (UserDict.TryGetValue(user, out var targetUser))
-                return targetUser.AddCredential(group, userinfoBase64url);
-            else
-                return -1;
-        }
-
         /// <summary>
         /// Updates credential entries for all users when group name changes.
         /// </summary>

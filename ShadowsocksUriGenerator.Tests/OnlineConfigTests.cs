@@ -20,7 +20,7 @@ namespace ShadowsocksUriGenerator.Tests
 
             var users = new Users();
             users.AddUser("root");
-            users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
+            users.AddCredentialToUser("root", "MyGroup", "chacha20-ietf-poly1305", "ymghiR#75TNqpa");
             users.AddCredentialToUser("root", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
             var user = users.UserDict.First();
 
@@ -179,7 +179,7 @@ namespace ShadowsocksUriGenerator.Tests
             users.AddUser("root");
             users.AddUser("http");
             users.AddUser("nobody");
-            users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
+            users.AddCredentialToUser("root", "MyGroup", "chacha20-ietf-poly1305", "ymghiR#75TNqpa");
             users.AddCredentialToUser("http", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
             var rootUser = users.UserDict["root"];
             var httpUser = users.UserDict["http"];

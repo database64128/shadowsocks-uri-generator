@@ -88,38 +88,6 @@ namespace ShadowsocksUriGenerator
         }
 
         /// <summary>
-        /// Adds a new credential to the user's credential dictionary.
-        /// </summary>
-        /// <param name="group">The new credential's group name.</param>
-        /// <param name="userinfoBase64url">userinfo (method:password) in base64url</param>
-        /// <returns>0 for success. 2 for duplicated credential. -2 for invalid userinfo base64url.</returns>
-        public int AddCredential(string group, string userinfoBase64url)
-        {
-            if (MemberInfo.TryParseFromUserinfoBase64url(userinfoBase64url, out var memberInfo))
-            {
-                if (!Memberships.ContainsKey(group)) // not in group, add user to it
-                {
-                    Memberships.Add(group, memberInfo);
-                    return 0;
-                }
-                else if (!Memberships[group].HasCredential) // already in group without credential, add credential
-                {
-                    Memberships[group].Method = memberInfo.Method;
-                    Memberships[group].Password = memberInfo.Password;
-                    return 0;
-                }
-                else // already in group with credential
-                {
-                    return 2;
-                }
-            }
-            else
-            {
-                return -2;
-            }
-        }
-
-        /// <summary>
         /// Removes the user from the specified group.
         /// </summary>
         /// <param name="group">Name of the group.</param>

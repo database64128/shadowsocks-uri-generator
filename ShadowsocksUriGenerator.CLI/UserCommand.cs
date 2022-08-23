@@ -306,9 +306,8 @@ namespace ShadowsocksUriGenerator.CLI
         public static async Task<int> AddCredential(
             string username,
             string[] groups,
-            string? method,
-            string? password,
-            string? userinfoBase64url,
+            string method,
+            string password,
             bool allGroups,
             CancellationToken cancellationToken = default)
         {
@@ -340,15 +339,7 @@ namespace ShadowsocksUriGenerator.CLI
                     return -1;
                 }
 
-                int result;
-
-                if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
-                    result = users.AddCredentialToUser(username, group, method, password);
-                else if (!string.IsNullOrEmpty(userinfoBase64url))
-                    result = users.AddCredentialToUser(username, group, userinfoBase64url);
-                else
-                    result = users.AddUserToGroup(username, group);
-
+                var result = users.AddCredentialToUser(username, group, method, password);
                 switch (result)
                 {
                     case 0:

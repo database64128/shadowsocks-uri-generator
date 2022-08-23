@@ -489,9 +489,8 @@ namespace ShadowsocksUriGenerator.CLI
         public static async Task<int> AddCredential(
             string group,
             string[] usernames,
-            string? method,
-            string? password,
-            string? userinfoBase64url,
+            string method,
+            string password,
             bool allUsers,
             CancellationToken cancellationToken = default)
         {
@@ -522,16 +521,7 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 foreach (var userEntry in users.UserDict)
                 {
-                    int result;
-                    if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
-                        result = userEntry.Value.AddCredential(group, method, password);
-                    else if (!string.IsNullOrEmpty(userinfoBase64url))
-                        result = userEntry.Value.AddCredential(group, userinfoBase64url);
-                    else
-                    {
-                        Console.WriteLine("You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.");
-                        return -1;
-                    }
+                    var result = userEntry.Value.AddCredential(group, method, password);
                     switch (result)
                     {
                         case 0:
@@ -554,16 +544,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             foreach (var username in usernames)
             {
-                int result;
-                if (!string.IsNullOrEmpty(method) && !string.IsNullOrEmpty(password))
-                    result = users.AddCredentialToUser(username, group, method, password);
-                else if (!string.IsNullOrEmpty(userinfoBase64url))
-                    result = users.AddCredentialToUser(username, group, userinfoBase64url);
-                else
-                {
-                    Console.WriteLine("You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.");
-                    return -1;
-                }
+                var result = users.AddCredentialToUser(username, group, method, password);
                 switch (result)
                 {
                     case 0:

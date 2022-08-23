@@ -69,15 +69,11 @@ namespace ShadowsocksUriGenerator.CLI
         {
             var hasMethod = commandResult.ContainsSymbolWithName("method");
             var hasPassword = commandResult.ContainsSymbolWithName("password");
-            var hasUserinfo = commandResult.ContainsSymbolWithName("userinfo-base64url");
 
-            if (hasMethod && hasPassword && !hasUserinfo ||
-                !hasMethod && !hasPassword && hasUserinfo)
-            {
+            if (hasMethod && hasPassword)
                 return;
-            }
 
-            commandResult.ErrorMessage = "You must specify either `--method <method> --password <password>` or `--userinfo-base64url <base64url>`.";
+            commandResult.ErrorMessage = "Please specify both method and password: `--method <method> --password <password>`.";
         }
     }
 }

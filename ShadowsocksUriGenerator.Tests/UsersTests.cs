@@ -66,37 +66,6 @@ namespace ShadowsocksUriGenerator.Tests
             }
         }
 
-        [Theory]
-        [InlineData("chacha20-ietf-poly1305", "kf!V!TFzgeNd93GE", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTprZiFWIVRGemdlTmQ5M0dF")]
-        [InlineData("aes-256-gcm", "ymghiR#75TNqpa", "YWVzLTI1Ni1nY206eW1naGlSIzc1VE5xcGE")]
-        [InlineData("aes-128-gcm", "tK*sk!9N8@86:UVm", "YWVzLTEyOC1nY206dEsqc2shOU44QDg2OlVWbQ")]
-        public void New_Credential_MethodPassword(string method, string password, string expectedUserinfoBase64url)
-        {
-            var credential = new MemberInfo(method, password);
-
-            Assert.Equal(expectedUserinfoBase64url, credential.UserinfoBase64url);
-        }
-
-        [Theory]
-        [InlineData("dXNlcmluZm9CYXNlNjR1cmw", false, "", "")] // missing :
-        [InlineData("Og", false, "", "")] // only has :
-        [InlineData("Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTo", false, "chacha20-ietf-poly1305", "")] // missing password
-        [InlineData("OjYlbThEOWFNQjViQSVhNCU", false, "", "6%m8D9aMB5bA%a4%")] // missing method
-        [InlineData("Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTo2JW04RDlhTUI1YkElYTQl", true, "chacha20-ietf-poly1305", "6%m8D9aMB5bA%a4%")]
-        [InlineData("YWVzLTI1Ni1nY206YnBOZ2sqSjNrYUFZeXhIRQ", true, "aes-256-gcm", "bpNgk*J3kaAYyxHE")]
-        [InlineData("YWVzLTEyOC1nY206dkFBbiY4a1I6JGlBRTQ", true, "aes-128-gcm", "vAAn&8kR:$iAE4")]
-        public void New_Credential_UserinfoBase64url(string userinfoBase64url, bool expectedParseResult, string expectedMethod, string expectedPassword)
-        {
-            var result = MemberInfo.TryParseFromUserinfoBase64url(userinfoBase64url, out var method, out var password);
-
-            Assert.Equal(expectedParseResult, result);
-            if (result)
-            {
-                Assert.Equal(expectedMethod, method);
-                Assert.Equal(expectedPassword, password);
-            }
-        }
-
         [Fact]
         public void Add_Update_Remove_Group_ReturnsResult()
         {
@@ -173,12 +142,11 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.True(users.UserDict.ContainsKey("http"));
 
             // Add
-            var successAdd = users.AddCredentialToUser("root", "MyGroup", "Y2hhY2hhMjAtaWV0Zi1wb2x5MTMwNTp5bWdoaVIjNzVUTnFwYQ");
-            var anotherSuccessAdd = users.AddCredentialToUser("http", "MyGroup", "YWVzLTEyOC1nY206dEsqc2shOU44QDg2OlVWbWM");
-            var yetAnotherSuccessAdd = users.AddCredentialToUser("root", "MyGroupWithPlugin", "YWVzLTEyOC1nY206dkFBbiY4a1I6JGlBRTQ0JA");
+            var successAdd = users.AddCredentialToUser("root", "MyGroup", "chacha20-ietf-poly1305", "ymghiR#75TNqpa");
+            var anotherSuccessAdd = users.AddCredentialToUser("http", "MyGroup", "aes-128-gcm", "tK*sk!9N8@86:UVmc");
+            var yetAnotherSuccessAdd = users.AddCredentialToUser("root", "MyGroupWithPlugin", "aes-128-gcm", "vAAn&8kR:$iAE44$");
             var duplicateAdd = users.AddCredentialToUser("root", "MyGroup", "aes-256-gcm", "wLhN2STZ");
             var badUserAdd = users.AddCredentialToUser("nobody", "MyGroup", "aes-256-gcm", "wLhN2STZ");
-            var badUserinfoAdd = users.AddCredentialToUser("http", "MyGroupWithPlugin", "PR6Lf9UR22C5LNBhzEcpsWxd6WpsaeSs");
 
             var rootUserMemberships = users.UserDict["root"].Memberships;
             var httpUserMemberships = users.UserDict["http"].Memberships;
@@ -188,7 +156,6 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(0, yetAnotherSuccessAdd);
             Assert.Equal(2, duplicateAdd);
             Assert.Equal(-1, badUserAdd);
-            Assert.Equal(-2, badUserinfoAdd);
 
             Assert.True(rootUserMemberships.ContainsKey("MyGroup"));
             Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));

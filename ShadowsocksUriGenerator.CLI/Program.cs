@@ -3,7 +3,6 @@ using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.CommandLine;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI
@@ -190,6 +189,9 @@ namespace ShadowsocksUriGenerator.CLI
             var hostArgument = new Argument<string>("host", "Hostname of the node.");
             var portArgument = new Argument<int>("port", Parsers.ParsePortNumber, false, "Port number of the node.");
 
+            var methodArgument = new Argument<string>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
+            var passwordArgument = new Argument<string>("--password", "The password. Use with --method.");
+
             var ownerArgument = new Argument<string>("owner", "Set the owner.");
             var tagsArgument = new Argument<string[]>("tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.")
             {
@@ -254,10 +256,6 @@ namespace ShadowsocksUriGenerator.CLI
                 AllowMultipleArgumentsPerToken = true,
             };
             var clearTagsOption = new Option<bool>("--clear-tags", "Remove all tags from the node.");
-
-            var methodOption = new Option<string?>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
-            var passwordOption = new Option<string?>("--password", "The password. Use with --method.");
-            var userinfoBase64urlOption = new Option<string?>("--userinfo-base64url", "The userinfo (method + ':' + password) encoded in URL-safe base64. Do not specify with '--method' or '--password'.");
 
             var globalDataLimitOption = new Option<ulong?>("--global", Parsers.ParseDataString, false, "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
             var perUserDataLimitOption = new Option<ulong?>("--per-user", Parsers.ParseDataString, false, "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
@@ -361,13 +359,12 @@ namespace ShadowsocksUriGenerator.CLI
             userAddCredentialCommand.AddAlias("ac");
             userAddCredentialCommand.AddArgument(usernameArgument);
             userAddCredentialCommand.AddArgument(groupsArgumentZeroOrMore);
-            userAddCredentialCommand.AddOption(methodOption);
-            userAddCredentialCommand.AddOption(passwordOption);
-            userAddCredentialCommand.AddOption(userinfoBase64urlOption);
+            userAddCredentialCommand.AddArgument(methodArgument);
+            userAddCredentialCommand.AddArgument(passwordArgument);
             userAddCredentialCommand.AddOption(allGroupsOption);
             userAddCredentialCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
             userAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            userAddCredentialCommand.SetHandler<string, string[], string?, string?, string?, bool, CancellationToken>(UserCommand.AddCredential, usernameArgument, groupsArgumentZeroOrMore, methodOption, passwordOption, userinfoBase64urlOption, allGroupsOption, cancellationTokenBinder);
+            userAddCredentialCommand.SetHandler(UserCommand.AddCredential, usernameArgument, groupsArgumentZeroOrMore, methodArgument, passwordArgument, allGroupsOption, cancellationTokenBinder);
 
             userRemoveCredentialsCommand.AddAlias("rc");
             userRemoveCredentialsCommand.AddArgument(usernameArgument);
@@ -640,13 +637,12 @@ namespace ShadowsocksUriGenerator.CLI
             groupAddCredentialCommand.AddAlias("ac");
             groupAddCredentialCommand.AddArgument(groupArgument);
             groupAddCredentialCommand.AddArgument(usernamesArgumentZeroOrMore);
-            groupAddCredentialCommand.AddOption(methodOption);
-            groupAddCredentialCommand.AddOption(passwordOption);
-            groupAddCredentialCommand.AddOption(userinfoBase64urlOption);
+            groupAddCredentialCommand.AddArgument(methodArgument);
+            groupAddCredentialCommand.AddArgument(passwordArgument);
             groupAddCredentialCommand.AddOption(allUsersOption);
             groupAddCredentialCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
             groupAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, usernamesArgumentZeroOrMore, methodOption, passwordOption, userinfoBase64urlOption, allUsersOption, cancellationTokenBinder);
+            groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, usernamesArgumentZeroOrMore, methodArgument, passwordArgument, allUsersOption, cancellationTokenBinder);
 
             groupRemoveCredentialsCommand.AddAlias("rc");
             groupRemoveCredentialsCommand.AddArgument(groupArgument);
