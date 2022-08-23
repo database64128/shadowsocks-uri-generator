@@ -1,4 +1,4 @@
-﻿using ShadowsocksUriGenerator.Protocols.Shadowsocks;
+﻿using ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
 using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.Federation.Config.Shadowsocks;
@@ -10,5 +10,5 @@ public class HostGroupConfigShadowsocksSimple : HostGroupConfigShadowsocks
     /// Key is user ID.
     /// Value is credential.
     /// </summary>
-    public Dictionary<ulong, ShadowsocksServerCredential> Credentials { get; set; } = new();
+    public Dictionary<ulong, FederatedShadowsocksServerCredential> Credentials { get; set; } = new();
 }

@@ -1,5 +1,5 @@
 ﻿using OpenOnlineConfig.v1;
-using ShadowsocksUriGenerator.Protocols.Shadowsocks;
+using ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
 using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.Federation.Data;
@@ -18,5 +18,5 @@ public class FederatedPeerData
     /// Key is server ID. Starts from 0.
     /// Value is server config.
     /// </summary>
-    public Dictionary<ulong, ShadowsocksServerConfig> Servers { get; set; } = new();
+    public Dictionary<ulong, FederatedShadowsocksServerConfig> Servers { get; set; } = new();
 }

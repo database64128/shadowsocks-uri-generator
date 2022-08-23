@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.Protocols.Shadowsocks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -185,7 +186,7 @@ namespace ShadowsocksUriGenerator
                         if (nodeEntry.Value.Deactivated)
                             continue;
 
-                        Shadowsocks.Models.IServer server = new Shadowsocks.Models.Server()
+                        IShadowsocksServerConfig serverConfig = new ShadowsocksServerConfig()
                         {
                             Id = nodeEntry.Value.Uuid,
                             Name = nodeEntry.Key,
@@ -199,7 +200,7 @@ namespace ShadowsocksUriGenerator
                             PluginArguments = nodeEntry.Value.PluginArguments,
                         };
 
-                        uris.Add(server.ToUrl());
+                        uris.Add(serverConfig.ToUri());
                     }
                 }
             }

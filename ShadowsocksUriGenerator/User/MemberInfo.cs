@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.Utils;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -17,7 +18,7 @@ namespace ShadowsocksUriGenerator
         public string Userinfo => $"{Method}:{Password}";
 
         [JsonIgnore]
-        public string UserinfoBase64url => Shadowsocks.Utils.Base64Url.Encode(Userinfo);
+        public string UserinfoBase64url => Base64Url.Encode(Userinfo);
 
         /// <summary>
         /// Gets whether the member info contains credential.
@@ -69,7 +70,7 @@ namespace ShadowsocksUriGenerator
             [NotNullWhen(true)] out string? method,
             [NotNullWhen(true)] out string? password)
         {
-            var userinfo = Shadowsocks.Utils.Base64Url.DecodeToString(userinfoBase64url);
+            var userinfo = Base64Url.DecodeToString(userinfoBase64url);
             var methodPasswordArray = userinfo.Split(':', 2);
 
             if (methodPasswordArray.Length == 2)

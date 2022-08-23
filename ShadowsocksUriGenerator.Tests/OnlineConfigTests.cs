@@ -73,6 +73,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal("server;tls;host=github.com", singleServerWithPlugin.PluginOptions);
             Assert.Equal("-vvvvvv", singleServerWithPlugin.PluginArguments);
             Assert.Equal("root", singleServerWithPlugin.Owner);
+            Assert.NotNull(singleServerWithPlugin.Tags);
             Assert.Single(singleServerWithPlugin.Tags, "test");
 
             // userPerGroupOnlineConfigDict
@@ -116,6 +117,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal("server;tls;host=github.com", serverWithPlugin.PluginOptions);
             Assert.Equal("-vvvvvv", serverWithPlugin.PluginArguments);
             Assert.Equal("root", serverWithPlugin.Owner);
+            Assert.NotNull(serverWithPlugin.Tags);
             Assert.Single(serverWithPlugin.Tags, "test");
 
             // userMyGroupOnlineConfig
@@ -159,6 +161,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal("server;tls;host=github.com", serverMyGroupWithPlugin.PluginOptions);
             Assert.Equal("-vvvvvv", serverMyGroupWithPlugin.PluginArguments);
             Assert.Equal("root", serverMyGroupWithPlugin.Owner);
+            Assert.NotNull(serverMyGroupWithPlugin.Tags);
             Assert.Single(serverMyGroupWithPlugin.Tags, "test");
         }
 

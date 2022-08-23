@@ -1,25 +1,74 @@
-﻿using Shadowsocks.Models;
+﻿using ShadowsocksUriGenerator.Protocols.Shadowsocks;
+using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
-namespace ShadowsocksUriGenerator.OnlineConfig
+namespace ShadowsocksUriGenerator.OnlineConfig;
+
+public class SIP008Server : IShadowsocksServerConfig
 {
-    public class SIP008Server : Shadowsocks.OnlineConfig.SIP008.SIP008Server
+    /// <inheritdoc/>
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+
+    /// <inheritdoc/>
+    [JsonPropertyName("remarks")]
+    public string Name { get; set; } = "";
+
+    /// <inheritdoc/>
+    [JsonPropertyName("server")]
+    public string Host { get; set; } = "";
+
+    /// <inheritdoc/>
+    [JsonPropertyName("server_port")]
+    public int Port { get; set; }
+
+    /// <inheritdoc/>
+    public string Method { get; set; } = "2022-blake3-aes-256-gcm";
+
+    /// <inheritdoc/>
+    public string Password { get; set; } = "";
+
+    /// <inheritdoc/>
+    [JsonPropertyName("plugin")]
+    public string? PluginName { get; set; }
+
+    /// <inheritdoc/>
+    public string? PluginVersion { get; set; }
+
+    /// <inheritdoc/>
+    [JsonPropertyName("plugin_opts")]
+    public string? PluginOptions { get; set; }
+
+    /// <inheritdoc/>
+    [JsonPropertyName("plugin_args")]
+    public string? PluginArguments { get; set; }
+
+    /// <inheritdoc cref="OOCv1ShadowsocksServer.Group"/>
+    public string? Group { get; set; }
+
+    /// <inheritdoc cref="OOCv1ShadowsocksServer.Owner"/>
+    public string? Owner { get; set; }
+
+    /// <inheritdoc cref="OOCv1ShadowsocksServer.Tags"/>
+    public List<string>? Tags { get; set; }
+
+    public SIP008Server()
     {
-        /// <inheritdoc cref="OOCv1ShadowsocksServer.Group"/>
-        public string? Group { get; set; }
-
-        /// <inheritdoc cref="OOCv1ShadowsocksServer.Owner"/>
-        public string? Owner { get; set; }
-
-        /// <inheritdoc cref="OOCv1ShadowsocksServer.Tags"/>
-        public List<string>? Tags { get; set; }
-
-        public SIP008Server()
-        {
-        }
-
-        public SIP008Server(IServer server) : base(server)
-        {
-        }
     }
+
+    public SIP008Server(IShadowsocksServerConfig server)
+    {
+        Id = server.Id;
+        Name = server.Name;
+        Host = server.Host;
+        Port = server.Port;
+        Method = server.Method;
+        Password = server.Password;
+        PluginName = server.PluginName;
+        PluginVersion = server.PluginVersion;
+        PluginOptions = server.PluginOptions;
+        PluginArguments = server.PluginArguments;
+    }
+
+    public IShadowsocksServerConfig ToIShadowsocksServerConfig() => this;
 }

@@ -1,4 +1,4 @@
-﻿using ShadowsocksUriGenerator.Protocols.Shadowsocks;
+﻿using ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
 using ShadowsocksUriGenerator.Stats;
 using System.Collections.Generic;
 
@@ -11,7 +11,7 @@ public class HostGroupDataShadowsocks
     /// Key is user ID.
     /// Value is credential.
     /// </summary>
-    public Dictionary<ulong, ShadowsocksServerCredential> Credentials { get; set; } = new();
+    public Dictionary<ulong, FederatedShadowsocksServerCredential> Credentials { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the group's total data usage stats.

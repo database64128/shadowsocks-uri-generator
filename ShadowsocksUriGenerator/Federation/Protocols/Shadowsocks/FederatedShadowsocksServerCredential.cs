@@ -1,6 +1,6 @@
-﻿namespace ShadowsocksUriGenerator.Protocols.Shadowsocks;
+﻿namespace ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
 
-public class ShadowsocksServerCredential
+public class FederatedShadowsocksServerCredential
 {
     public int Port { get; set; }
 
