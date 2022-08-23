@@ -147,7 +147,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers
                                 Host = nodeEntry.Value.Host,
                                 Port = nodeEntry.Value.Port,
                                 Method = membership.Value.Method,
-                                Password = membership.Value.Password,
+                                Password = membership.Value.PasswordForNode(nodeEntry.Value.IdentityPSKs),
                                 PluginName = nodeEntry.Value.Plugin,
                                 PluginVersion = nodeEntry.Value.PluginVersion,
                                 PluginOptions = nodeEntry.Value.PluginOpts,

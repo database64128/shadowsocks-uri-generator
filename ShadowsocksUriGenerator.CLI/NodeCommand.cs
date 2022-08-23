@@ -60,7 +60,7 @@ namespace ShadowsocksUriGenerator.CLI
             // Deduplicate tags.
             var tags = nodeAddChangeSet.Tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
-            var result = nodes.AddNodeToGroup(nodeAddChangeSet.Group, nodeAddChangeSet.Nodename, nodeAddChangeSet.Host, nodeAddChangeSet.Port, nodeAddChangeSet.PluginName, nodeAddChangeSet.PluginVersion, nodeAddChangeSet.PluginOptions, nodeAddChangeSet.PluginArguments, ownerUuid, tags);
+            var result = nodes.AddNodeToGroup(nodeAddChangeSet.Group, nodeAddChangeSet.Nodename, nodeAddChangeSet.Host, nodeAddChangeSet.Port, nodeAddChangeSet.PluginName, nodeAddChangeSet.PluginVersion, nodeAddChangeSet.PluginOptions, nodeAddChangeSet.PluginArguments, ownerUuid, tags, nodeAddChangeSet.IdentityPSKs);
             switch (result)
             {
                 case 0:
@@ -185,6 +185,16 @@ namespace ShadowsocksUriGenerator.CLI
                                 Console.WriteLine($"Warning: Tag {tag} doesn't exist.");
                             }
                         }
+                    }
+
+                    if (nodeEditChangeSet.IdentityPSKs.Length > 0)
+                    {
+                        node.IdentityPSKs = nodeEditChangeSet.IdentityPSKs.ToList();
+                    }
+
+                    if (nodeEditChangeSet.ClearIPSKs)
+                    {
+                        node.IdentityPSKs.Clear();
                     }
 
                     var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
@@ -411,6 +421,7 @@ namespace ShadowsocksUriGenerator.CLI
                 {
                     string? owner = null;
                     var tags = nodeEntry.Value.Tags;
+                    var iPSKs = nodeEntry.Value.IdentityPSKs;
 
                     // Resolve owner username
                     if (nodeEntry.Value.OwnerUuid is string ownerUuid)
@@ -441,6 +452,13 @@ namespace ShadowsocksUriGenerator.CLI
                             Console.WriteLine($"- {tag}");
                         }
 
+                        Console.WriteLine($"iPSKs: {iPSKs.Count}");
+
+                        foreach (var iPSK in iPSKs)
+                        {
+                            Console.WriteLine($"- {iPSK}");
+                        }
+
                         Console.WriteLine();
                     }
                     else // One node per line
@@ -450,6 +468,13 @@ namespace ShadowsocksUriGenerator.CLI
                         foreach (var tag in tags)
                         {
                             Console.Write($" {tag}");
+                        }
+
+                        Console.Write($" iPSKs {iPSKs.Count}");
+
+                        foreach (var iPSK in iPSKs)
+                        {
+                            Console.Write($" {iPSK}");
                         }
 
                         Console.WriteLine();

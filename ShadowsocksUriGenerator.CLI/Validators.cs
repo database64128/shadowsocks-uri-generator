@@ -64,16 +64,5 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult.ErrorMessage = "You can't set and unset owner at the same time.";
             }
         }
-
-        public static void ValidateAddCredential(CommandResult commandResult)
-        {
-            var hasMethod = commandResult.ContainsSymbolWithName("method");
-            var hasPassword = commandResult.ContainsSymbolWithName("password");
-
-            if (hasMethod && hasPassword)
-                return;
-
-            commandResult.ErrorMessage = "Please specify both method and password: `--method <method> --password <password>`.";
-        }
     }
 }

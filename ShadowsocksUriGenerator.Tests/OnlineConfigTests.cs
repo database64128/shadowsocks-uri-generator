@@ -24,8 +24,8 @@ namespace ShadowsocksUriGenerator.Tests
             users.AddCredentialToUser("root", "MyGroupWithPlugin", "aes-256-gcm", "wLhN2STZ");
             var user = users.UserDict.First();
 
-            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443);
-            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv", user.Value.Uuid, "test");
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv", user.Value.Uuid, new string[] { "test" }, Array.Empty<string>());
             var myNode = nodes.Groups["MyGroup"].NodeDict["MyNode"];
             var myNodeWithPlugin = nodes.Groups["MyGroupWithPlugin"].NodeDict["MyNodeWithPlugin"];
 
@@ -173,8 +173,8 @@ namespace ShadowsocksUriGenerator.Tests
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
             nodes.AddGroup("MyGroupWithPlugin");
-            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443);
-            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com");
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com", null, null, null, Array.Empty<string>(), Array.Empty<string>());
             var users = new Users();
             users.AddUser("root");
             users.AddUser("http");

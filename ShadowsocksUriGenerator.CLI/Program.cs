@@ -189,8 +189,8 @@ namespace ShadowsocksUriGenerator.CLI
             var hostArgument = new Argument<string>("host", "Hostname of the node.");
             var portArgument = new Argument<int>("port", Parsers.ParsePortNumber, false, "Port number of the node.");
 
-            var methodArgument = new Argument<string>("--method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
-            var passwordArgument = new Argument<string>("--password", "The password. Use with --method.");
+            var methodArgument = new Argument<string>("method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
+            var passwordArgument = new Argument<string>("password", "The password. Use with --method.");
 
             var ownerArgument = new Argument<string>("owner", "Set the owner.");
             var tagsArgument = new Argument<string[]>("tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.")
@@ -257,6 +257,12 @@ namespace ShadowsocksUriGenerator.CLI
             };
             var clearTagsOption = new Option<bool>("--clear-tags", "Remove all tags from the node.");
 
+            var iPSKOption = new Option<string[]>("--iPSKs", "Identity PSKs.")
+            {
+                AllowMultipleArgumentsPerToken = true,
+            };
+            var clearIPSKOption = new Option<bool>("--clear-iPSKs", "Remove all identity PSKs from the node.");
+
             var globalDataLimitOption = new Option<ulong?>("--global", Parsers.ParseDataString, false, "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
             var perUserDataLimitOption = new Option<ulong?>("--per-user", Parsers.ParseDataString, false, "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
             var perGroupDataLimitOption = new Option<ulong?>("--per-group", Parsers.ParseDataString, false, "The per-group data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
@@ -307,8 +313,8 @@ namespace ShadowsocksUriGenerator.CLI
             var serviceRegenerateOnlineConfigOption = new Option<bool>("--regenerate-online-config", "Clean and regenerate online config.");
 
             var cancellationTokenBinder = new CancellationTokenBinder();
-            var nodeAddBinder = new NodeAddBinder(groupArgument, nodenameArgument, hostArgument, portArgument, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, ownerOption, tagsOption);
-            var nodeEditBinder = new NodeEditBinder(groupArgument, nodenameArgument, hostOption, portOption, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, unsetPluginOption, ownerOption, unsetOwnerOption, clearTagsOption, addTagsOption, removeTagsOption);
+            var nodeAddBinder = new NodeAddBinder(groupArgument, nodenameArgument, hostArgument, portArgument, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, ownerOption, tagsOption, iPSKOption);
+            var nodeEditBinder = new NodeEditBinder(groupArgument, nodenameArgument, hostOption, portOption, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, unsetPluginOption, ownerOption, unsetOwnerOption, clearTagsOption, addTagsOption, removeTagsOption, iPSKOption, clearIPSKOption);
             var settingsSetBinder = new SettingsSetBinder(settingsUserDataUsageDefaultSortByOption, settingsGroupDataUsageDefaultSortByOption, settingsOnlineConfigSortByNameOption, settingsOnlineConfigDeliverByGroupOption, settingsOnlineConfigCleanOnUserRemovalOption, settingsOnlineConfigOutputDirectoryOption, settingsOnlineConfigDeliveryRootUriOption, settingsOutlineServerApplyDefaultUserOnAssociationOption, settingsOutlineServerApplyDataLimitOnAssociationOption, settingsOutlineServerGlobalDefaultUserOption, settingsApiServerBaseUrlOption, settingsApiServerSecretPathOption);
 
             userCommand.AddAlias("u");
@@ -358,13 +364,12 @@ namespace ShadowsocksUriGenerator.CLI
 
             userAddCredentialCommand.AddAlias("ac");
             userAddCredentialCommand.AddArgument(usernameArgument);
-            userAddCredentialCommand.AddArgument(groupsArgumentZeroOrMore);
             userAddCredentialCommand.AddArgument(methodArgument);
             userAddCredentialCommand.AddArgument(passwordArgument);
+            userAddCredentialCommand.AddArgument(groupsArgumentZeroOrMore);
             userAddCredentialCommand.AddOption(allGroupsOption);
             userAddCredentialCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            userAddCredentialCommand.SetHandler(UserCommand.AddCredential, usernameArgument, groupsArgumentZeroOrMore, methodArgument, passwordArgument, allGroupsOption, cancellationTokenBinder);
+            userAddCredentialCommand.SetHandler(UserCommand.AddCredential, usernameArgument, methodArgument, passwordArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userRemoveCredentialsCommand.AddAlias("rc");
             userRemoveCredentialsCommand.AddArgument(usernameArgument);
@@ -461,6 +466,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddCommand.AddOption(pluginArgumentsOption);
             nodeAddCommand.AddOption(ownerOption);
             nodeAddCommand.AddOption(tagsOption);
+            nodeAddCommand.AddOption(iPSKOption);
             nodeAddCommand.AddValidator(NodeCommand.ValidateNodePlugin);
             nodeAddCommand.SetHandler(NodeCommand.Add, nodeAddBinder, cancellationTokenBinder);
 
@@ -479,6 +485,8 @@ namespace ShadowsocksUriGenerator.CLI
             nodeEditCommand.AddOption(clearTagsOption);
             nodeEditCommand.AddOption(addTagsOption);
             nodeEditCommand.AddOption(removeTagsOption);
+            nodeEditCommand.AddOption(iPSKOption);
+            nodeEditCommand.AddOption(clearIPSKOption);
             nodeEditCommand.AddValidator(NodeCommand.ValidateNodePlugin);
             nodeEditCommand.AddValidator(Validators.ValidateOwnerOptions);
             nodeEditCommand.SetHandler(NodeCommand.Edit, nodeEditBinder, cancellationTokenBinder);
@@ -636,13 +644,12 @@ namespace ShadowsocksUriGenerator.CLI
 
             groupAddCredentialCommand.AddAlias("ac");
             groupAddCredentialCommand.AddArgument(groupArgument);
-            groupAddCredentialCommand.AddArgument(usernamesArgumentZeroOrMore);
             groupAddCredentialCommand.AddArgument(methodArgument);
             groupAddCredentialCommand.AddArgument(passwordArgument);
+            groupAddCredentialCommand.AddArgument(usernamesArgumentZeroOrMore);
             groupAddCredentialCommand.AddOption(allUsersOption);
             groupAddCredentialCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
-            groupAddCredentialCommand.AddValidator(Validators.ValidateAddCredential);
-            groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, usernamesArgumentZeroOrMore, methodArgument, passwordArgument, allUsersOption, cancellationTokenBinder);
+            groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, methodArgument, passwordArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupRemoveCredentialsCommand.AddAlias("rc");
             groupRemoveCredentialsCommand.AddArgument(groupArgument);

@@ -16,6 +16,7 @@ public class NodeAddBinder : BinderBase<NodeAddChangeSet>
     private readonly Option<string?> _pluginArgumentsOption;
     private readonly Option<string?> _ownerOption;
     private readonly Option<string[]> _tagsOption;
+    private readonly Option<string[]> _iPSKsOption;
 
     public NodeAddBinder(
         Argument<string> groupArgument,
@@ -27,7 +28,8 @@ public class NodeAddBinder : BinderBase<NodeAddChangeSet>
         Option<string?> pluginOptionsOption,
         Option<string?> pluginArgumentsOption,
         Option<string?> ownerOption,
-        Option<string[]> tagsOption)
+        Option<string[]> tagsOption,
+        Option<string[]> iPSKsOption)
     {
         _groupArgument = groupArgument;
         _nodenameArgument = nodenameArgument;
@@ -39,6 +41,7 @@ public class NodeAddBinder : BinderBase<NodeAddChangeSet>
         _pluginArgumentsOption = pluginArgumentsOption;
         _ownerOption = ownerOption;
         _tagsOption = tagsOption;
+        _iPSKsOption = iPSKsOption;
     }
 
     protected override NodeAddChangeSet GetBoundValue(BindingContext bindingContext) => new(
@@ -51,5 +54,6 @@ public class NodeAddBinder : BinderBase<NodeAddChangeSet>
         bindingContext.ParseResult.GetValueForOption(_pluginOptionsOption),
         bindingContext.ParseResult.GetValueForOption(_pluginArgumentsOption),
         bindingContext.ParseResult.GetValueForOption(_ownerOption),
-        bindingContext.ParseResult.GetValueForOption(_tagsOption) ?? Array.Empty<string>());
+        bindingContext.ParseResult.GetValueForOption(_tagsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValueForOption(_iPSKsOption) ?? Array.Empty<string>());
 }

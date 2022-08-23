@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator;
@@ -55,5 +57,24 @@ public class MemberInfo : IEquatable<MemberInfo>
     {
         Method = "";
         Password = "";
+    }
+
+    public string PasswordForNode(List<string> iPSKs)
+    {
+        if (iPSKs.Count == 0)
+            return Password;
+
+        var length = iPSKs.Count + iPSKs.Sum(x => x.Length) + Password.Length;
+        return string.Create(length, iPSKs, (chars, iPSKs) =>
+        {
+            foreach (var iPSK in iPSKs)
+            {
+                iPSK.CopyTo(chars);
+                chars[iPSK.Length] = ':';
+                chars = chars[(iPSK.Length + 1)..];
+            }
+
+            Password.CopyTo(chars);
+        });
     }
 }

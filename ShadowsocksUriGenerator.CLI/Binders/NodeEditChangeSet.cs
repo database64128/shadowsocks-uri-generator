@@ -14,4 +14,6 @@ public record NodeEditChangeSet(
     bool UnsetOwner,
     bool ClearTags,
     string[] AddTags,
-    string[] RemoveTags);
+    string[] RemoveTags,
+    string[] IdentityPSKs,
+    bool ClearIPSKs);

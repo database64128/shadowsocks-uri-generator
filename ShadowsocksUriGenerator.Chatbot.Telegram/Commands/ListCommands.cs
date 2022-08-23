@@ -185,6 +185,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                             replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"- {tag}"));
                         }
 
+                        replyBuilder.AppendLine($"iPSKs: {node.IdentityPSKs.Count}");
+
+                        foreach (var iPSK in node.IdentityPSKs)
+                        {
+                            replyBuilder.AppendLine($"\\- `{ChatHelper.EscapeMarkdownV2CodeBlock(iPSK)}`");
+                        }
+
                         replyBuilder.AppendLine();
                     }
                 }

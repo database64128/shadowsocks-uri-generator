@@ -20,6 +20,8 @@ public class NodeEditBinder : BinderBase<NodeEditChangeSet>
     private readonly Option<bool> _clearTagsOption;
     private readonly Option<string[]> _addTagsOption;
     private readonly Option<string[]> _removeTagsOption;
+    private readonly Option<string[]> _iPSKsOption;
+    private readonly Option<bool> _clearIPSKsOption;
 
     public NodeEditBinder(
         Argument<string> groupArgument,
@@ -35,7 +37,9 @@ public class NodeEditBinder : BinderBase<NodeEditChangeSet>
         Option<bool> unsetOwnerOption,
         Option<bool> clearTagsOption,
         Option<string[]> addTagsOption,
-        Option<string[]> removeTagsOption)
+        Option<string[]> removeTagsOption,
+        Option<string[]> iPSKsOption,
+        Option<bool> clearIPSKsOption)
     {
         _groupArgument = groupArgument;
         _nodenameArgument = nodenameArgument;
@@ -51,6 +55,8 @@ public class NodeEditBinder : BinderBase<NodeEditChangeSet>
         _clearTagsOption = clearTagsOption;
         _addTagsOption = addTagsOption;
         _removeTagsOption = removeTagsOption;
+        _iPSKsOption = iPSKsOption;
+        _clearIPSKsOption = clearIPSKsOption;
     }
 
     protected override NodeEditChangeSet GetBoundValue(BindingContext bindingContext) => new(
@@ -67,5 +73,7 @@ public class NodeEditBinder : BinderBase<NodeEditChangeSet>
         bindingContext.ParseResult.GetValueForOption(_unsetOwnerOption),
         bindingContext.ParseResult.GetValueForOption(_clearTagsOption),
         bindingContext.ParseResult.GetValueForOption(_addTagsOption) ?? Array.Empty<string>(),
-        bindingContext.ParseResult.GetValueForOption(_removeTagsOption) ?? Array.Empty<string>());
+        bindingContext.ParseResult.GetValueForOption(_removeTagsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValueForOption(_iPSKsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValueForOption(_clearIPSKsOption));
 }

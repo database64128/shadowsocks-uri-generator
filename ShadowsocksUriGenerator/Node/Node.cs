@@ -35,5 +35,10 @@ namespace ShadowsocksUriGenerator
         /// Gets or sets the node's tags.
         /// </summary>
         public List<string> Tags { get; set; } = new();
+
+        /// <summary>
+        /// Gets or sets the node's identity PSKs.
+        /// </summary>
+        public List<string> IdentityPSKs { get; set; } = new();
     }
 }

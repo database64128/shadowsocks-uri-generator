@@ -305,9 +305,9 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static async Task<int> AddCredential(
             string username,
-            string[] groups,
             string method,
             string password,
+            string[] groups,
             bool allGroups,
             CancellationToken cancellationToken = default)
         {

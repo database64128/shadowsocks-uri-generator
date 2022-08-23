@@ -10,4 +10,5 @@ public record NodeAddChangeSet(
     string? PluginOptions,
     string? PluginArguments,
     string? Owner,
-    string[] Tags);
+    string[] Tags,
+    string[] IdentityPSKs);
