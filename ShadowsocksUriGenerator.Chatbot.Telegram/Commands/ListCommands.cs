@@ -170,12 +170,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                             replyBuilder.AppendLine($"Plugin Arguments: `{ChatHelper.EscapeMarkdownV2CodeBlock(node.PluginArguments)}`");
                         }
 
-                        if (node.OwnerUuid is not null)
+                        if (node.OwnerUuid is not null && users.TryGetUserById(node.OwnerUuid, out var ownerEntry))
                         {
-                            var owner = users.UserDict.Where(x => x.Value.Uuid == node.OwnerUuid)
-                                                      .Select(x => x.Key)
-                                                      .FirstOrDefault();
-                            replyBuilder.AppendLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(owner ?? "N/A")}");
+                            replyBuilder.AppendLine($"Owner: {ChatHelper.EscapeMarkdownV2Plaintext(ownerEntry.Key)}");
                         }
 
                         replyBuilder.AppendLine($"Tags: {node.Tags.Count}");
@@ -353,7 +350,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
                 using var nodes = loadedNodes;
 
-                List<(string group, int nodeCount, string? owner)> tableEntries = new();
+                List<(string group, int nodeCount, string owner)> tableEntries = new();
 
                 foreach (var groupEntry in nodes.Groups)
                 {
@@ -367,12 +364,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                         {
                             tableEntries.Add((groupEntry.Key, groupEntry.Value.NodeDict.Count, userEntry.Value.Key));
                         }
+                        else if (groupEntry.Value.OwnerUuid is not null && users.TryGetUserById(groupEntry.Value.OwnerUuid, out var ownerEntry))
+                        {
+                            tableEntries.Add((groupEntry.Key, groupEntry.Value.NodeDict.Count, ownerEntry.Key));
+                        }
                         else
                         {
-                            var owner = users.UserDict.Where(x => x.Value.Uuid == groupEntry.Value.OwnerUuid)
-                                                      .Select(x => x.Key)
-                                                      .FirstOrDefault();
-                            tableEntries.Add((groupEntry.Key, groupEntry.Value.NodeDict.Count, owner));
+                            tableEntries.Add((groupEntry.Key, groupEntry.Value.NodeDict.Count, "N/A"));
                         }
                     }
                 }
@@ -395,7 +393,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                     foreach (var (group, nodeCount, owner) in tableEntries)
                     {
-                        replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|{nodeCount,6}|{ChatHelper.EscapeMarkdownV2CodeBlock(owner ?? "N/A").PadLeft(ownerNameFieldWidth)}|");
+                        replyBuilder.AppendLine($"|{ChatHelper.EscapeMarkdownV2CodeBlock(group).PadRight(groupNameFieldWidth)}|{nodeCount,6}|{ChatHelper.EscapeMarkdownV2CodeBlock(owner).PadLeft(ownerNameFieldWidth)}|");
                     }
 
                     replyBuilder.AppendTableBorder(groupNameFieldWidth, 6, ownerNameFieldWidth);

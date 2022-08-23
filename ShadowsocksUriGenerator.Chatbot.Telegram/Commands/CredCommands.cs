@@ -54,8 +54,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
                 using var nodes = loadedNodes;
 
-                var uris = string.IsNullOrEmpty(argument) ? user.GetSSUris(nodes) : user.GetSSUris(nodes, argument);
-                if (uris.Count > 0)
+                var uris = string.IsNullOrEmpty(argument) ? user.GetSSUris(users, nodes) : user.GetSSUris(users, nodes, argument);
+                if (uris.Any())
                 {
                     var replyBuilder = new StringBuilder();
 

@@ -106,6 +106,22 @@ namespace ShadowsocksUriGenerator
         public bool RemoveUser(string username) => UserDict.Remove(username);
 
         /// <summary>
+        /// Gets the user associated with the ID.
+        /// </summary>
+        /// <param name="id">The user's UUID.</param>
+        /// <param name="userEntry">The user's username and <see cref="User"/> object.</param>
+        /// <returns>
+        /// True if a user with the specified UUID is found.
+        /// Otherwise, false.
+        /// </returns>
+        public bool TryGetUserById(string id, out KeyValuePair<string, User> userEntry)
+        {
+            var matchedUserEntries = UserDict.Where(x => x.Value.Uuid == id);
+            userEntry = matchedUserEntries.FirstOrDefault();
+            return matchedUserEntries.Any();
+        }
+
+        /// <summary>
         /// Adds the user to the specified group.
         /// Make sure to check if the target group exists
         /// before calling this method.
@@ -271,10 +287,10 @@ namespace ShadowsocksUriGenerator
         /// A list of the user's associated Shadowsocks URIs.
         /// Null if target user doesn't exist.
         /// </returns>
-        public List<Uri>? GetUserSSUris(string username, Nodes nodes, params string[] groups)
+        public IEnumerable<Uri>? GetUserSSUris(string username, Nodes nodes, string[] groups)
         {
             if (UserDict.TryGetValue(username, out var user))
-                return user.GetSSUris(nodes, groups);
+                return user.GetSSUris(this, nodes, groups);
             else
                 return null;
         }

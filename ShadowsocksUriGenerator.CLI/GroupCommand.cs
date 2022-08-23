@@ -257,17 +257,19 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            List<(string group, int nodesCount, string? owner, string? outlineServerName)> groups = new();
+            List<(string group, int nodesCount, string owner, string outlineServerName)> groups = new();
 
             foreach (var groupEntry in nodes.Groups)
             {
                 var group = groupEntry.Key;
                 var nodesCount = groupEntry.Value.NodeDict.Count;
                 var ownerUuid = groupEntry.Value.OwnerUuid;
-                var owner = users.UserDict.Where(x => x.Value.Uuid == ownerUuid)
-                                          .Select(x => x.Key)
-                                          .FirstOrDefault();
-                var outlineServerName = groupEntry.Value.OutlineServerInfo?.Name;
+                var owner = ownerUuid is null
+                    ? "N/A"
+                    : users.TryGetUserById(ownerUuid, out var userEntry)
+                    ? userEntry.Key
+                    : "N/A";
+                var outlineServerName = groupEntry.Value.OutlineServerInfo?.Name ?? "N/A";
 
                 groups.Add((group, nodesCount, owner, outlineServerName));
             }
@@ -300,7 +302,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             foreach (var (group, nodesCount, owner, outlineServerName) in groups)
             {
-                Console.WriteLine($"|{group.PadRight(groupNameFieldWidth)}|{nodesCount,16}|{(owner ?? "N/A").PadLeft(ownerNameFieldWidth)}|{(outlineServerName ?? "N/A").PadLeft(outlineServerNameFieldWidth)}|");
+                Console.WriteLine($"|{group.PadRight(groupNameFieldWidth)}|{nodesCount,16}|{owner.PadLeft(ownerNameFieldWidth)}|{outlineServerName.PadLeft(outlineServerNameFieldWidth)}|");
             }
 
             ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);

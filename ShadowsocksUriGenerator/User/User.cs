@@ -135,46 +135,76 @@ namespace ShadowsocksUriGenerator
             }
         }
 
-        public List<Uri> GetSSUris(Nodes nodes, params string[] groups)
+        /// <summary>
+        /// Gets the user's Shadowsocks server configurations.
+        /// </summary>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
+        /// <param name="groups">If not empty, only include servers from these groups.</param>
+        /// <param name="tags">If not empty, only include servers with these tags.</param>
+        /// <param name="groupOwnerIds">If not empty, only include servers from groups owned by these users.</param>
+        /// <param name="nodeOwnerIds">If not empty, only include servers owned by these users.</param>
+        /// <returns>The user's Shadowsocks server configurations.</returns>
+        public IEnumerable<IShadowsocksServerConfig> GetShadowsocksServers(Users users, Nodes nodes, string[] groups, string[] tags, string[] groupOwnerIds, string[] nodeOwnerIds)
         {
-            List<Uri> uris = new();
-
             foreach (var membership in Memberships)
             {
-                // Skip if either
+                // Skip if any:
                 // - User is in group but has no credential.
-                // - Only retrieve ss URIs from specific groups, not including this group.
-                if (!membership.Value.HasCredential || groups.Length > 0 && !groups.Contains(membership.Key))
+                // - Only want servers from specified groups, not including this one.
+                // - Group not found.
+                // - Only want servers from groups owned by specified owners, not including this one.
+                if (!membership.Value.HasCredential ||
+                    groups.Length > 0 && !groups.Contains(membership.Key) ||
+                    !nodes.Groups.TryGetValue(membership.Key, out var group) ||
+                    groupOwnerIds.Length > 0 && !groupOwnerIds.Contains(group.OwnerUuid))
                     continue;
 
-                if (nodes.Groups.TryGetValue(membership.Key, out Group? group)) // find credEntry's group
+                foreach (var nodeEntry in group.NodeDict)
                 {
-                    foreach (var nodeEntry in group.NodeDict)
+                    var node = nodeEntry.Value;
+                    // Skip if any:
+                    // - Node deactivated.
+                    // - Only want servers owned by specified owners, not including this one.
+                    // - Only want servers with specified tags. This one does not have all wanted tags.
+                    if (node.Deactivated ||
+                        nodeOwnerIds.Length > 0 && !nodeOwnerIds.Contains(node.OwnerUuid) ||
+                        tags.Length > 0 && tags.Any(x => !node.Tags.Exists(y => string.Equals(x, y, StringComparison.OrdinalIgnoreCase))))
+                        continue;
+
+                    var owner = node.OwnerUuid is null
+                        ? null
+                        : users.TryGetUserById(node.OwnerUuid, out var ownerEntry)
+                        ? ownerEntry.Key
+                        : null;
+
+                    var serverTags = node.Tags.Count > 0
+                        ? node.Tags
+                        : null;
+
+                    yield return new ShadowsocksServerConfig()
                     {
-                        if (nodeEntry.Value.Deactivated)
-                            continue;
-
-                        IShadowsocksServerConfig serverConfig = new ShadowsocksServerConfig()
-                        {
-                            Id = nodeEntry.Value.Uuid,
-                            Name = nodeEntry.Key,
-                            Host = nodeEntry.Value.Host,
-                            Port = nodeEntry.Value.Port,
-                            Method = membership.Value.Method,
-                            Password = membership.Value.PasswordForNode(nodeEntry.Value.IdentityPSKs),
-                            PluginName = nodeEntry.Value.Plugin,
-                            PluginVersion = nodeEntry.Value.PluginVersion,
-                            PluginOptions = nodeEntry.Value.PluginOpts,
-                            PluginArguments = nodeEntry.Value.PluginArguments,
-                        };
-
-                        uris.Add(serverConfig.ToUri());
-                    }
+                        Id = node.Uuid,
+                        Name = nodeEntry.Key,
+                        Host = node.Host,
+                        Port = node.Port,
+                        Method = membership.Value.Method,
+                        Password = membership.Value.PasswordForNode(node.IdentityPSKs),
+                        PluginName = node.Plugin,
+                        PluginVersion = node.PluginVersion,
+                        PluginOptions = node.PluginOpts,
+                        PluginArguments = node.PluginArguments,
+                        Group = membership.Key,
+                        Owner = owner,
+                        Tags = serverTags,
+                    };
                 }
             }
-
-            return uris;
         }
+
+        public IEnumerable<Uri> GetSSUris(Users users, Nodes nodes, params string[] groups) =>
+            GetShadowsocksServers(users, nodes, groups, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>())
+            .Select(x => x.ToUri());
 
         /// <summary>
         /// Gathers user's data usage metrics from all groups

@@ -44,9 +44,12 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(user.Value.Uuid, userSingleOnlineConfig.Id);
             Assert.Null(userSingleOnlineConfig.BytesUsed);
             Assert.Null(userSingleOnlineConfig.BytesRemaining);
-            Assert.Equal(2, userSingleOnlineConfig.Servers.Count);
+            Assert.Equal(2, userSingleOnlineConfig.Servers.Count());
 
-            var singleServer = userSingleOnlineConfig.Servers[0];
+            using var userSingleOnlineConfigEnumerator = userSingleOnlineConfig.Servers.GetEnumerator();
+
+            userSingleOnlineConfigEnumerator.MoveNext();
+            var singleServer = userSingleOnlineConfigEnumerator.Current;
             Assert.Equal(myNode.Uuid, singleServer.Id);
             Assert.Equal("MyNode", singleServer.Name);
             Assert.Equal("github.com", singleServer.Host);
@@ -61,7 +64,8 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Null(singleServer.Owner);
             Assert.Null(singleServer.Tags);
 
-            var singleServerWithPlugin = userSingleOnlineConfig.Servers[1];
+            userSingleOnlineConfigEnumerator.MoveNext();
+            var singleServerWithPlugin = userSingleOnlineConfigEnumerator.Current;
             Assert.Equal(myNodeWithPlugin.Uuid, singleServerWithPlugin.Id);
             Assert.Equal("MyNodeWithPlugin", singleServerWithPlugin.Name);
             Assert.Equal("github.com", singleServerWithPlugin.Host);
@@ -88,9 +92,12 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Equal(user.Value.Uuid, userOnlineConfig.Id);
             Assert.Null(userOnlineConfig.BytesUsed);
             Assert.Null(userOnlineConfig.BytesRemaining);
-            Assert.Equal(2, userOnlineConfig.Servers.Count);
+            Assert.Equal(2, userOnlineConfig.Servers.Count());
 
-            var server = userOnlineConfig.Servers[0];
+            using var userOnlineConfigEnumerator = userOnlineConfig.Servers.GetEnumerator();
+
+            userOnlineConfigEnumerator.MoveNext();
+            var server = userOnlineConfigEnumerator.Current;
             Assert.Equal(myNode.Uuid, server.Id);
             Assert.Equal("MyNode", server.Name);
             Assert.Equal("github.com", server.Host);
@@ -105,7 +112,8 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Null(server.Owner);
             Assert.Null(server.Tags);
 
-            var serverWithPlugin = userOnlineConfig.Servers[1];
+            userOnlineConfigEnumerator.MoveNext();
+            var serverWithPlugin = userOnlineConfigEnumerator.Current;
             Assert.Equal(myNodeWithPlugin.Uuid, serverWithPlugin.Id);
             Assert.Equal("MyNodeWithPlugin", serverWithPlugin.Name);
             Assert.Equal("github.com", serverWithPlugin.Host);
@@ -128,7 +136,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.Null(userMyGroupOnlineConfig.BytesRemaining);
             Assert.Single(userMyGroupOnlineConfig.Servers);
 
-            var serverMyGroup = userMyGroupOnlineConfig.Servers[0];
+            var serverMyGroup = userMyGroupOnlineConfig.Servers.Single();
             Assert.Equal(myNode.Uuid, serverMyGroup.Id);
             Assert.Equal("MyNode", serverMyGroup.Name);
             Assert.Equal("github.com", serverMyGroup.Host);
@@ -149,7 +157,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.True(Guid.TryParse(userMyGroupWithPluginOnlineConfig.Id, out _));
             Assert.Single(userMyGroupWithPluginOnlineConfig.Servers);
 
-            var serverMyGroupWithPlugin = userMyGroupWithPluginOnlineConfig.Servers[0];
+            var serverMyGroupWithPlugin = userMyGroupWithPluginOnlineConfig.Servers.Single();
             Assert.Equal(myNodeWithPlugin.Uuid, serverMyGroupWithPlugin.Id);
             Assert.Equal("MyNodeWithPlugin", serverMyGroupWithPlugin.Name);
             Assert.Equal("github.com", serverMyGroupWithPlugin.Host);

@@ -78,12 +78,11 @@ namespace ShadowsocksUriGenerator.OnlineConfig
             {
                 Username = username,
                 Id = user.Uuid,
+                BytesUsed = user.BytesUsed > 0UL ? user.BytesUsed : null,
+                BytesRemaining = user.BytesRemaining > 0UL ? user.BytesRemaining : null,
             };
 
-            if (user.BytesUsed > 0UL)
-                userOnlineConfig.BytesUsed = user.BytesUsed;
-            if (user.BytesRemaining > 0UL)
-                userOnlineConfig.BytesRemaining = user.BytesRemaining;
+            var servers = new List<SIP008Server>();
 
             foreach (var membership in user.Memberships)
             {
@@ -97,12 +96,11 @@ namespace ShadowsocksUriGenerator.OnlineConfig
                     {
                         Username = username,
                         Id = user.Uuid,
+                        BytesUsed = dataUsageRecord.bytesUsed > 0UL ? dataUsageRecord.bytesUsed : null,
+                        BytesRemaining = dataUsageRecord.bytesRemaining > 0UL ? dataUsageRecord.bytesRemaining : null,
                     };
 
-                    if (dataUsageRecord.bytesUsed > 0UL)
-                        perGroupOnlineConfig.BytesUsed = dataUsageRecord.bytesUsed;
-                    if (dataUsageRecord.bytesRemaining > 0UL)
-                        perGroupOnlineConfig.BytesRemaining = dataUsageRecord.bytesRemaining;
+                    var perGroupServers = new List<SIP008Server>();
 
                     // add each node to the Servers list.
                     foreach (var nodeEntry in group.NodeDict)
@@ -110,10 +108,11 @@ namespace ShadowsocksUriGenerator.OnlineConfig
                         if (nodeEntry.Value.Deactivated)
                             continue;
 
-                        var owner = nodeEntry.Value.OwnerUuid is not null
-                            ? users.UserDict.Where(x => x.Value.Uuid == nodeEntry.Value.OwnerUuid)
-                                            .Select(x => x.Key)
-                                            .FirstOrDefault()
+                        var ownerUuid = nodeEntry.Value.OwnerUuid;
+                        var owner = ownerUuid is null
+                            ? null
+                            : users.TryGetUserById(ownerUuid, out var ownerEntry)
+                            ? ownerEntry.Key
                             : null;
 
                         var tags = nodeEntry.Value.Tags.Count > 0
@@ -137,26 +136,29 @@ namespace ShadowsocksUriGenerator.OnlineConfig
                             Tags = tags,
                         };
 
-                        userOnlineConfig.Servers.Add(server);
+                        servers.Add(server);
 
                         if (settings.OnlineConfigDeliverByGroup)
-                            perGroupOnlineConfig.Servers.Add(server);
+                            perGroupServers.Add(server);
                     }
 
                     // sort and add per-group online config to dictionary
                     if (settings.OnlineConfigDeliverByGroup)
                     {
+                        perGroupOnlineConfig.Servers = perGroupServers;
+
                         if (settings.OnlineConfigSortByName)
-                            perGroupOnlineConfig.Servers = perGroupOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
+                            perGroupOnlineConfig.Servers = perGroupOnlineConfig.Servers.OrderBy(server => server.Name);
 
                         OnlineConfigDict.Add($"{user.Uuid}/{membership.Key}", perGroupOnlineConfig);
                     }
                 }
             }
 
-            // sort and add
+            userOnlineConfig.Servers = servers;
+
             if (settings.OnlineConfigSortByName)
-                userOnlineConfig.Servers = userOnlineConfig.Servers.OrderBy(server => server.Name).ToList();
+                userOnlineConfig.Servers = userOnlineConfig.Servers.OrderBy(server => server.Name);
 
             OnlineConfigDict.Add(user.Uuid, userOnlineConfig);
 

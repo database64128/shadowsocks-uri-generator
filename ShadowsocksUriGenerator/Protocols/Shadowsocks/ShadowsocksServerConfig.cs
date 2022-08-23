@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
@@ -32,14 +33,6 @@ public class ShadowsocksServerConfig : IShadowsocksServerConfig
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? PluginVersion { get; set; }
 
-    /// <summary>
-    /// Gets or sets the plugin executable path.
-    /// Null when not using a plugin.
-    /// </summary>
-    [Obsolete("Use PluginName and PluginVersion to resolve plugin instead.")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public string? PluginPath { get; set; }
-
     /// <inheritdoc/>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? PluginOptions { get; set; }
@@ -47,6 +40,15 @@ public class ShadowsocksServerConfig : IShadowsocksServerConfig
     /// <inheritdoc/>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? PluginArguments { get; set; }
+
+    /// <inheritdoc/>
+    public string? Group { get; set; }
+
+    /// <inheritdoc/>
+    public string? Owner { get; set; }
+
+    /// <inheritdoc/>
+    public List<string>? Tags { get; set; }
 
     public ShadowsocksServerConfig()
     {
@@ -64,6 +66,9 @@ public class ShadowsocksServerConfig : IShadowsocksServerConfig
         PluginVersion = server.PluginVersion;
         PluginOptions = server.PluginOptions;
         PluginArguments = server.PluginArguments;
+        Group = server.Group;
+        Owner = server.Owner;
+        Tags = server.Tags;
     }
 
     public bool Equals(ShadowsocksServerConfig? other) => Id == other?.Id;

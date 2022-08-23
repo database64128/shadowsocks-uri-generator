@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -63,6 +64,25 @@ public interface IShadowsocksServerConfig
     /// </summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public string? PluginArguments { get; set; }
+
+    /// <summary>
+    /// Gets or sets the node group
+    /// this server belongs to.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string? Group { get; set; }
+
+    /// <summary>
+    /// Gets or sets the owner of the server.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public string? Owner { get; set; }
+
+    /// <summary>
+    /// Gets or sets the list of annotated tags.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public List<string>? Tags { get; set; }
 
     public IShadowsocksServerConfig ToIShadowsocksServerConfig();
 

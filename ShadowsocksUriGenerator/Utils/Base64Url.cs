@@ -27,8 +27,7 @@ public static class Base64Url
         var charsArray = ArrayPool<char>.Shared.Rent(charsLength);
         Span<char> chars = charsArray;
 
-        var ret = Convert.TryToBase64Chars(bytes, chars, out var charsWritten);
-        if (!ret)
+        if (!Convert.TryToBase64Chars(bytes, chars, out var charsWritten))
         {
             base64url = "";
             ArrayPool<char>.Shared.Return(charsArray);

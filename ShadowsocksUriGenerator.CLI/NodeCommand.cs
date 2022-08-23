@@ -419,24 +419,21 @@ namespace ShadowsocksUriGenerator.CLI
 
                 foreach (var nodeEntry in groupEntry.Value.NodeDict)
                 {
-                    string? owner = null;
+                    var ownerUuid = nodeEntry.Value.OwnerUuid;
+                    var owner = ownerUuid is null
+                        ? "N/A"
+                        : users.TryGetUserById(ownerUuid, out var userEntry)
+                        ? userEntry.Key
+                        : "N/A";
                     var tags = nodeEntry.Value.Tags;
                     var iPSKs = nodeEntry.Value.IdentityPSKs;
-
-                    // Resolve owner username
-                    if (nodeEntry.Value.OwnerUuid is string ownerUuid)
-                    {
-                        owner = users.UserDict.Where(x => x.Value.Uuid == ownerUuid)
-                                              .Select(x => x.Key)
-                                              .FirstOrDefault();
-                    }
 
                     if (!onePerLine) // Full format
                     {
                         Console.WriteLine($"Group: {groupEntry.Key}");
                         Console.WriteLine($"Node:  {nodeEntry.Key}");
 
-                        if (!string.IsNullOrEmpty(owner))
+                        if (ownerUuid is not null)
                         {
                             Console.WriteLine($"Owner: {owner} ({nodeEntry.Value.OwnerUuid})");
                         }

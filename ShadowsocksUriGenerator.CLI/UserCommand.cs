@@ -814,7 +814,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                     if (own)
                     {
-                        if (force || groupEntry.Value.OwnerUuid is null)
+                        if (force || groupEntry.Value.OwnerUuid is null || !users.TryGetUserById(groupEntry.Value.OwnerUuid, out var ownerEntry))
                         {
                             groupEntry.Value.OwnerUuid = user.Uuid;
                             Console.WriteLine($"Set user {username} as owner of group {groupEntry.Key}.");
@@ -825,10 +825,7 @@ namespace ShadowsocksUriGenerator.CLI
                         }
                         else
                         {
-                            var owner = users.UserDict.Where(x => x.Value.Uuid == groupEntry.Value.OwnerUuid)
-                                                      .Select(x => x.Key)
-                                                      .FirstOrDefault();
-                            Console.WriteLine($"Group {groupEntry.Key} already has owner {owner}. Disown it first or use `--force` to overwrite.");
+                            Console.WriteLine($"Group {groupEntry.Key} already has owner {ownerEntry.Key}. Disown it first or use `--force` to overwrite.");
                         }
                     }
                     else
@@ -901,7 +898,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                         if (own)
                         {
-                            if (force || node.OwnerUuid is null)
+                            if (force || node.OwnerUuid is null || !users.TryGetUserById(node.OwnerUuid, out var ownerEntry))
                             {
                                 node.OwnerUuid = user.Uuid;
                                 Console.WriteLine($"Set user {username} as owner of node {nodename} in group {groupEntry.Key}.");
@@ -912,10 +909,7 @@ namespace ShadowsocksUriGenerator.CLI
                             }
                             else
                             {
-                                var owner = users.UserDict.Where(x => x.Value.Uuid == groupEntry.Value.OwnerUuid)
-                                                          .Select(x => x.Key)
-                                                          .FirstOrDefault();
-                                Console.WriteLine($"Node {nodename} in group {groupEntry.Key} already has owner {owner}. Disown it first or use `--force` to overwrite.");
+                                Console.WriteLine($"Node {nodename} in group {groupEntry.Key} already has owner {ownerEntry.Key}. Disown it first or use `--force` to overwrite.");
                             }
                         }
                         else

@@ -38,20 +38,13 @@ public class OOCv1ShadowsocksServer : IShadowsocksServerConfig
     /// <inheritdoc/>
     public string? PluginArguments { get; set; }
 
-    /// <summary>
-    /// Gets or sets the node group
-    /// this server belongs to.
-    /// </summary>
+    /// <inheritdoc/>
     public string? Group { get; set; }
 
-    /// <summary>
-    /// Gets or sets the owner of the server.
-    /// </summary>
+    /// <inheritdoc/>
     public string? Owner { get; set; }
 
-    /// <summary>
-    /// Gets or sets the list of annotated tags.
-    /// </summary>
+    /// <inheritdoc/>
     public List<string>? Tags { get; set; }
 
     public OOCv1ShadowsocksServer()
@@ -70,6 +63,9 @@ public class OOCv1ShadowsocksServer : IShadowsocksServerConfig
         PluginVersion = server.PluginVersion;
         PluginOptions = server.PluginOptions;
         PluginArguments = server.PluginArguments;
+        Group = server.Group;
+        Owner = server.Owner;
+        Tags = server.Tags;
     }
 
     public IShadowsocksServerConfig ToIShadowsocksServerConfig() => this;

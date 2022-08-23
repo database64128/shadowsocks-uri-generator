@@ -5,7 +5,6 @@ using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Server.Filters;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
-using System;
 using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
@@ -74,71 +73,23 @@ public class SIP008Controller : OnlineConfigControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<SIP008Config> GetByUserId(string id, [FromQuery] string[] tag, [FromQuery] string[] group, [FromQuery] string[] groupOwner, [FromQuery] string[] nodeOwner, [FromQuery] bool sortByName)
     {
-        var ret = TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult);
-        if (!ret)
-            return objectResult!;
+        if (!TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult))
+            return objectResult;
 
-        var config = new SIP008Config()
+        var servers = user.GetShadowsocksServers(_dataService.UsersData, _dataService.NodesData, group, tag, targetGroupOwnerIds, targetNodeOwnerIds);
+
+        if (sortByName)
+            servers = servers.OrderBy(x => x.Name);
+
+        _logger.LogInformation($"{username} ({id}) retrieved {servers.Count()} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
+
+        return new SIP008Config()
         {
             Username = username,
             Id = id,
+            BytesUsed = user.BytesUsed > 0UL ? user.BytesUsed : null,
+            BytesRemaining = user.BytesRemaining > 0UL ? user.BytesRemaining : null,
+            Servers = servers.Select(x => new SIP008Server(x)),
         };
-
-        if (user!.BytesUsed > 0UL)
-            config.BytesUsed = user.BytesUsed;
-
-        if (user.BytesRemaining > 0UL)
-            config.BytesRemaining = user.BytesRemaining;
-
-        foreach (var membership in user.Memberships)
-        {
-            if ((group.Length == 0 || group.Contains(membership.Key))
-                && membership.Value.HasCredential
-                && _dataService.NodesData.Groups.TryGetValue(membership.Key, out var targetGroup)
-                && (targetGroupOwnerIds!.Length == 0 || targetGroupOwnerIds.Contains(targetGroup.OwnerUuid)))
-            {
-                foreach (var nodeEntry in targetGroup.NodeDict)
-                {
-                    if (!nodeEntry.Value.Deactivated
-                        && (targetNodeOwnerIds!.Length == 0 || targetNodeOwnerIds.Contains(nodeEntry.Value.OwnerUuid))
-                        && (tag.Length == 0 || tag.All(x => nodeEntry.Value.Tags.Exists(y => string.Equals(x, y, StringComparison.OrdinalIgnoreCase)))))
-                    {
-                        var owner = nodeEntry.Value.OwnerUuid is not null
-                            ? _dataService.UsersData.UserDict.Where(x => x.Value.Uuid == nodeEntry.Value.OwnerUuid)
-                                                             .Select(x => x.Key)
-                                                             .FirstOrDefault()
-                            : null;
-
-                        var tags = nodeEntry.Value.Tags.Count > 0
-                            ? nodeEntry.Value.Tags
-                            : null;
-
-                        config.Servers.Add(new()
-                        {
-                            Id = nodeEntry.Value.Uuid,
-                            Name = nodeEntry.Key,
-                            Host = nodeEntry.Value.Host,
-                            Port = nodeEntry.Value.Port,
-                            Method = membership.Value.Method,
-                            Password = membership.Value.PasswordForNode(nodeEntry.Value.IdentityPSKs),
-                            PluginName = nodeEntry.Value.Plugin,
-                            PluginVersion = nodeEntry.Value.PluginVersion,
-                            PluginOptions = nodeEntry.Value.PluginOpts,
-                            PluginArguments = nodeEntry.Value.PluginArguments,
-                            Group = membership.Key,
-                            Owner = owner,
-                            Tags = tags,
-                        });
-                    }
-                }
-            }
-        }
-
-        if (sortByName)
-            config.Servers = config.Servers.OrderBy(x => x.Name).ToList();
-
-        _logger.LogInformation($"{username} ({id}) retrieved {config.Servers.Count} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
-
-        return config;
     }
 }

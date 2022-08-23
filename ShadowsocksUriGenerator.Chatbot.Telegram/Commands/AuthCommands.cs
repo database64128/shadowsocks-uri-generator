@@ -1,6 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using ShadowsocksUriGenerator.Chatbot.Telegram.Utils;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -67,16 +66,14 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     return;
                 }
 
-                var userSearchResult = users.UserDict.Where(x => string.Equals(x.Value.Uuid, argument, StringComparison.OrdinalIgnoreCase));
-                KeyValuePair<string, User>? matchedUser = userSearchResult.Any() ? userSearchResult.First() : null;
-                if (matchedUser is null)
+                if (!DataHelper.TryLocateUserFromUuid(argument, users, out var matchedUser))
                 {
                     reply = "User not found.";
                     Console.WriteLine(" Response: user not found.");
                 }
                 else if (botConfig.ChatAssociations.TryGetValue(message.From.Id, out var userUuid))
                 {
-                    if (string.Equals(userUuid, argument, StringComparison.OrdinalIgnoreCase))
+                    if (userUuid == matchedUser.Value.Value.Uuid)
                     {
                         reply = $"You are already linked to {matchedUser.Value.Key}.";
                         Console.WriteLine(" Response: already linked.");

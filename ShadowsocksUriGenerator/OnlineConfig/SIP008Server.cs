@@ -43,13 +43,13 @@ public class SIP008Server : IShadowsocksServerConfig
     [JsonPropertyName("plugin_args")]
     public string? PluginArguments { get; set; }
 
-    /// <inheritdoc cref="OOCv1ShadowsocksServer.Group"/>
+    /// <inheritdoc/>
     public string? Group { get; set; }
 
-    /// <inheritdoc cref="OOCv1ShadowsocksServer.Owner"/>
+    /// <inheritdoc/>
     public string? Owner { get; set; }
 
-    /// <inheritdoc cref="OOCv1ShadowsocksServer.Tags"/>
+    /// <inheritdoc/>
     public List<string>? Tags { get; set; }
 
     public SIP008Server()
@@ -68,6 +68,9 @@ public class SIP008Server : IShadowsocksServerConfig
         PluginVersion = server.PluginVersion;
         PluginOptions = server.PluginOptions;
         PluginArguments = server.PluginArguments;
+        Group = server.Group;
+        Owner = server.Owner;
+        Tags = server.Tags;
     }
 
     public IShadowsocksServerConfig ToIShadowsocksServerConfig() => this;

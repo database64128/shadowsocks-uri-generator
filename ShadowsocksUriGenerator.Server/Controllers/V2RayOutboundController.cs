@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
-using System;
 using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
@@ -63,49 +62,33 @@ public class V2RayOutboundController : OnlineConfigControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult<Shadowsocks.Interop.V2Ray.Config> GetByUserId(string id, [FromQuery] string[] tag, [FromQuery] string[] group, [FromQuery] string[] groupOwner, [FromQuery] string[] nodeOwner, [FromQuery] bool sortByName)
     {
-        var ret = TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult);
-        if (!ret)
-            return objectResult!;
+        if (!TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult))
+            return objectResult;
+
+        var servers = user.GetShadowsocksServers(_dataService.UsersData, _dataService.NodesData, group, tag, targetGroupOwnerIds, targetNodeOwnerIds);
+
+        if (sortByName)
+            servers = servers.OrderBy(x => x.Name);
+
+        _logger.LogInformation($"{username} ({id}) retrieved {servers.Count()} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
 
         var config = new Shadowsocks.Interop.V2Ray.Config()
         {
             Outbounds = new(),
         };
 
-        foreach (var membership in user!.Memberships)
+        foreach (var server in servers)
         {
-            if ((group.Length == 0 || group.Contains(membership.Key))
-                && membership.Value.HasCredential
-                && _dataService.NodesData.Groups.TryGetValue(membership.Key, out var targetGroup)
-                && (targetGroupOwnerIds!.Length == 0 || targetGroupOwnerIds.Contains(targetGroup.OwnerUuid)))
+            if (!string.IsNullOrEmpty(server.PluginName))
+                continue;
+
+            config.Outbounds.Add(new()
             {
-                foreach (var nodeEntry in targetGroup.NodeDict)
-                {
-                    if (!nodeEntry.Value.Deactivated
-                        && string.IsNullOrEmpty(nodeEntry.Value.Plugin)
-                        && (targetNodeOwnerIds!.Length == 0 || targetNodeOwnerIds.Contains(nodeEntry.Value.OwnerUuid))
-                        && (tag.Length == 0 || tag.All(x => nodeEntry.Value.Tags.Exists(y => string.Equals(x, y, StringComparison.OrdinalIgnoreCase)))))
-                    {
-                        var server = new Shadowsocks.Models.Server()
-                        {
-                            Id = nodeEntry.Value.Uuid,
-                            Name = nodeEntry.Key,
-                            Host = nodeEntry.Value.Host,
-                            Port = nodeEntry.Value.Port,
-                            Method = membership.Value.Method,
-                            Password = membership.Value.PasswordForNode(nodeEntry.Value.IdentityPSKs),
-                        };
-
-                        config.Outbounds.Add(Shadowsocks.Interop.V2Ray.OutboundObject.GetShadowsocks(server));
-                    }
-                }
-            }
+                Tag = server.Name,
+                Protocol = "shadowsocks",
+                Settings = new Shadowsocks.Interop.V2Ray.Protocols.Shadowsocks.OutboundConfigurationObject(server.Host, server.Port, server.Method, server.Password)
+            });
         }
-
-        if (sortByName)
-            config.Outbounds = config.Outbounds.OrderBy(x => x.Tag).ToList();
-
-        _logger.LogInformation($"{username} ({id}) retrieved {config.Outbounds.Count} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
 
         return config;
     }

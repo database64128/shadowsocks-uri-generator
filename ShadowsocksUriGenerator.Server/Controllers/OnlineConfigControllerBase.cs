@@ -29,9 +29,7 @@ public abstract class OnlineConfigControllerBase : ControllerBase
         targetNodeOwnerIds = null;
         objectResult = null;
 
-        var filteredUserEntries = _dataService.UsersData.UserDict.Where(x => x.Value.Uuid == id);
-
-        if (!filteredUserEntries.Any())
+        if (!_dataService.UsersData.TryGetUserById(id, out var userEntry))
         {
             objectResult = NotFound($"User ID {id} doesn't exist.");
             return false;
@@ -58,7 +56,6 @@ public abstract class OnlineConfigControllerBase : ControllerBase
             return false;
         }
 
-        var userEntry = filteredUserEntries.First();
         username = userEntry.Key;
         user = userEntry.Value;
         return true;
