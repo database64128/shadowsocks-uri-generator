@@ -135,6 +135,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                     replyBuilder.AppendLine($"OOCv1 API Token: `{ChatHelper.EscapeMarkdownV2CodeBlock(oocv1ApiTokenString)}`");
                     replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"OOCv1 API URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}"));
+                    replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"Shadowsocks Go Client Config URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/shadowsocks-go/clients/{user.Uuid}"));
+                    replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"Sing Box Outbound Config URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sing-box/outbounds/{user.Uuid}"));
                     replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"SIP008 Delivery URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sip008/{user.Uuid}"));
                     replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"V2Ray Outbound URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/v2ray/outbound/{user.Uuid}"));
                     replyBuilder.AppendLine();

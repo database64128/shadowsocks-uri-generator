@@ -147,15 +147,17 @@ namespace ShadowsocksUriGenerator.CLI
 
             static void PrintUserApiLinks(string username, User user, Settings settings)
             {
-                Console.WriteLine($"User:                {username}");
+                Console.WriteLine($"User:                             {username}");
 
                 var oocv1ApiToken = new OpenOnlineConfig.v1.OOCv1ApiToken(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
                 var oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OpenOnlineConfig.Utils.JsonHelper.camelCaseMinifiedJsonSerializerOptions);
 
-                Console.WriteLine($"OOCv1 API Token:     {oocv1ApiTokenString}");
-                Console.WriteLine($"OOCv1 API URL:       {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}");
-                Console.WriteLine($"SIP008 Delivery URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sip008/{user.Uuid}");
-                Console.WriteLine($"V2Ray Outbound URL:  {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/v2ray/outbound/{user.Uuid}");
+                Console.WriteLine($"OOCv1 API Token:                  {oocv1ApiTokenString}");
+                Console.WriteLine($"OOCv1 API URL:                    {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}");
+                Console.WriteLine($"Shadowsocks Go Client Config URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/shadowsocks-go/clients/{user.Uuid}");
+                Console.WriteLine($"Sing Box Outbound Config URL:     {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sing-box/outbounds/{user.Uuid}");
+                Console.WriteLine($"SIP008 Delivery URL:              {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sip008/{user.Uuid}");
+                Console.WriteLine($"V2Ray Outbound URL:               {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/v2ray/outbound/{user.Uuid}");
 
                 Console.WriteLine();
             }
