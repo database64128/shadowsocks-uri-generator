@@ -23,9 +23,9 @@ public class UriTests
     [InlineData("2022-blake3-aes-256-gcm", "z7by/oMFjG7sunqq2q69hlGynqkrgk9bCKoWp29zhgw=", "github.com", 443, "GitHub", "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv", "ss://2022-blake3-aes-256-gcm:z7by%2FoMFjG7sunqq2q69hlGynqkrgk9bCKoWp29zhgw%3D@github.com:443/?plugin=v2ray-plugin%3Bserver%3Btls%3Bhost%3Dgithub.com&pluginVersion=1.0&pluginArguments=-vvvvvv#GitHub")] // fragment + pluginName + pluginVersion + pluginOptions + pluginArguments
     public void Server_ToUrl(string method, string password, string host, int port, string fragment, string? pluginName, string? pluginVersion, string? pluginOptions, string? pluginArguments, string expectedSSUri)
     {
-        IShadowsocksServerConfig serverConfig = new ShadowsocksServerConfig()
+        var serverConfig = new ShadowsocksServerConfig()
         {
-            Password = password,
+            UserPSK = password,
             Method = method,
             Host = host,
             Port = port,
@@ -70,7 +70,7 @@ public class UriTests
         Assert.Equal(expectedResult, result);
         if (result)
         {
-            Assert.Equal(expectedPassword, server!.Password);
+            Assert.Equal(expectedPassword, server!.GetPassword());
             Assert.Equal(expectedMethod, server.Method);
             Assert.Equal(expectedHost, server.Host);
             Assert.Equal(expectedPort, server.Port);

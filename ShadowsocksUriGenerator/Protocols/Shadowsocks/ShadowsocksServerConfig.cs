@@ -1,89 +1,180 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json.Serialization;
+using System.Linq;
+using System.Text;
 
 namespace ShadowsocksUriGenerator.Protocols.Shadowsocks;
 
-public class ShadowsocksServerConfig : IShadowsocksServerConfig
+public class ShadowsocksServerConfig
 {
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the server ID.
+    /// </summary>
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the server name.
+    /// </summary>
     public string Name { get; set; } = "";
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the server address.
+    /// </summary>
     public string Host { get; set; } = "";
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the server port.
+    /// </summary>
     public int Port { get; set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the method used for the server.
+    /// </summary>
     public string Method { get; set; } = "2022-blake3-aes-256-gcm";
 
-    /// <inheritdoc/>
-    public string Password { get; set; } = "";
+    /// <summary>
+    /// Gets or sets the user PSK.
+    /// For Shadowsocks 2022 without EIH and legacy Shadowsocks,
+    /// this is the main PSK.
+    /// </summary>
+    public string UserPSK { get; set; } = "";
 
-    /// <inheritdoc/>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    /// <summary>
+    /// Gets or sets the identity PSKs.
+    /// </summary>
+    public IEnumerable<string> IdentityPSKs { get; set; } = Array.Empty<string>();
+
+    /// <summary>
+    /// Gets or sets the plugin name.
+    /// Null when not using a plugin.
+    /// </summary>
     public string? PluginName { get; set; }
 
-    /// <inheritdoc/>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    /// <summary>
+    /// Gets or sets the required plugin version string.
+    /// Null when not using a plugin.
+    /// </summary>
     public string? PluginVersion { get; set; }
 
-    /// <inheritdoc/>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    /// <summary>
+    /// Gets or sets the plugin options passed as environment variable SS_PLUGIN_OPTIONS.
+    /// Null when not using a plugin.
+    /// </summary>
     public string? PluginOptions { get; set; }
 
-    /// <inheritdoc/>
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    /// <summary>
+    /// Gets or sets the plugin startup arguments.
+    /// Null when not using a plugin.
+    /// </summary>
     public string? PluginArguments { get; set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the node group
+    /// this server belongs to.
+    /// </summary>
     public string? Group { get; set; }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Gets or sets the owner of the server.
+    /// </summary>
     public string? Owner { get; set; }
 
-    /// <inheritdoc/>
-    public List<string>? Tags { get; set; }
+    /// <summary>
+    /// Gets or sets the list of annotated tags.
+    /// </summary>
+    public IEnumerable<string> Tags { get; set; } = Array.Empty<string>();
 
-    public ShadowsocksServerConfig()
+    /// <summary>
+    /// Gets the string representation of host:port.
+    /// IPv6 addresses are enclosed in square brackets ([]).
+    /// </summary>
+    public string GetHostPort() => Host.Contains(':') ? $"[{Host}]:{Port}" : $"{Host}:{Port}";
+
+    /// <summary>
+    /// Gets the password to the server by combining iPSKs and uPSK.
+    /// </summary>
+    /// <returns>The password to the server.</returns>
+    public string GetPassword()
     {
+        if (!IdentityPSKs.Any())
+            return UserPSK;
+
+        var length = IdentityPSKs.Count() + IdentityPSKs.Sum(x => x.Length) + UserPSK.Length;
+        return string.Create(length, IdentityPSKs, (chars, iPSKs) =>
+        {
+            foreach (var iPSK in iPSKs)
+            {
+                iPSK.CopyTo(chars);
+                chars[iPSK.Length] = ':';
+                chars = chars[(iPSK.Length + 1)..];
+            }
+
+            UserPSK.CopyTo(chars);
+        });
     }
 
-    public ShadowsocksServerConfig(IShadowsocksServerConfig server)
+    /// <summary>
+    /// Gets an SIP002 URL representing the server.
+    /// </summary>
+    /// <returns>An SIP002 URL.</returns>
+    public Uri ToUri()
     {
-        Id = server.Id;
-        Name = server.Name;
-        Host = server.Host;
-        Port = server.Port;
-        Method = server.Method;
-        Password = server.Password;
-        PluginName = server.PluginName;
-        PluginVersion = server.PluginVersion;
-        PluginOptions = server.PluginOptions;
-        PluginArguments = server.PluginArguments;
-        Group = server.Group;
-        Owner = server.Owner;
-        Tags = server.Tags;
+        var uriBuilder = new UriBuilder("ss", Host, Port)
+        {
+            UserName = Method,
+            Password = Uri.EscapeDataString(GetPassword()),
+            Fragment = Name,
+        };
+
+        if (!string.IsNullOrEmpty(PluginName))
+        {
+            var querySB = new StringBuilder("plugin=");
+
+            querySB.Append(Uri.EscapeDataString(PluginName));
+
+            if (!string.IsNullOrEmpty(PluginOptions))
+            {
+                querySB.Append("%3B"); // URI-escaped ';'
+                querySB.Append(Uri.EscapeDataString(PluginOptions));
+            }
+
+            if (!string.IsNullOrEmpty(PluginVersion))
+            {
+                querySB.Append("&pluginVersion=");
+                querySB.Append(Uri.EscapeDataString(PluginVersion));
+            }
+
+            if (!string.IsNullOrEmpty(PluginArguments))
+            {
+                querySB.Append("&pluginArguments=");
+                querySB.Append(Uri.EscapeDataString(PluginArguments));
+            }
+
+            uriBuilder.Query = querySB.ToString();
+        }
+
+        return uriBuilder.Uri;
     }
 
-    public bool Equals(ShadowsocksServerConfig? other) => Id == other?.Id;
-    public override bool Equals(object? obj) => Equals(obj as ShadowsocksServerConfig);
-    public override int GetHashCode() => Id.GetHashCode();
-    public override string ToString() => Name;
-
-    public IShadowsocksServerConfig ToIShadowsocksServerConfig() => this;
-
+    /// <summary>
+    /// Parses an SIP002 URL into a Shadowsocks server configuration.
+    /// </summary>
+    /// <param name="url">The URL to parse.</param>
+    /// <param name="serverConfig">The parsed server configuration.</param>
+    /// <returns>Whether the parsing is successful.</returns>
     public static bool TryParse(string url, [NotNullWhen(true)] out ShadowsocksServerConfig? serverConfig)
     {
         serverConfig = null;
         return Uri.TryCreate(url, UriKind.Absolute, out var uri) && TryParse(uri, out serverConfig);
     }
 
+    /// <summary>
+    /// Parses an SIP002 URI into a Shadowsocks server configuration.
+    /// </summary>
+    /// <param name="uri">The URI to parse.</param>
+    /// <param name="serverConfig">The parsed server configuration.</param>
+    /// <returns>Whether the parsing is successful.</returns>
     public static bool TryParse(Uri uri, [NotNullWhen(true)] out ShadowsocksServerConfig? serverConfig)
     {
         serverConfig = null;
@@ -93,11 +184,13 @@ public class ShadowsocksServerConfig : IShadowsocksServerConfig
             return false;
 
         // Parse userinfo.
-        var userinfoSplitArray = uri.UserInfo.Split(':', 2);
-        if (userinfoSplitArray.Length != 2)
+        var unescapedUserinfo = Uri.UnescapeDataString(uri.UserInfo);
+        var userinfoSplitArray = unescapedUserinfo.Split(':');
+        if (userinfoSplitArray.Length < 2)
             return false;
         var method = userinfoSplitArray[0];
-        var password = Uri.UnescapeDataString(userinfoSplitArray[1]);
+        var iPSKs = userinfoSplitArray[1..^1];
+        var uPSK = userinfoSplitArray[^1];
 
         // Parse host.
         var host = uri.HostNameType == UriHostNameType.IPv6 ? uri.Host[1..^1] : uri.Host;
@@ -113,7 +206,8 @@ public class ShadowsocksServerConfig : IShadowsocksServerConfig
             Host = host,
             Port = uri.Port,
             Method = method,
-            Password = password,
+            UserPSK = uPSK,
+            IdentityPSKs = iPSKs,
         };
 
         // Find plugin queries.

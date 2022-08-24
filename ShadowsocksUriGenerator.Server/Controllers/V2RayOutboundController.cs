@@ -86,7 +86,7 @@ public class V2RayOutboundController : OnlineConfigControllerBase
             {
                 Tag = server.Name,
                 Protocol = "shadowsocks",
-                Settings = new Shadowsocks.Interop.V2Ray.Protocols.Shadowsocks.OutboundConfigurationObject(server.Host, server.Port, server.Method, server.Password)
+                Settings = new Shadowsocks.Interop.V2Ray.Protocols.Shadowsocks.OutboundConfigurationObject(server.Host, server.Port, server.Method, server.GetPassword())
             });
         }
 

@@ -145,7 +145,7 @@ namespace ShadowsocksUriGenerator
         /// <param name="groupOwnerIds">If not empty, only include servers from groups owned by these users.</param>
         /// <param name="nodeOwnerIds">If not empty, only include servers owned by these users.</param>
         /// <returns>The user's Shadowsocks server configurations.</returns>
-        public IEnumerable<IShadowsocksServerConfig> GetShadowsocksServers(Users users, Nodes nodes, string[] groups, string[] tags, string[] groupOwnerIds, string[] nodeOwnerIds)
+        public IEnumerable<ShadowsocksServerConfig> GetShadowsocksServers(Users users, Nodes nodes, string[] groups, string[] tags, string[] groupOwnerIds, string[] nodeOwnerIds)
         {
             foreach (var membership in Memberships)
             {
@@ -178,10 +178,6 @@ namespace ShadowsocksUriGenerator
                         ? ownerEntry.Key
                         : null;
 
-                    var serverTags = node.Tags.Count > 0
-                        ? node.Tags
-                        : null;
-
                     yield return new ShadowsocksServerConfig()
                     {
                         Id = node.Uuid,
@@ -189,14 +185,15 @@ namespace ShadowsocksUriGenerator
                         Host = node.Host,
                         Port = node.Port,
                         Method = membership.Value.Method,
-                        Password = membership.Value.PasswordForNode(node.IdentityPSKs),
+                        UserPSK = membership.Value.Password,
+                        IdentityPSKs = node.IdentityPSKs,
                         PluginName = node.Plugin,
                         PluginVersion = node.PluginVersion,
                         PluginOptions = node.PluginOpts,
                         PluginArguments = node.PluginArguments,
                         Group = membership.Key,
                         Owner = owner,
-                        Tags = serverTags,
+                        Tags = node.Tags,
                     };
                 }
             }
