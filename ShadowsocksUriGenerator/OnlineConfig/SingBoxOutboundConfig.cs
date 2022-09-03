@@ -25,6 +25,10 @@ public class SingBoxOutboundConfig
     public string? DomainStrategy { get; set; }
     public string? FallbackDelay { get; set; }
 
+    public SingBoxOutboundConfig()
+    {
+    }
+
     public SingBoxOutboundConfig(
         ShadowsocksServerConfig server,
         string? network,

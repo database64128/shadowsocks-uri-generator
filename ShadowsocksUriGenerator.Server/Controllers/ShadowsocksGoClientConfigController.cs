@@ -57,6 +57,10 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
     /// <param name="nodeOwner">Select nodes that belong to users in this array.</param>
     /// <param name="paddingPolicy">The padding policy to use for outgoing Shadowsocks traffic.</param>
     /// <param name="sortByName">Whether to sort nodes by name. Defaults to false, or no sorting.</param>
+    /// <param name="noDirect">
+    /// If set to true, the generated clients won't include a direct client.
+    /// By default a direct client is added since this is most certainly what the user wants.
+    /// </param>
     /// <param name="disableTCP">Whether to disable TCP for servers.</param>
     /// <param name="disableTFO">Whether to disable TCP Fast Open for servers.</param>
     /// <param name="disableUDP">Whether to disable UDP for servers.</param>
@@ -78,6 +82,7 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
         [FromQuery] string[] nodeOwner,
         [FromQuery] string? paddingPolicy,
         [FromQuery] bool sortByName,
+        [FromQuery] bool noDirect,
         [FromQuery] bool disableTCP,
         [FromQuery] bool disableTFO,
         [FromQuery] bool disableUDP,
@@ -94,9 +99,14 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
 
         _logger.LogInformation($"{username} ({id}) retrieved {servers.Count()} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
 
+        var clients = servers.Select(x => new ShadowsocksGoClientConfig(x, paddingPolicy, disableTCP, disableTFO, disableUDP, dialerFwmark, mtu));
+
+        if (!noDirect)
+            clients = clients.Append(new(disableTCP, disableTFO, disableUDP, dialerFwmark, mtu));
+
         return new ShadowsocksGoConfig()
         {
-            Clients = servers.Select(x => new ShadowsocksGoClientConfig(x, paddingPolicy, disableTCP, disableTFO, disableUDP, dialerFwmark, mtu)),
+            Clients = clients,
         };
     }
 }
