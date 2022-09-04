@@ -157,7 +157,6 @@ namespace ShadowsocksUriGenerator.CLI
                 Console.WriteLine($"Shadowsocks Go Client Config URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/shadowsocks-go/clients/{user.Uuid}");
                 Console.WriteLine($"Sing Box Outbound Config URL:     {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sing-box/outbounds/{user.Uuid}");
                 Console.WriteLine($"SIP008 Delivery URL:              {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/sip008/{user.Uuid}");
-                Console.WriteLine($"V2Ray Outbound URL:               {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/v2ray/outbound/{user.Uuid}");
 
                 Console.WriteLine();
             }
