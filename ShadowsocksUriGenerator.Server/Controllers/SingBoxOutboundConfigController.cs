@@ -52,6 +52,12 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
     /// <param name="groupOwner">Select nodes from groups that belong to users in this array.</param>
     /// <param name="nodeOwner">Select nodes that belong to users in this array.</param>
     /// <param name="sortByName">Whether to sort nodes by name. Defaults to false, or no sorting.</param>
+    /// <param name="noSelector">
+    /// If set to true, the generated outbound config won't include a selector.
+    /// By default a selector with all servers is added.
+    /// </param>
+    /// <param name="selectorTag">The selector's outbound tag. If unspecified, defaults to "default".</param>
+    /// <param name="selectorDefault">The selector's default outbound. If unspecified, defaults to the first server.</param>
     /// <param name="network">Either "tcp" or "udp". If unspecified, both are enabled.</param>
     /// <param name="uot">Whether to enable UDP-over-TCP.</param>
     /// <param name="multiplex">Whether to enable multiplexing.</param>
@@ -83,6 +89,9 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
         [FromQuery] string[] groupOwner,
         [FromQuery] string[] nodeOwner,
         [FromQuery] bool sortByName,
+        [FromQuery] bool noSelector,
+        [FromQuery] string? selectorTag,
+        [FromQuery] string? selectorDefault,
         [FromQuery] string? network,
         [FromQuery] bool uot,
         [FromQuery] bool multiplex,
@@ -110,9 +119,22 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
 
         _logger.LogInformation($"{username} ({id}) retrieved {servers.Count()} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
 
+        var outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, bindAddress, routingMark, reuseAddr, connectTimeout, tfo, domainStrategy, fallbackDelay));
+
+        if (!noSelector && servers.Any())
+        {
+            outbounds = outbounds.Append(new()
+            {
+                Type = "selector",
+                Tag = selectorTag ?? "default",
+                Outbounds = servers.Select(x => x.Name),
+                Default = selectorDefault ?? servers.First().Name,
+            });
+        }
+
         return new SingBoxConfig()
         {
-            Outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, bindAddress, routingMark, reuseAddr, connectTimeout, tfo, domainStrategy, fallbackDelay)),
+            Outbounds = outbounds,
         };
     }
 }
