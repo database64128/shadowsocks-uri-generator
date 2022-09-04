@@ -12,16 +12,22 @@ public class ShadowsocksGoClientConfig
     public string Protocol { get; set; } = "";
     public int DialerFwmark { get; set; }
 
+    #region TCP
     public bool EnableTCP { get; set; } = true;
     public bool DialerTFO { get; set; } = true;
+    #endregion
 
+    #region UDP
     public bool EnableUDP { get; set; } = true;
     public int MTU { get; set; } = 1500;
+    #endregion
 
+    #region Shadowsocks
     public string? PSK { get; set; }
     [JsonPropertyName("iPSKs")]
     public IEnumerable<string>? IdentityPSKs { get; set; }
     public string? PaddingPolicy { get; set; }
+    #endregion
 
     /// <summary>
     /// Creates an empty client config.
