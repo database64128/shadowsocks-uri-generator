@@ -117,7 +117,7 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
 
-        _logger.LogInformation($"{username} ({id}) retrieved {servers.Count()} servers from {HeaderHelper.GetRealIP(HttpContext)} under constraints of {tag.Length} tags, {group.Length} groups, {groupOwner.Length} group owners, {nodeOwner.Length} node owners, sortByName: {sortByName}.");
+        LoggerHelper.OnlineConfig(_logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         var outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, bindAddress, routingMark, reuseAddr, connectTimeout, tfo, domainStrategy, fallbackDelay));
 
