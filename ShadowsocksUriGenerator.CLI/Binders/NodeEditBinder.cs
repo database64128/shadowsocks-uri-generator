@@ -60,20 +60,20 @@ public class NodeEditBinder : BinderBase<NodeEditChangeSet>
     }
 
     protected override NodeEditChangeSet GetBoundValue(BindingContext bindingContext) => new(
-        bindingContext.ParseResult.GetValueForArgument(_groupArgument),
-        bindingContext.ParseResult.GetValueForArgument(_nodenameArgument),
-        bindingContext.ParseResult.GetValueForOption(_hostOption),
-        bindingContext.ParseResult.GetValueForOption(_portOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginNameOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginVersionOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginOptionsOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginArgumentsOption),
-        bindingContext.ParseResult.GetValueForOption(_unsetPluginOption),
-        bindingContext.ParseResult.GetValueForOption(_ownerOption),
-        bindingContext.ParseResult.GetValueForOption(_unsetOwnerOption),
-        bindingContext.ParseResult.GetValueForOption(_clearTagsOption),
-        bindingContext.ParseResult.GetValueForOption(_addTagsOption) ?? Array.Empty<string>(),
-        bindingContext.ParseResult.GetValueForOption(_removeTagsOption) ?? Array.Empty<string>(),
-        bindingContext.ParseResult.GetValueForOption(_iPSKsOption) ?? Array.Empty<string>(),
-        bindingContext.ParseResult.GetValueForOption(_clearIPSKsOption));
+        bindingContext.ParseResult.GetValue(_groupArgument),
+        bindingContext.ParseResult.GetValue(_nodenameArgument),
+        bindingContext.ParseResult.GetValue(_hostOption),
+        bindingContext.ParseResult.GetValue(_portOption),
+        bindingContext.ParseResult.GetValue(_pluginNameOption),
+        bindingContext.ParseResult.GetValue(_pluginVersionOption),
+        bindingContext.ParseResult.GetValue(_pluginOptionsOption),
+        bindingContext.ParseResult.GetValue(_pluginArgumentsOption),
+        bindingContext.ParseResult.GetValue(_unsetPluginOption),
+        bindingContext.ParseResult.GetValue(_ownerOption),
+        bindingContext.ParseResult.GetValue(_unsetOwnerOption),
+        bindingContext.ParseResult.GetValue(_clearTagsOption),
+        bindingContext.ParseResult.GetValue(_addTagsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValue(_removeTagsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValue(_iPSKsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValue(_clearIPSKsOption));
 }

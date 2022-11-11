@@ -45,15 +45,15 @@ public class NodeAddBinder : BinderBase<NodeAddChangeSet>
     }
 
     protected override NodeAddChangeSet GetBoundValue(BindingContext bindingContext) => new(
-        bindingContext.ParseResult.GetValueForArgument(_groupArgument),
-        bindingContext.ParseResult.GetValueForArgument(_nodenameArgument),
-        bindingContext.ParseResult.GetValueForArgument(_hostArgument),
-        bindingContext.ParseResult.GetValueForArgument(_portArgument),
-        bindingContext.ParseResult.GetValueForOption(_pluginNameOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginVersionOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginOptionsOption),
-        bindingContext.ParseResult.GetValueForOption(_pluginArgumentsOption),
-        bindingContext.ParseResult.GetValueForOption(_ownerOption),
-        bindingContext.ParseResult.GetValueForOption(_tagsOption) ?? Array.Empty<string>(),
-        bindingContext.ParseResult.GetValueForOption(_iPSKsOption) ?? Array.Empty<string>());
+        bindingContext.ParseResult.GetValue(_groupArgument),
+        bindingContext.ParseResult.GetValue(_nodenameArgument),
+        bindingContext.ParseResult.GetValue(_hostArgument),
+        bindingContext.ParseResult.GetValue(_portArgument),
+        bindingContext.ParseResult.GetValue(_pluginNameOption),
+        bindingContext.ParseResult.GetValue(_pluginVersionOption),
+        bindingContext.ParseResult.GetValue(_pluginOptionsOption),
+        bindingContext.ParseResult.GetValue(_pluginArgumentsOption),
+        bindingContext.ParseResult.GetValue(_ownerOption),
+        bindingContext.ParseResult.GetValue(_tagsOption) ?? Array.Empty<string>(),
+        bindingContext.ParseResult.GetValue(_iPSKsOption) ?? Array.Empty<string>());
 }

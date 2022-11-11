@@ -47,16 +47,16 @@ public class SettingsSetBinder : BinderBase<SettingsSetChangeSet>
     }
 
     protected override SettingsSetChangeSet GetBoundValue(BindingContext bindingContext) => new(
-        bindingContext.ParseResult.GetValueForOption(_settingsUserDataUsageDefaultSortByOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsGroupDataUsageDefaultSortByOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOnlineConfigSortByNameOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOnlineConfigDeliverByGroupOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOnlineConfigCleanOnUserRemovalOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOnlineConfigOutputDirectoryOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOnlineConfigDeliveryRootUriOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOutlineServerApplyDefaultUserOnAssociationOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOutlineServerApplyDataLimitOnAssociationOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsOutlineServerGlobalDefaultUserOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsApiServerBaseUrlOption),
-        bindingContext.ParseResult.GetValueForOption(_settingsApiServerSecretPathOption));
+        bindingContext.ParseResult.GetValue(_settingsUserDataUsageDefaultSortByOption),
+        bindingContext.ParseResult.GetValue(_settingsGroupDataUsageDefaultSortByOption),
+        bindingContext.ParseResult.GetValue(_settingsOnlineConfigSortByNameOption),
+        bindingContext.ParseResult.GetValue(_settingsOnlineConfigDeliverByGroupOption),
+        bindingContext.ParseResult.GetValue(_settingsOnlineConfigCleanOnUserRemovalOption),
+        bindingContext.ParseResult.GetValue(_settingsOnlineConfigOutputDirectoryOption),
+        bindingContext.ParseResult.GetValue(_settingsOnlineConfigDeliveryRootUriOption),
+        bindingContext.ParseResult.GetValue(_settingsOutlineServerApplyDefaultUserOnAssociationOption),
+        bindingContext.ParseResult.GetValue(_settingsOutlineServerApplyDataLimitOnAssociationOption),
+        bindingContext.ParseResult.GetValue(_settingsOutlineServerGlobalDefaultUserOption),
+        bindingContext.ParseResult.GetValue(_settingsApiServerBaseUrlOption),
+        bindingContext.ParseResult.GetValue(_settingsApiServerSecretPathOption));
 }
