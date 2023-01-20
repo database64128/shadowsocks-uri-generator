@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <Version>5.2.0</Version>
     <Authors>database64128</Authors>
     <Description>Utilities library for ShadowsocksUriGenerator.CLI</Description>
-    <Copyright>© 2022 database64128</Copyright>
+    <Copyright>© 2023 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>

@@ -87,42 +87,42 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-${{ github.sha }}-linux-arm64
-          path: ShadowsocksUriGenerator.CLI/bin/Release/net6.0/linux-arm64/publish/
+          path: ShadowsocksUriGenerator.CLI/bin/Release/net7.0/linux-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Linux x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-${{ github.sha }}-linux-x64
-          path: ShadowsocksUriGenerator.CLI/bin/Release/net6.0/linux-x64/publish/
+          path: ShadowsocksUriGenerator.CLI/bin/Release/net7.0/linux-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Linux framework-dependent
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-${{ github.sha }}-linux
-          path: ShadowsocksUriGenerator.CLI/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.CLI/bin/Release/net7.0/publish/
 
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Windows ARM64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-${{ github.sha }}-windows-arm64
-          path: ShadowsocksUriGenerator.CLI/bin/Release/net6.0/win-arm64/publish/
+          path: ShadowsocksUriGenerator.CLI/bin/Release/net7.0/win-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Windows x64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-${{ github.sha }}-windows-x64
-          path: ShadowsocksUriGenerator.CLI/bin/Release/net6.0/win-x64/publish/
+          path: ShadowsocksUriGenerator.CLI/bin/Release/net7.0/win-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Windows framework-dependent
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-${{ github.sha }}-windows
-          path: ShadowsocksUriGenerator.CLI/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.CLI/bin/Release/net7.0/publish/
 
       # Upload ShadowsocksUriGenerator.Server
       - name: Upload ShadowsocksUriGenerator.Server artifacts for Linux ARM64
@@ -130,42 +130,42 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-server-${{ github.sha }}-linux-arm64
-          path: ShadowsocksUriGenerator.Server/bin/Release/net6.0/linux-arm64/publish/
+          path: ShadowsocksUriGenerator.Server/bin/Release/net7.0/linux-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Server artifacts for Linux x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-server-${{ github.sha }}-linux-x64
-          path: ShadowsocksUriGenerator.Server/bin/Release/net6.0/linux-x64/publish/
+          path: ShadowsocksUriGenerator.Server/bin/Release/net7.0/linux-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Server artifacts for Linux framework-dependent
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-server-${{ github.sha }}-linux
-          path: ShadowsocksUriGenerator.Server/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.Server/bin/Release/net7.0/publish/
 
       - name: Upload ShadowsocksUriGenerator.Server artifacts for Windows ARM64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-server-${{ github.sha }}-windows-arm64
-          path: ShadowsocksUriGenerator.Server/bin/Release/net6.0/win-arm64/publish/
+          path: ShadowsocksUriGenerator.Server/bin/Release/net7.0/win-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Server artifacts for Windows x64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-server-${{ github.sha }}-windows-x64
-          path: ShadowsocksUriGenerator.Server/bin/Release/net6.0/win-x64/publish/
+          path: ShadowsocksUriGenerator.Server/bin/Release/net7.0/win-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Server artifacts for Windows framework-dependent
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-server-${{ github.sha }}-windows
-          path: ShadowsocksUriGenerator.Server/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.Server/bin/Release/net7.0/publish/
 
       # Upload ShadowsocksUriGenerator.Rescue.CLI
       - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Linux ARM64
@@ -173,42 +173,42 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-rescue-${{ github.sha }}-linux-arm64
-          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net6.0/linux-arm64/publish/
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net7.0/linux-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Linux x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-rescue-${{ github.sha }}-linux-x64
-          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net6.0/linux-x64/publish/
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net7.0/linux-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Linux framework-dependent
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-rescue-${{ github.sha }}-linux
-          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net7.0/publish/
 
       - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Windows ARM64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-rescue-${{ github.sha }}-windows-arm64
-          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net6.0/win-arm64/publish/
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net7.0/win-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Windows x64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-rescue-${{ github.sha }}-windows-x64
-          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net6.0/win-x64/publish/
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net7.0/win-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Rescue.CLI artifacts for Windows framework-dependent
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-rescue-${{ github.sha }}-windows
-          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net7.0/publish/
 
       # Upload ShadowsocksUriGenerator.Chatbot.Telegram
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux ARM64
@@ -216,39 +216,39 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-linux-arm64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net6.0/linux-arm64/publish/
+          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net7.0/linux-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-linux-x64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net6.0/linux-x64/publish/
+          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net7.0/linux-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux framework-dependent
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-linux
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net7.0/publish/
 
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Windows ARM64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-windows-arm64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net6.0/win-arm64/publish/
+          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net7.0/win-arm64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Windows x64
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-windows-x64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net6.0/win-x64/publish/
+          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net7.0/win-x64/publish/
 
       - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Windows framework-dependent
         if: matrix.os == 'windows-2022'
         uses: actions/upload-artifact@v3
         with:
           name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-windows
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net6.0/publish/
+          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net7.0/publish/

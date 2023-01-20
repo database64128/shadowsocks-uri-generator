@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>ss-uri-gen-server</AssemblyName>
     <PackageId>ShadowsocksUriGenerator.Server</PackageId>
@@ -9,7 +9,7 @@
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator API Server</Product>
     <Description>Shadowsocks URI Generator API Server provides an API endpoint for basic management tasks and online config.</Description>
-    <Copyright>© 2022 database64128</Copyright>
+    <Copyright>© 2023 database64128</Copyright>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
     <PackageProjectUrl>https://github.com/database64128/shadowsocks-uri-generator</PackageProjectUrl>
     <RepositoryUrl>https://github.com/database64128/shadowsocks-uri-generator</RepositoryUrl>

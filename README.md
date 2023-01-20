@@ -27,7 +27,7 @@ Shadowsocks URI Generator is a management and distribution platform for censorsh
 
 ## Build
 
-Prerequisites: .NET 6 SDK
+Prerequisites: .NET 7 SDK
 
 Note for packagers: The application by default uses executable directory as config directory. To use user's config directory, define the constant `PACKAGED` when building.
 
@@ -208,4 +208,4 @@ $ ss-uri-gen-chatbot-telegram --bot-token "1234567:4TT8bAc8GHUspu3ERYn-KGcvsvGB9
 - `JsonSnakeCaseNamingPolicy` is adopted from [dotnet/corefx#40003](https://github.com/dotnet/corefx/pull/40003). It's licensed under the MIT license.
 - [`Telegram.Bot`](https://github.com/TelegramBots/Telegram.Bot) and [`Telegram.Bot.Extensions.Polling`](https://github.com/TelegramBots/Telegram.Bot.Extensions.Polling) are licensed under the MIT license.
 
-© 2022 database64128
+© 2023 database64128
