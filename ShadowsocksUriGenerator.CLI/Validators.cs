@@ -11,8 +11,8 @@ namespace ShadowsocksUriGenerator.CLI
     {
         public static void EnforceZeroUsernamesWhenAll(CommandResult commandResult)
         {
-            var hasUsernames = commandResult.ContainsSymbolWithName("usernames");
-            var hasAllUsers = commandResult.ContainsSymbolWithName("all-users");
+            var hasUsernames = commandResult.ContainsOptionWithName("usernames");
+            var hasAllUsers = commandResult.ContainsOptionWithName("all-users");
 
             if (!hasUsernames && !hasAllUsers)
             {
@@ -26,8 +26,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void EnforceZeroNodenamesWhenAll(CommandResult commandResult)
         {
-            var hasNodenames = commandResult.ContainsSymbolWithName("nodenames");
-            var hasAllNodes = commandResult.ContainsSymbolWithName("all-nodes");
+            var hasNodenames = commandResult.ContainsOptionWithName("nodenames");
+            var hasAllNodes = commandResult.ContainsOptionWithName("all-nodes");
 
             if (!hasNodenames && !hasAllNodes)
             {
@@ -41,8 +41,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void EnforceZeroGroupsWhenAll(CommandResult commandResult)
         {
-            var hasGroups = commandResult.ContainsSymbolWithName("groups");
-            var hasAllGroups = commandResult.ContainsSymbolWithName("all-groups");
+            var hasGroups = commandResult.ContainsOptionWithName("groups");
+            var hasAllGroups = commandResult.ContainsOptionWithName("all-groups");
 
             if (!hasGroups && !hasAllGroups)
             {
@@ -56,8 +56,8 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void ValidateOwnerOptions(CommandResult commandResult)
         {
-            var setOwner = commandResult.ContainsSymbolWithName("owner");
-            var unsetOwner = commandResult.ContainsSymbolWithName("unset-owner");
+            var setOwner = commandResult.ContainsOptionWithName("owner");
+            var unsetOwner = commandResult.ContainsOptionWithName("unset-owner");
 
             if (setOwner && unsetOwner)
             {

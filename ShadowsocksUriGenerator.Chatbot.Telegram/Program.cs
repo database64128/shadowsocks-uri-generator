@@ -48,7 +48,7 @@ internal class Program
             configCommand,
         };
 
-        rootCommand.AddOption(botTokenOption);
+        rootCommand.Options.Add(botTokenOption);
         rootCommand.SetHandler(BotRunner.RunBot, botTokenOption, cancellationTokenBinder);
 
         Console.OutputEncoding = Encoding.UTF8;

@@ -331,307 +331,307 @@ namespace ShadowsocksUriGenerator.CLI
             interactiveCommand.AddAlias("repl");
 
             userAddCommand.AddAlias("a");
-            userAddCommand.AddArgument(usernamesArgumentOneOrMore);
+            userAddCommand.Arguments.Add(usernamesArgumentOneOrMore);
             userAddCommand.SetHandler(UserCommand.Add, usernamesArgumentOneOrMore, cancellationTokenBinder);
 
-            userRenameCommand.AddArgument(oldNameArgument);
-            userRenameCommand.AddArgument(newNameArgument);
+            userRenameCommand.Arguments.Add(oldNameArgument);
+            userRenameCommand.Arguments.Add(newNameArgument);
             userRenameCommand.SetHandler(UserCommand.Rename, oldNameArgument, newNameArgument, cancellationTokenBinder);
 
             userRemoveCommand.AddAlias("rm");
             userRemoveCommand.AddAlias("del");
             userRemoveCommand.AddAlias("delete");
-            userRemoveCommand.AddArgument(usernamesArgumentOneOrMore);
+            userRemoveCommand.Arguments.Add(usernamesArgumentOneOrMore);
             userRemoveCommand.SetHandler(UserCommand.Remove, usernamesArgumentOneOrMore, cancellationTokenBinder);
 
             userListCommand.AddAlias("l");
             userListCommand.AddAlias("ls");
-            userListCommand.AddOption(namesOnlyOption);
-            userListCommand.AddOption(onePerLineOption);
+            userListCommand.Options.Add(namesOnlyOption);
+            userListCommand.Options.Add(onePerLineOption);
             userListCommand.SetHandler(UserCommand.List, namesOnlyOption, onePerLineOption, cancellationTokenBinder);
 
-            userJoinGroupsCommand.AddArgument(usernameArgument);
-            userJoinGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
-            userJoinGroupsCommand.AddOption(allGroupsOption);
-            userJoinGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userJoinGroupsCommand.Arguments.Add(usernameArgument);
+            userJoinGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            userJoinGroupsCommand.Options.Add(allGroupsOption);
+            userJoinGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userJoinGroupsCommand.SetHandler(UserCommand.JoinGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
-            userLeaveGroupsCommand.AddArgument(usernameArgument);
-            userLeaveGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
-            userLeaveGroupsCommand.AddOption(allGroupsOption);
-            userLeaveGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userLeaveGroupsCommand.Arguments.Add(usernameArgument);
+            userLeaveGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            userLeaveGroupsCommand.Options.Add(allGroupsOption);
+            userLeaveGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userLeaveGroupsCommand.SetHandler(UserCommand.LeaveGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userAddCredentialCommand.AddAlias("ac");
-            userAddCredentialCommand.AddArgument(usernameArgument);
-            userAddCredentialCommand.AddArgument(methodArgument);
-            userAddCredentialCommand.AddArgument(passwordArgument);
-            userAddCredentialCommand.AddArgument(groupsArgumentZeroOrMore);
-            userAddCredentialCommand.AddOption(allGroupsOption);
-            userAddCredentialCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userAddCredentialCommand.Arguments.Add(usernameArgument);
+            userAddCredentialCommand.Arguments.Add(methodArgument);
+            userAddCredentialCommand.Arguments.Add(passwordArgument);
+            userAddCredentialCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            userAddCredentialCommand.Options.Add(allGroupsOption);
+            userAddCredentialCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userAddCredentialCommand.SetHandler(UserCommand.AddCredential, usernameArgument, methodArgument, passwordArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userRemoveCredentialsCommand.AddAlias("rc");
-            userRemoveCredentialsCommand.AddArgument(usernameArgument);
-            userRemoveCredentialsCommand.AddArgument(groupsArgumentZeroOrMore);
-            userRemoveCredentialsCommand.AddOption(allGroupsOption);
-            userRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userRemoveCredentialsCommand.Arguments.Add(usernameArgument);
+            userRemoveCredentialsCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            userRemoveCredentialsCommand.Options.Add(allGroupsOption);
+            userRemoveCredentialsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userRemoveCredentialsCommand.SetHandler(UserCommand.RemoveCredentials, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userListCredentialsCommand.AddAlias("lc");
-            userListCredentialsCommand.AddOption(usernamesOption);
-            userListCredentialsCommand.AddOption(groupsOption);
+            userListCredentialsCommand.Options.Add(usernamesOption);
+            userListCredentialsCommand.Options.Add(groupsOption);
             userListCredentialsCommand.SetHandler(UserCommand.ListCredentials, usernamesOption, groupsOption, cancellationTokenBinder);
 
             userGetSSLinksCommand.AddAlias("ss");
-            userGetSSLinksCommand.AddArgument(usernameArgument);
-            userGetSSLinksCommand.AddOption(groupsOption);
+            userGetSSLinksCommand.Arguments.Add(usernameArgument);
+            userGetSSLinksCommand.Options.Add(groupsOption);
             userGetSSLinksCommand.SetHandler(UserCommand.GetSSLinks, usernameArgument, groupsOption, cancellationTokenBinder);
 
             userGetDataUsageCommand.AddAlias("data");
-            userGetDataUsageCommand.AddArgument(usernameArgument);
-            userGetDataUsageCommand.AddOption(sortByOption);
+            userGetDataUsageCommand.Arguments.Add(usernameArgument);
+            userGetDataUsageCommand.Options.Add(sortByOption);
             userGetDataUsageCommand.SetHandler(UserCommand.GetDataUsage, usernameArgument, sortByOption, cancellationTokenBinder);
 
             userGetDataLimitCommand.AddAlias("gl");
             userGetDataLimitCommand.AddAlias("gdl");
             userGetDataLimitCommand.AddAlias("limit");
             userGetDataLimitCommand.AddAlias("get-limit");
-            userGetDataLimitCommand.AddArgument(usernameArgument);
+            userGetDataLimitCommand.Arguments.Add(usernameArgument);
             userGetDataLimitCommand.SetHandler(UserCommand.GetDataLimit, usernameArgument, cancellationTokenBinder);
 
             userSetDataLimitCommand.AddAlias("sl");
             userSetDataLimitCommand.AddAlias("sdl");
             userSetDataLimitCommand.AddAlias("set-limit");
-            userSetDataLimitCommand.AddArgument(usernamesArgumentOneOrMore);
-            userSetDataLimitCommand.AddOption(globalDataLimitOption);
-            userSetDataLimitCommand.AddOption(perGroupDataLimitOption);
-            userSetDataLimitCommand.AddOption(groupsOption);
-            userSetDataLimitCommand.AddValidator(UserCommand.ValidateSetDataLimit);
+            userSetDataLimitCommand.Arguments.Add(usernamesArgumentOneOrMore);
+            userSetDataLimitCommand.Options.Add(globalDataLimitOption);
+            userSetDataLimitCommand.Options.Add(perGroupDataLimitOption);
+            userSetDataLimitCommand.Options.Add(groupsOption);
+            userSetDataLimitCommand.Validators.Add(UserCommand.ValidateSetDataLimit);
             userSetDataLimitCommand.SetHandler(UserCommand.SetDataLimit, usernamesArgumentOneOrMore, globalDataLimitOption, perGroupDataLimitOption, groupsOption, cancellationTokenBinder);
 
             userOwnGroupsCommand.AddAlias("og");
-            userOwnGroupsCommand.AddArgument(usernameArgument);
-            userOwnGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
-            userOwnGroupsCommand.AddOption(allGroupsOption);
-            userOwnGroupsCommand.AddOption(forceOption);
-            userOwnGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userOwnGroupsCommand.Arguments.Add(usernameArgument);
+            userOwnGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            userOwnGroupsCommand.Options.Add(allGroupsOption);
+            userOwnGroupsCommand.Options.Add(forceOption);
+            userOwnGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userOwnGroupsCommand.SetHandler(UserCommand.OwnGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, forceOption, cancellationTokenBinder);
 
             userDisownGroupsCommand.AddAlias("dg");
-            userDisownGroupsCommand.AddArgument(usernameArgument);
-            userDisownGroupsCommand.AddArgument(groupsArgumentZeroOrMore);
-            userDisownGroupsCommand.AddOption(allGroupsOption);
-            userDisownGroupsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
+            userDisownGroupsCommand.Arguments.Add(usernameArgument);
+            userDisownGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            userDisownGroupsCommand.Options.Add(allGroupsOption);
+            userDisownGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userDisownGroupsCommand.SetHandler(UserCommand.DisownGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, cancellationTokenBinder);
 
             userOwnNodesCommand.AddAlias("on");
-            userOwnNodesCommand.AddArgument(usernameArgument);
-            userOwnNodesCommand.AddOption(groupsOption);
-            userOwnNodesCommand.AddOption(allGroupsNoAliasesOption);
-            userOwnNodesCommand.AddOption(nodenamesOption);
-            userOwnNodesCommand.AddOption(allNodesNoAliasesOption);
-            userOwnNodesCommand.AddOption(forceOption);
-            userOwnNodesCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userOwnNodesCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            userOwnNodesCommand.Arguments.Add(usernameArgument);
+            userOwnNodesCommand.Options.Add(groupsOption);
+            userOwnNodesCommand.Options.Add(allGroupsNoAliasesOption);
+            userOwnNodesCommand.Options.Add(nodenamesOption);
+            userOwnNodesCommand.Options.Add(allNodesNoAliasesOption);
+            userOwnNodesCommand.Options.Add(forceOption);
+            userOwnNodesCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            userOwnNodesCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             userOwnNodesCommand.SetHandler(UserCommand.OwnNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, forceOption, cancellationTokenBinder);
 
             userDisownNodesCommand.AddAlias("dn");
-            userDisownNodesCommand.AddArgument(usernameArgument);
-            userDisownNodesCommand.AddOption(groupsOption);
-            userDisownNodesCommand.AddOption(allGroupsNoAliasesOption);
-            userDisownNodesCommand.AddOption(nodenamesOption);
-            userDisownNodesCommand.AddOption(allNodesNoAliasesOption);
-            userDisownNodesCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            userDisownNodesCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            userDisownNodesCommand.Arguments.Add(usernameArgument);
+            userDisownNodesCommand.Options.Add(groupsOption);
+            userDisownNodesCommand.Options.Add(allGroupsNoAliasesOption);
+            userDisownNodesCommand.Options.Add(nodenamesOption);
+            userDisownNodesCommand.Options.Add(allNodesNoAliasesOption);
+            userDisownNodesCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            userDisownNodesCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             userDisownNodesCommand.SetHandler(UserCommand.DisownNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             userListOwnedGroupsCommand.AddAlias("log");
-            userListOwnedGroupsCommand.AddArgument(usernameArgument);
+            userListOwnedGroupsCommand.Arguments.Add(usernameArgument);
             userListOwnedGroupsCommand.SetHandler(UserCommand.ListOwnedGroups, usernameArgument, cancellationTokenBinder);
 
             userListOwnedNodesCmmand.AddAlias("lon");
-            userListOwnedNodesCmmand.AddArgument(usernameArgument);
-            userListOwnedNodesCmmand.AddArgument(groupsArgumentZeroOrMore);
+            userListOwnedNodesCmmand.Arguments.Add(usernameArgument);
+            userListOwnedNodesCmmand.Arguments.Add(groupsArgumentZeroOrMore);
             userListOwnedNodesCmmand.SetHandler(UserCommand.ListOwnedNodes, usernameArgument, groupsArgumentZeroOrMore, cancellationTokenBinder);
 
             nodeAddCommand.AddAlias("a");
-            nodeAddCommand.AddArgument(groupArgument);
-            nodeAddCommand.AddArgument(nodenameArgument);
-            nodeAddCommand.AddArgument(hostArgument);
-            nodeAddCommand.AddArgument(portArgument);
-            nodeAddCommand.AddOption(pluginNameOption);
-            nodeAddCommand.AddOption(pluginVersionOption);
-            nodeAddCommand.AddOption(pluginOptionsOption);
-            nodeAddCommand.AddOption(pluginArgumentsOption);
-            nodeAddCommand.AddOption(ownerOption);
-            nodeAddCommand.AddOption(tagsOption);
-            nodeAddCommand.AddOption(iPSKOption);
-            nodeAddCommand.AddValidator(NodeCommand.ValidateNodePlugin);
+            nodeAddCommand.Arguments.Add(groupArgument);
+            nodeAddCommand.Arguments.Add(nodenameArgument);
+            nodeAddCommand.Arguments.Add(hostArgument);
+            nodeAddCommand.Arguments.Add(portArgument);
+            nodeAddCommand.Options.Add(pluginNameOption);
+            nodeAddCommand.Options.Add(pluginVersionOption);
+            nodeAddCommand.Options.Add(pluginOptionsOption);
+            nodeAddCommand.Options.Add(pluginArgumentsOption);
+            nodeAddCommand.Options.Add(ownerOption);
+            nodeAddCommand.Options.Add(tagsOption);
+            nodeAddCommand.Options.Add(iPSKOption);
+            nodeAddCommand.Validators.Add(NodeCommand.ValidateNodePlugin);
             nodeAddCommand.SetHandler(NodeCommand.Add, nodeAddBinder, cancellationTokenBinder);
 
             nodeEditCommand.AddAlias("e");
-            nodeEditCommand.AddArgument(groupArgument);
-            nodeEditCommand.AddArgument(nodenameArgument);
-            nodeEditCommand.AddOption(hostOption);
-            nodeEditCommand.AddOption(portOption);
-            nodeEditCommand.AddOption(pluginNameOption);
-            nodeEditCommand.AddOption(pluginVersionOption);
-            nodeEditCommand.AddOption(pluginOptionsOption);
-            nodeEditCommand.AddOption(pluginArgumentsOption);
-            nodeEditCommand.AddOption(unsetPluginOption);
-            nodeEditCommand.AddOption(ownerOption);
-            nodeEditCommand.AddOption(unsetOwnerOption);
-            nodeEditCommand.AddOption(clearTagsOption);
-            nodeEditCommand.AddOption(addTagsOption);
-            nodeEditCommand.AddOption(removeTagsOption);
-            nodeEditCommand.AddOption(iPSKOption);
-            nodeEditCommand.AddOption(clearIPSKOption);
-            nodeEditCommand.AddValidator(NodeCommand.ValidateNodePlugin);
-            nodeEditCommand.AddValidator(Validators.ValidateOwnerOptions);
+            nodeEditCommand.Arguments.Add(groupArgument);
+            nodeEditCommand.Arguments.Add(nodenameArgument);
+            nodeEditCommand.Options.Add(hostOption);
+            nodeEditCommand.Options.Add(portOption);
+            nodeEditCommand.Options.Add(pluginNameOption);
+            nodeEditCommand.Options.Add(pluginVersionOption);
+            nodeEditCommand.Options.Add(pluginOptionsOption);
+            nodeEditCommand.Options.Add(pluginArgumentsOption);
+            nodeEditCommand.Options.Add(unsetPluginOption);
+            nodeEditCommand.Options.Add(ownerOption);
+            nodeEditCommand.Options.Add(unsetOwnerOption);
+            nodeEditCommand.Options.Add(clearTagsOption);
+            nodeEditCommand.Options.Add(addTagsOption);
+            nodeEditCommand.Options.Add(removeTagsOption);
+            nodeEditCommand.Options.Add(iPSKOption);
+            nodeEditCommand.Options.Add(clearIPSKOption);
+            nodeEditCommand.Validators.Add(NodeCommand.ValidateNodePlugin);
+            nodeEditCommand.Validators.Add(Validators.ValidateOwnerOptions);
             nodeEditCommand.SetHandler(NodeCommand.Edit, nodeEditBinder, cancellationTokenBinder);
 
-            nodeRenameCommand.AddArgument(groupArgument);
-            nodeRenameCommand.AddArgument(oldNameArgument);
-            nodeRenameCommand.AddArgument(newNameArgument);
+            nodeRenameCommand.Arguments.Add(groupArgument);
+            nodeRenameCommand.Arguments.Add(oldNameArgument);
+            nodeRenameCommand.Arguments.Add(newNameArgument);
             nodeRenameCommand.SetHandler(NodeCommand.Rename, groupArgument, oldNameArgument, newNameArgument, cancellationTokenBinder);
 
             nodeRemoveCommand.AddAlias("rm");
             nodeRemoveCommand.AddAlias("del");
             nodeRemoveCommand.AddAlias("delete");
-            nodeRemoveCommand.AddArgument(groupArgument);
-            nodeRemoveCommand.AddArgument(nodenamesArgumentOneOrMore);
+            nodeRemoveCommand.Arguments.Add(groupArgument);
+            nodeRemoveCommand.Arguments.Add(nodenamesArgumentOneOrMore);
             nodeRemoveCommand.SetHandler(NodeCommand.Remove, groupArgument, nodenamesArgumentOneOrMore, cancellationTokenBinder);
 
             nodeListCommand.AddAlias("l");
             nodeListCommand.AddAlias("ls");
-            nodeListCommand.AddArgument(groupsArgumentZeroOrMore);
-            nodeListCommand.AddOption(namesOnlyOption);
-            nodeListCommand.AddOption(onePerLineOption);
+            nodeListCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            nodeListCommand.Options.Add(namesOnlyOption);
+            nodeListCommand.Options.Add(onePerLineOption);
             nodeListCommand.SetHandler(NodeCommand.List, groupsArgumentZeroOrMore, namesOnlyOption, onePerLineOption, cancellationTokenBinder);
 
             nodeListAnnotationsCommand.AddAlias("la");
             nodeListAnnotationsCommand.AddAlias("lsa");
-            nodeListAnnotationsCommand.AddArgument(groupsArgumentZeroOrMore);
-            nodeListAnnotationsCommand.AddOption(onePerLineOption);
+            nodeListAnnotationsCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            nodeListAnnotationsCommand.Options.Add(onePerLineOption);
             nodeListAnnotationsCommand.SetHandler(NodeCommand.ListAnnotations, groupsArgumentZeroOrMore, onePerLineOption, cancellationTokenBinder);
 
             nodeActivateCommand.AddAlias("enable");
             nodeActivateCommand.AddAlias("unhide");
-            nodeActivateCommand.AddArgument(groupArgument);
-            nodeActivateCommand.AddArgument(nodenamesArgumentZeroOrMore);
-            nodeActivateCommand.AddOption(allNodesOption);
-            nodeActivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeActivateCommand.Arguments.Add(groupArgument);
+            nodeActivateCommand.Arguments.Add(nodenamesArgumentZeroOrMore);
+            nodeActivateCommand.Options.Add(allNodesOption);
+            nodeActivateCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeActivateCommand.SetHandler(NodeCommand.Activate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption, cancellationTokenBinder);
 
             nodeDeactivateCommand.AddAlias("disable");
             nodeDeactivateCommand.AddAlias("hide");
-            nodeDeactivateCommand.AddArgument(groupArgument);
-            nodeDeactivateCommand.AddArgument(nodenamesArgumentZeroOrMore);
-            nodeDeactivateCommand.AddOption(allNodesOption);
-            nodeDeactivateCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeDeactivateCommand.Arguments.Add(groupArgument);
+            nodeDeactivateCommand.Arguments.Add(nodenamesArgumentZeroOrMore);
+            nodeDeactivateCommand.Options.Add(allNodesOption);
+            nodeDeactivateCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeDeactivateCommand.SetHandler(NodeCommand.Deactivate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption, cancellationTokenBinder);
 
             nodeAddTagsCommand.AddAlias("at");
-            nodeAddTagsCommand.AddArgument(tagsArgument);
-            nodeAddTagsCommand.AddOption(groupsOption);
-            nodeAddTagsCommand.AddOption(allGroupsNoAliasesOption);
-            nodeAddTagsCommand.AddOption(nodenamesOption);
-            nodeAddTagsCommand.AddOption(allNodesNoAliasesOption);
-            nodeAddTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            nodeAddTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeAddTagsCommand.Arguments.Add(tagsArgument);
+            nodeAddTagsCommand.Options.Add(groupsOption);
+            nodeAddTagsCommand.Options.Add(allGroupsNoAliasesOption);
+            nodeAddTagsCommand.Options.Add(nodenamesOption);
+            nodeAddTagsCommand.Options.Add(allNodesNoAliasesOption);
+            nodeAddTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            nodeAddTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeAddTagsCommand.SetHandler(NodeCommand.AddTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeEditTagsCommand.AddAlias("et");
-            nodeEditTagsCommand.AddOption(groupsOption);
-            nodeEditTagsCommand.AddOption(allGroupsNoAliasesOption);
-            nodeEditTagsCommand.AddOption(nodenamesOption);
-            nodeEditTagsCommand.AddOption(allNodesNoAliasesOption);
-            nodeEditTagsCommand.AddOption(clearTagsOption);
-            nodeEditTagsCommand.AddOption(addTagsOption);
-            nodeEditTagsCommand.AddOption(removeTagsOption);
-            nodeEditTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            nodeEditTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeEditTagsCommand.Options.Add(groupsOption);
+            nodeEditTagsCommand.Options.Add(allGroupsNoAliasesOption);
+            nodeEditTagsCommand.Options.Add(nodenamesOption);
+            nodeEditTagsCommand.Options.Add(allNodesNoAliasesOption);
+            nodeEditTagsCommand.Options.Add(clearTagsOption);
+            nodeEditTagsCommand.Options.Add(addTagsOption);
+            nodeEditTagsCommand.Options.Add(removeTagsOption);
+            nodeEditTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            nodeEditTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeEditTagsCommand.SetHandler(NodeCommand.EditTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, clearTagsOption, addTagsOption, removeTagsOption, cancellationTokenBinder);
 
             nodeRemoveTagsCommand.AddAlias("rt");
-            nodeRemoveTagsCommand.AddArgument(tagsArgument);
-            nodeRemoveTagsCommand.AddOption(groupsOption);
-            nodeRemoveTagsCommand.AddOption(allGroupsNoAliasesOption);
-            nodeRemoveTagsCommand.AddOption(nodenamesOption);
-            nodeRemoveTagsCommand.AddOption(allNodesNoAliasesOption);
-            nodeRemoveTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            nodeRemoveTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeRemoveTagsCommand.Arguments.Add(tagsArgument);
+            nodeRemoveTagsCommand.Options.Add(groupsOption);
+            nodeRemoveTagsCommand.Options.Add(allGroupsNoAliasesOption);
+            nodeRemoveTagsCommand.Options.Add(nodenamesOption);
+            nodeRemoveTagsCommand.Options.Add(allNodesNoAliasesOption);
+            nodeRemoveTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            nodeRemoveTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeRemoveTagsCommand.SetHandler(NodeCommand.RemoveTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeClearTagsCommand.AddAlias("ct");
-            nodeClearTagsCommand.AddOption(groupsOption);
-            nodeClearTagsCommand.AddOption(allGroupsNoAliasesOption);
-            nodeClearTagsCommand.AddOption(nodenamesOption);
-            nodeClearTagsCommand.AddOption(allNodesNoAliasesOption);
-            nodeClearTagsCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            nodeClearTagsCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeClearTagsCommand.Options.Add(groupsOption);
+            nodeClearTagsCommand.Options.Add(allGroupsNoAliasesOption);
+            nodeClearTagsCommand.Options.Add(nodenamesOption);
+            nodeClearTagsCommand.Options.Add(allNodesNoAliasesOption);
+            nodeClearTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            nodeClearTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeClearTagsCommand.SetHandler(NodeCommand.ClearTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeSetOwnerCommand.AddAlias("so");
-            nodeSetOwnerCommand.AddArgument(ownerArgument);
-            nodeSetOwnerCommand.AddOption(groupsOption);
-            nodeSetOwnerCommand.AddOption(allGroupsNoAliasesOption);
-            nodeSetOwnerCommand.AddOption(nodenamesOption);
-            nodeSetOwnerCommand.AddOption(allNodesNoAliasesOption);
-            nodeSetOwnerCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            nodeSetOwnerCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeSetOwnerCommand.Arguments.Add(ownerArgument);
+            nodeSetOwnerCommand.Options.Add(groupsOption);
+            nodeSetOwnerCommand.Options.Add(allGroupsNoAliasesOption);
+            nodeSetOwnerCommand.Options.Add(nodenamesOption);
+            nodeSetOwnerCommand.Options.Add(allNodesNoAliasesOption);
+            nodeSetOwnerCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            nodeSetOwnerCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeSetOwnerCommand.SetHandler(NodeCommand.SetOwner, ownerArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             nodeUnsetOwnerCommand.AddAlias("uo");
-            nodeUnsetOwnerCommand.AddOption(groupsOption);
-            nodeUnsetOwnerCommand.AddOption(allGroupsNoAliasesOption);
-            nodeUnsetOwnerCommand.AddOption(nodenamesOption);
-            nodeUnsetOwnerCommand.AddOption(allNodesNoAliasesOption);
-            nodeUnsetOwnerCommand.AddValidator(Validators.EnforceZeroGroupsWhenAll);
-            nodeUnsetOwnerCommand.AddValidator(Validators.EnforceZeroNodenamesWhenAll);
+            nodeUnsetOwnerCommand.Options.Add(groupsOption);
+            nodeUnsetOwnerCommand.Options.Add(allGroupsNoAliasesOption);
+            nodeUnsetOwnerCommand.Options.Add(nodenamesOption);
+            nodeUnsetOwnerCommand.Options.Add(allNodesNoAliasesOption);
+            nodeUnsetOwnerCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+            nodeUnsetOwnerCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeUnsetOwnerCommand.SetHandler(NodeCommand.UnsetOwner, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, cancellationTokenBinder);
 
             groupAddCommand.AddAlias("a");
-            groupAddCommand.AddArgument(groupsArgumentOneOrMore);
-            groupAddCommand.AddOption(ownerOption);
+            groupAddCommand.Arguments.Add(groupsArgumentOneOrMore);
+            groupAddCommand.Options.Add(ownerOption);
             groupAddCommand.SetHandler(GroupCommand.Add, groupsArgumentOneOrMore, ownerOption, cancellationTokenBinder);
 
             groupEditCommand.AddAlias("e");
-            groupEditCommand.AddArgument(groupsArgumentOneOrMore);
-            groupEditCommand.AddOption(ownerOption);
-            groupEditCommand.AddOption(unsetOwnerOption);
-            groupEditCommand.AddValidator(Validators.ValidateOwnerOptions);
+            groupEditCommand.Arguments.Add(groupsArgumentOneOrMore);
+            groupEditCommand.Options.Add(ownerOption);
+            groupEditCommand.Options.Add(unsetOwnerOption);
+            groupEditCommand.Validators.Add(Validators.ValidateOwnerOptions);
             groupEditCommand.SetHandler(GroupCommand.Edit, groupsArgumentOneOrMore, ownerOption, unsetOwnerOption, cancellationTokenBinder);
 
-            groupRenameCommand.AddArgument(oldNameArgument);
-            groupRenameCommand.AddArgument(newNameArgument);
+            groupRenameCommand.Arguments.Add(oldNameArgument);
+            groupRenameCommand.Arguments.Add(newNameArgument);
             groupRenameCommand.SetHandler(GroupCommand.Rename, oldNameArgument, newNameArgument, cancellationTokenBinder);
 
             groupRemoveCommand.AddAlias("rm");
             groupRemoveCommand.AddAlias("del");
             groupRemoveCommand.AddAlias("delete");
-            groupRemoveCommand.AddArgument(groupsArgumentOneOrMore);
+            groupRemoveCommand.Arguments.Add(groupsArgumentOneOrMore);
             groupRemoveCommand.SetHandler(GroupCommand.Remove, groupsArgumentOneOrMore, cancellationTokenBinder);
 
             groupListCommand.AddAlias("l");
             groupListCommand.AddAlias("ls");
-            groupListCommand.AddOption(namesOnlyOption);
-            groupListCommand.AddOption(onePerLineOption);
+            groupListCommand.Options.Add(namesOnlyOption);
+            groupListCommand.Options.Add(onePerLineOption);
             groupListCommand.SetHandler(GroupCommand.List, namesOnlyOption, onePerLineOption, cancellationTokenBinder);
 
             groupAddUsersCommand.AddAlias("au");
-            groupAddUsersCommand.AddArgument(groupArgument);
-            groupAddUsersCommand.AddArgument(usernamesArgumentZeroOrMore);
-            groupAddUsersCommand.AddOption(allUsersOption);
-            groupAddUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            groupAddUsersCommand.Arguments.Add(groupArgument);
+            groupAddUsersCommand.Arguments.Add(usernamesArgumentZeroOrMore);
+            groupAddUsersCommand.Options.Add(allUsersOption);
+            groupAddUsersCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupAddUsersCommand.SetHandler(GroupCommand.AddUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupRemoveUsersCommand.AddAlias("ru");
-            groupRemoveUsersCommand.AddArgument(groupArgument);
-            groupRemoveUsersCommand.AddArgument(usernamesArgumentZeroOrMore);
-            groupRemoveUsersCommand.AddOption(allUsersOption);
-            groupRemoveUsersCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            groupRemoveUsersCommand.Arguments.Add(groupArgument);
+            groupRemoveUsersCommand.Arguments.Add(usernamesArgumentZeroOrMore);
+            groupRemoveUsersCommand.Options.Add(allUsersOption);
+            groupRemoveUsersCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveUsersCommand.SetHandler(GroupCommand.RemoveUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupListUsersCommand.AddAlias("lc");
@@ -639,50 +639,50 @@ namespace ShadowsocksUriGenerator.CLI
             groupListUsersCommand.AddAlias("lu");
             groupListUsersCommand.AddAlias("list-credentials");
             groupListUsersCommand.AddAlias("list-members");
-            groupListUsersCommand.AddArgument(groupArgument);
+            groupListUsersCommand.Arguments.Add(groupArgument);
             groupListUsersCommand.SetHandler(GroupCommand.ListUsers, groupArgument, cancellationTokenBinder);
 
             groupAddCredentialCommand.AddAlias("ac");
-            groupAddCredentialCommand.AddArgument(groupArgument);
-            groupAddCredentialCommand.AddArgument(methodArgument);
-            groupAddCredentialCommand.AddArgument(passwordArgument);
-            groupAddCredentialCommand.AddArgument(usernamesArgumentZeroOrMore);
-            groupAddCredentialCommand.AddOption(allUsersOption);
-            groupAddCredentialCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            groupAddCredentialCommand.Arguments.Add(groupArgument);
+            groupAddCredentialCommand.Arguments.Add(methodArgument);
+            groupAddCredentialCommand.Arguments.Add(passwordArgument);
+            groupAddCredentialCommand.Arguments.Add(usernamesArgumentZeroOrMore);
+            groupAddCredentialCommand.Options.Add(allUsersOption);
+            groupAddCredentialCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, methodArgument, passwordArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupRemoveCredentialsCommand.AddAlias("rc");
-            groupRemoveCredentialsCommand.AddArgument(groupArgument);
-            groupRemoveCredentialsCommand.AddArgument(usernamesArgumentZeroOrMore);
-            groupRemoveCredentialsCommand.AddOption(allUsersOption);
-            groupRemoveCredentialsCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            groupRemoveCredentialsCommand.Arguments.Add(groupArgument);
+            groupRemoveCredentialsCommand.Arguments.Add(usernamesArgumentZeroOrMore);
+            groupRemoveCredentialsCommand.Options.Add(allUsersOption);
+            groupRemoveCredentialsCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveCredentialsCommand.SetHandler(GroupCommand.RemoveCredentials, groupArgument, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             groupGetDataUsageCommand.AddAlias("data");
-            groupGetDataUsageCommand.AddArgument(groupArgument);
-            groupGetDataUsageCommand.AddOption(sortByOption);
+            groupGetDataUsageCommand.Arguments.Add(groupArgument);
+            groupGetDataUsageCommand.Options.Add(sortByOption);
             groupGetDataUsageCommand.SetHandler(GroupCommand.GetDataUsage, groupArgument, sortByOption, cancellationTokenBinder);
 
             groupGetDataLimitCommand.AddAlias("gl");
             groupGetDataLimitCommand.AddAlias("gdl");
             groupGetDataLimitCommand.AddAlias("limit");
             groupGetDataLimitCommand.AddAlias("get-limit");
-            groupGetDataLimitCommand.AddArgument(groupArgument);
+            groupGetDataLimitCommand.Arguments.Add(groupArgument);
             groupGetDataLimitCommand.SetHandler(GroupCommand.GetDataLimit, groupArgument, cancellationTokenBinder);
 
             groupSetDataLimitCommand.AddAlias("sl");
             groupSetDataLimitCommand.AddAlias("sdl");
             groupSetDataLimitCommand.AddAlias("set-limit");
-            groupSetDataLimitCommand.AddArgument(groupsArgumentOneOrMore);
-            groupSetDataLimitCommand.AddOption(globalDataLimitOption);
-            groupSetDataLimitCommand.AddOption(perUserDataLimitOption);
-            groupSetDataLimitCommand.AddOption(usernamesOption);
-            groupSetDataLimitCommand.AddValidator(GroupCommand.ValidateSetDataLimit);
+            groupSetDataLimitCommand.Arguments.Add(groupsArgumentOneOrMore);
+            groupSetDataLimitCommand.Options.Add(globalDataLimitOption);
+            groupSetDataLimitCommand.Options.Add(perUserDataLimitOption);
+            groupSetDataLimitCommand.Options.Add(usernamesOption);
+            groupSetDataLimitCommand.Validators.Add(GroupCommand.ValidateSetDataLimit);
             groupSetDataLimitCommand.SetHandler(GroupCommand.SetDataLimit, groupsArgumentOneOrMore, globalDataLimitOption, perUserDataLimitOption, usernamesOption, cancellationTokenBinder);
 
             onlineConfigGenerateCommand.AddAlias("g");
             onlineConfigGenerateCommand.AddAlias("gen");
-            onlineConfigGenerateCommand.AddArgument(usernamesArgumentZeroOrMore);
+            onlineConfigGenerateCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             onlineConfigGenerateCommand.SetHandler(OnlineConfigCommand.Generate, usernamesArgumentZeroOrMore, cancellationTokenBinder);
 
             onlineConfigGetLinksCommand.AddAlias("l");
@@ -692,71 +692,71 @@ namespace ShadowsocksUriGenerator.CLI
             onlineConfigGetLinksCommand.AddAlias("tokens");
             onlineConfigGetLinksCommand.AddAlias("url");
             onlineConfigGetLinksCommand.AddAlias("urls");
-            onlineConfigGetLinksCommand.AddArgument(usernamesArgumentZeroOrMore);
+            onlineConfigGetLinksCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             onlineConfigGetLinksCommand.SetHandler(OnlineConfigCommand.GetLinks, usernamesArgumentZeroOrMore, cancellationTokenBinder);
 
             onlineConfigCleanCommand.AddAlias("c");
             onlineConfigCleanCommand.AddAlias("clear");
-            onlineConfigCleanCommand.AddArgument(usernamesArgumentZeroOrMore);
-            onlineConfigCleanCommand.AddOption(allUsersOption);
-            onlineConfigCleanCommand.AddValidator(Validators.EnforceZeroUsernamesWhenAll);
+            onlineConfigCleanCommand.Arguments.Add(usernamesArgumentZeroOrMore);
+            onlineConfigCleanCommand.Options.Add(allUsersOption);
+            onlineConfigCleanCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             onlineConfigCleanCommand.SetHandler(OnlineConfigCommand.Clean, usernamesArgumentZeroOrMore, allUsersOption, cancellationTokenBinder);
 
             outlineServerAddCommand.AddAlias("a");
-            outlineServerAddCommand.AddArgument(groupArgument);
-            outlineServerAddCommand.AddArgument(outlineApiKeyArgument);
+            outlineServerAddCommand.Arguments.Add(groupArgument);
+            outlineServerAddCommand.Arguments.Add(outlineApiKeyArgument);
             outlineServerAddCommand.SetHandler(OutlineServerCommand.Add, groupArgument, outlineApiKeyArgument, cancellationTokenBinder);
 
-            outlineServerGetCommand.AddArgument(groupArgument);
+            outlineServerGetCommand.Arguments.Add(groupArgument);
             outlineServerGetCommand.SetHandler(OutlineServerCommand.Get, groupArgument, cancellationTokenBinder);
 
-            outlineServerSetCommand.AddArgument(groupArgument);
-            outlineServerSetCommand.AddOption(outlineServerNameOption);
-            outlineServerSetCommand.AddOption(outlineServerHostnameOption);
-            outlineServerSetCommand.AddOption(outlineServerPortOption);
-            outlineServerSetCommand.AddOption(outlineServerMetricsOption);
-            outlineServerSetCommand.AddOption(outlineServerDefaultUserOption);
+            outlineServerSetCommand.Arguments.Add(groupArgument);
+            outlineServerSetCommand.Options.Add(outlineServerNameOption);
+            outlineServerSetCommand.Options.Add(outlineServerHostnameOption);
+            outlineServerSetCommand.Options.Add(outlineServerPortOption);
+            outlineServerSetCommand.Options.Add(outlineServerMetricsOption);
+            outlineServerSetCommand.Options.Add(outlineServerDefaultUserOption);
             outlineServerSetCommand.SetHandler(OutlineServerCommand.Set, groupArgument, outlineServerNameOption, outlineServerHostnameOption, outlineServerPortOption, outlineServerMetricsOption, outlineServerDefaultUserOption, cancellationTokenBinder);
 
             outlineServerRemoveCommand.AddAlias("rm");
-            outlineServerRemoveCommand.AddArgument(groupsArgumentOneOrMore);
-            outlineServerRemoveCommand.AddOption(removeCredsOption);
+            outlineServerRemoveCommand.Arguments.Add(groupsArgumentOneOrMore);
+            outlineServerRemoveCommand.Options.Add(removeCredsOption);
             outlineServerRemoveCommand.SetHandler(OutlineServerCommand.Remove, groupsArgumentOneOrMore, removeCredsOption, cancellationTokenBinder);
 
             outlineServerPullCommand.AddAlias("update");
-            outlineServerPullCommand.AddArgument(groupsArgumentZeroOrMore);
-            outlineServerPullCommand.AddOption(noSyncOption);
+            outlineServerPullCommand.Arguments.Add(groupsArgumentZeroOrMore);
+            outlineServerPullCommand.Options.Add(noSyncOption);
             outlineServerPullCommand.SetHandler(OutlineServerCommand.Pull, groupsArgumentZeroOrMore, noSyncOption, cancellationTokenBinder);
 
-            outlineServerDeployCommand.AddArgument(groupsArgumentZeroOrMore);
+            outlineServerDeployCommand.Arguments.Add(groupsArgumentZeroOrMore);
             outlineServerDeployCommand.SetHandler(OutlineServerCommand.Deploy, groupsArgumentZeroOrMore, cancellationTokenBinder);
 
             outlineServerRotatePasswordCommand.AddAlias("rotate");
-            outlineServerRotatePasswordCommand.AddOption(usernamesOption);
-            outlineServerRotatePasswordCommand.AddOption(groupsOption);
-            outlineServerRotatePasswordCommand.AddOption(allGroupsOption);
-            outlineServerRotatePasswordCommand.AddValidator(OutlineServerCommand.ValidateRotatePassword);
+            outlineServerRotatePasswordCommand.Options.Add(usernamesOption);
+            outlineServerRotatePasswordCommand.Options.Add(groupsOption);
+            outlineServerRotatePasswordCommand.Options.Add(allGroupsOption);
+            outlineServerRotatePasswordCommand.Validators.Add(OutlineServerCommand.ValidateRotatePassword);
             outlineServerRotatePasswordCommand.SetHandler(OutlineServerCommand.RotatePassword, usernamesOption, groupsOption, allGroupsOption, cancellationTokenBinder);
 
-            reportCommand.AddOption(groupSortByOption);
-            reportCommand.AddOption(userSortByOption);
-            reportCommand.AddOption(csvOutdirOption);
+            reportCommand.Options.Add(groupSortByOption);
+            reportCommand.Options.Add(userSortByOption);
+            reportCommand.Options.Add(csvOutdirOption);
             reportCommand.SetHandler(ReportCommand.Generate, groupSortByOption, userSortByOption, csvOutdirOption, cancellationTokenBinder);
 
             settingsGetCommand.SetHandler(SettingsCommand.Get, cancellationTokenBinder);
 
-            settingsSetCommand.AddOption(settingsUserDataUsageDefaultSortByOption);
-            settingsSetCommand.AddOption(settingsGroupDataUsageDefaultSortByOption);
-            settingsSetCommand.AddOption(settingsOnlineConfigSortByNameOption);
-            settingsSetCommand.AddOption(settingsOnlineConfigDeliverByGroupOption);
-            settingsSetCommand.AddOption(settingsOnlineConfigCleanOnUserRemovalOption);
-            settingsSetCommand.AddOption(settingsOnlineConfigOutputDirectoryOption);
-            settingsSetCommand.AddOption(settingsOnlineConfigDeliveryRootUriOption);
-            settingsSetCommand.AddOption(settingsOutlineServerApplyDefaultUserOnAssociationOption);
-            settingsSetCommand.AddOption(settingsOutlineServerApplyDataLimitOnAssociationOption);
-            settingsSetCommand.AddOption(settingsOutlineServerGlobalDefaultUserOption);
-            settingsSetCommand.AddOption(settingsApiServerBaseUrlOption);
-            settingsSetCommand.AddOption(settingsApiServerSecretPathOption);
+            settingsSetCommand.Options.Add(settingsUserDataUsageDefaultSortByOption);
+            settingsSetCommand.Options.Add(settingsGroupDataUsageDefaultSortByOption);
+            settingsSetCommand.Options.Add(settingsOnlineConfigSortByNameOption);
+            settingsSetCommand.Options.Add(settingsOnlineConfigDeliverByGroupOption);
+            settingsSetCommand.Options.Add(settingsOnlineConfigCleanOnUserRemovalOption);
+            settingsSetCommand.Options.Add(settingsOnlineConfigOutputDirectoryOption);
+            settingsSetCommand.Options.Add(settingsOnlineConfigDeliveryRootUriOption);
+            settingsSetCommand.Options.Add(settingsOutlineServerApplyDefaultUserOnAssociationOption);
+            settingsSetCommand.Options.Add(settingsOutlineServerApplyDataLimitOnAssociationOption);
+            settingsSetCommand.Options.Add(settingsOutlineServerGlobalDefaultUserOption);
+            settingsSetCommand.Options.Add(settingsApiServerBaseUrlOption);
+            settingsSetCommand.Options.Add(settingsApiServerSecretPathOption);
             settingsSetCommand.SetHandler(SettingsCommand.Set, settingsSetBinder, cancellationTokenBinder);
 
             interactiveCommand.SetHandler(
@@ -780,12 +780,12 @@ namespace ShadowsocksUriGenerator.CLI
                     }
                 });
 
-            serviceCommand.AddOption(serviceIntervalOption);
-            serviceCommand.AddOption(servicePullOutlineServerOption);
-            serviceCommand.AddOption(serviceDeployOutlineServerOption);
-            serviceCommand.AddOption(serviceGenerateOnlineConfigOption);
-            serviceCommand.AddOption(serviceRegenerateOnlineConfigOption);
-            serviceCommand.AddValidator(ServiceCommand.ValidateRun);
+            serviceCommand.Options.Add(serviceIntervalOption);
+            serviceCommand.Options.Add(servicePullOutlineServerOption);
+            serviceCommand.Options.Add(serviceDeployOutlineServerOption);
+            serviceCommand.Options.Add(serviceGenerateOnlineConfigOption);
+            serviceCommand.Options.Add(serviceRegenerateOnlineConfigOption);
+            serviceCommand.Validators.Add(ServiceCommand.ValidateRun);
             serviceCommand.SetHandler(ServiceCommand.Run, serviceIntervalOption, servicePullOutlineServerOption, serviceDeployOutlineServerOption, serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption, cancellationTokenBinder);
 
             Console.OutputEncoding = Encoding.UTF8;

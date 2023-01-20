@@ -682,9 +682,9 @@ namespace ShadowsocksUriGenerator.CLI
 
         public static void ValidateSetDataLimit(CommandResult commandResult)
         {
-            var hasGlobal = commandResult.ContainsSymbolWithName("global");
-            var hasPerGroup = commandResult.ContainsSymbolWithName("per-group");
-            var hasGroups = commandResult.ContainsSymbolWithName("groups");
+            var hasGlobal = commandResult.ContainsOptionWithName("global");
+            var hasPerGroup = commandResult.ContainsOptionWithName("per-group");
+            var hasGroups = commandResult.ContainsOptionWithName("groups");
 
             if (!hasGlobal && !hasPerGroup)
                 commandResult.ErrorMessage = "Please specify either a global data limit with `--global`, or a per-group data limit with `--per-group`.";
