@@ -21,7 +21,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.23069.2" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.23070.2" />
   </ItemGroup>
 
   <ItemGroup>
