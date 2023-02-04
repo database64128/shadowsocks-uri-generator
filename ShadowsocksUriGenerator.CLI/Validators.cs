@@ -16,11 +16,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (!hasUsernames && !hasAllUsers)
             {
-                commandResult.ErrorMessage = "Please either specify target users, or use `--all-users` to target all users.";
+                commandResult.AddError("Please either specify target users, or use `--all-users` to target all users.");
             }
             else if (hasUsernames && hasAllUsers)
             {
-                commandResult.ErrorMessage = "You can't specify target users when targeting all users with `--all-users`.";
+                commandResult.AddError("You can't specify target users when targeting all users with `--all-users`.");
             }
         }
 
@@ -31,11 +31,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (!hasNodenames && !hasAllNodes)
             {
-                commandResult.ErrorMessage = "Please either specify target nodes, or use `--all-nodes` to target all nodes.";
+                commandResult.AddError("Please either specify target nodes, or use `--all-nodes` to target all nodes.");
             }
             else if (hasNodenames && hasAllNodes)
             {
-                commandResult.ErrorMessage = "You can't specify target nodes when targeting all nodes with `--all-nodes`.";
+                commandResult.AddError("You can't specify target nodes when targeting all nodes with `--all-nodes`.");
             }
         }
 
@@ -46,11 +46,11 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (!hasGroups && !hasAllGroups)
             {
-                commandResult.ErrorMessage = "Please either specify target groups, or use `--all-groups` to target all groups.";
+                commandResult.AddError("Please either specify target groups, or use `--all-groups` to target all groups.");
             }
             else if (hasGroups && hasAllGroups)
             {
-                commandResult.ErrorMessage = "You can't specify target groups when targeting all users with `--all-groups`.";
+                commandResult.AddError("You can't specify target groups when targeting all users with `--all-groups`.");
             }
         }
 
@@ -61,7 +61,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (setOwner && unsetOwner)
             {
-                commandResult.ErrorMessage = "You can't set and unset owner at the same time.";
+                commandResult.AddError("You can't set and unset owner at the same time.");
             }
         }
     }

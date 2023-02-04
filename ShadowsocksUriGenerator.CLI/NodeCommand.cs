@@ -20,10 +20,10 @@ namespace ShadowsocksUriGenerator.CLI
             var hasUnsetPlugin = commandResult.ContainsOptionWithName("unset-plugin");
 
             if (!hasPluginName && (hasPluginVersion || hasPluginOptions || hasPluginArguments))
-                commandResult.ErrorMessage = "You didn't specify a plugin.";
+                commandResult.AddError("You didn't specify a plugin.");
 
             if (hasPluginName && hasUnsetPlugin)
-                commandResult.ErrorMessage = "You can't set and unset plugin at the same time.";
+                commandResult.AddError("You can't set and unset plugin at the same time.");
         }
 
         public static async Task<int> Add(NodeAddChangeSet nodeAddChangeSet, CancellationToken cancellationToken = default)

@@ -26,13 +26,13 @@ namespace ShadowsocksUriGenerator.CLI
                 }
                 else
                 {
-                    argumentResult.ErrorMessage = "Port out of range: (0, 65535]";
+                    argumentResult.AddError("Port out of range: (0, 65535]");
                     return default;
                 }
             }
             else
             {
-                argumentResult.ErrorMessage = $"Invalid port number: {portString}";
+                argumentResult.AddError($"Invalid port number: {portString}");
                 return default;
             }
         }
@@ -58,7 +58,7 @@ namespace ShadowsocksUriGenerator.CLI
                 case "2022-blake3-aes-128-gcm" or "2022-blake3-aes-256-gcm" or "2022-blake3-chacha8-poly1305" or "2022-blake3-chacha12-poly1305" or "2022-blake3-chacha20-poly1305":
                     return method;
                 default:
-                    argumentResult.ErrorMessage = $"Invalid Shadowsocks AEAD or 2022 method: {method}";
+                    argumentResult.AddError($"Invalid Shadowsocks AEAD or 2022 method: {method}");
                     return string.Empty;
             }
         }
@@ -85,7 +85,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
             else
             {
-                argumentResult.ErrorMessage = $"Invalid data string representation: {dataString}";
+                argumentResult.AddError($"Invalid data string representation: {dataString}");
                 return default;
             }
         }

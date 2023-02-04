@@ -805,10 +805,10 @@ namespace ShadowsocksUriGenerator.CLI
             var hasUsernames = commandResult.ContainsOptionWithName("usernames");
 
             if (!hasGlobal && !hasPerUser)
-                commandResult.ErrorMessage = "Please specify either a global data limit with `--global`, or a per-user data limit with `--per-user`.";
+                commandResult.AddError("Please specify either a global data limit with `--global`, or a per-user data limit with `--per-user`.");
 
             if (!hasPerUser && hasUsernames)
-                commandResult.ErrorMessage = "Custom user targets must be used with per-user limits.";
+                commandResult.AddError("Custom user targets must be used with per-user limits.");
         }
 
         public static async Task<int> SetDataLimit(

@@ -14,7 +14,7 @@ namespace ShadowsocksUriGenerator.CLI
             if (commandResult.ContainsOptionWithName("generate-online-config") &&
                 commandResult.ContainsOptionWithName("regenerate-online-config"))
             {
-                commandResult.ErrorMessage = "You don't need to generate online config twice.";
+                commandResult.AddError("You don't need to generate online config twice.");
             }
         }
 

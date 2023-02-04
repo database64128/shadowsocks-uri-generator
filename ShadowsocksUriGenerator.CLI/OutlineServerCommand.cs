@@ -323,10 +323,10 @@ namespace ShadowsocksUriGenerator.CLI
             var hasAll = commandResult.ContainsOptionWithName("all");
 
             if (hasAll && (hasUsernames || hasGroups))
-                commandResult.ErrorMessage = "You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.";
+                commandResult.AddError("You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.");
 
             if (!hasUsernames && !hasGroups && !hasAll)
-                commandResult.ErrorMessage = "Target specific users with '--usernames', groups with '--groups'. You can also combine both, or target all groups and users with '--all'.";
+                commandResult.AddError("Target specific users with '--usernames', groups with '--groups'. You can also combine both, or target all groups and users with '--all'.");
         }
 
         public static async Task<int> RotatePassword(string[] usernames, string[] groups, bool allGroups, CancellationToken cancellationToken = default)
