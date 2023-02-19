@@ -60,8 +60,8 @@ public class NodeEditBinder : BinderBase<NodeEditChangeSet>
     }
 
     protected override NodeEditChangeSet GetBoundValue(BindingContext bindingContext) => new(
-        bindingContext.ParseResult.GetValue(_groupArgument),
-        bindingContext.ParseResult.GetValue(_nodenameArgument),
+        bindingContext.ParseResult.GetValue(_groupArgument)!,
+        bindingContext.ParseResult.GetValue(_nodenameArgument)!,
         bindingContext.ParseResult.GetValue(_hostOption),
         bindingContext.ParseResult.GetValue(_portOption),
         bindingContext.ParseResult.GetValue(_pluginNameOption),

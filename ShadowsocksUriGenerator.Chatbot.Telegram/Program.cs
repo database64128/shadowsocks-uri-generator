@@ -32,10 +32,8 @@ internal class Program
             allowChatAssociationOption,
         };
 
-        var cancellationTokenBinder = new CancellationTokenBinder();
-
-        configGetCommand.SetHandler(ConfigCommand.Get, cancellationTokenBinder);
-        configSetCommand.SetHandler(ConfigCommand.Set, botTokenOption, serviceNameOption, usersCanSeeAllUsersOption, usersCanSeeAllGroupsOption, usersCanSeeGroupDataUsageOption, usersCanSeeGroupDataLimitOption, allowChatAssociationOption, cancellationTokenBinder);
+        configGetCommand.SetHandler(ConfigCommand.Get);
+        configSetCommand.SetHandler(ConfigCommand.Set, botTokenOption, serviceNameOption, usersCanSeeAllUsersOption, usersCanSeeAllGroupsOption, usersCanSeeGroupDataUsageOption, usersCanSeeGroupDataLimitOption, allowChatAssociationOption);
 
         var configCommand = new Command("config", "Print or change bot config.")
         {
@@ -49,7 +47,7 @@ internal class Program
         };
 
         rootCommand.Options.Add(botTokenOption);
-        rootCommand.SetHandler(BotRunner.RunBot, botTokenOption, cancellationTokenBinder);
+        rootCommand.SetHandler(BotRunner.RunBot, botTokenOption);
 
         Console.OutputEncoding = Encoding.UTF8;
         return rootCommand.InvokeAsync(args);

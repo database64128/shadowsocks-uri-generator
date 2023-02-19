@@ -27,9 +27,7 @@ internal class Program
             outputDirOption,
         };
 
-        var cancellationTokenBinder = new CancellationTokenBinder();
-
-        rootCommand.SetHandler(HandleRootCommand, onlineConfigDirOption, outputDirOption, cancellationTokenBinder);
+        rootCommand.SetHandler(HandleRootCommand, onlineConfigDirOption, outputDirOption);
 
         Console.OutputEncoding = Encoding.UTF8;
         return rootCommand.InvokeAsync(args);

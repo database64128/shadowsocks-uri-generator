@@ -45,9 +45,9 @@ public class NodeAddBinder : BinderBase<NodeAddChangeSet>
     }
 
     protected override NodeAddChangeSet GetBoundValue(BindingContext bindingContext) => new(
-        bindingContext.ParseResult.GetValue(_groupArgument),
-        bindingContext.ParseResult.GetValue(_nodenameArgument),
-        bindingContext.ParseResult.GetValue(_hostArgument),
+        bindingContext.ParseResult.GetValue(_groupArgument)!,
+        bindingContext.ParseResult.GetValue(_nodenameArgument)!,
+        bindingContext.ParseResult.GetValue(_hostArgument)!,
         bindingContext.ParseResult.GetValue(_portArgument),
         bindingContext.ParseResult.GetValue(_pluginNameOption),
         bindingContext.ParseResult.GetValue(_pluginVersionOption),
