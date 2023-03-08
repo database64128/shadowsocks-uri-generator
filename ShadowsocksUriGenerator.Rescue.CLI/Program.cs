@@ -1,7 +1,5 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
-using System;
+﻿using System;
 using System.CommandLine;
-using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,12 +10,14 @@ internal class Program
 {
     private static Task<int> Main(string[] args)
     {
-        var onlineConfigDirOption = new Option<string>("--online-config-dir", "Directory of generated online config.")
+        var onlineConfigDirOption = new Option<string>("--online-config-dir")
         {
+            Description = "Directory of generated online config.",
             IsRequired = true,
         };
-        var outputDirOption = new Option<string>("--output-dir", "Output directory.")
+        var outputDirOption = new Option<string>("--output-dir")
         {
+            Description = "Output directory.",
             IsRequired = true,
         };
 

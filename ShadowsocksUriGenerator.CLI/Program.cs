@@ -1,5 +1,4 @@
 ﻿using ShadowsocksUriGenerator.CLI.Binders;
-using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.CommandLine;
 using System.Text;
@@ -179,69 +178,151 @@ namespace ShadowsocksUriGenerator.CLI
                 serviceCommand,
             };
 
-            var usernameArgument = new Argument<string>("username", "Target user.");
-            var nodenameArgument = new Argument<string>("nodename", "Name of the node.");
-            var groupArgument = new Argument<string>("group", "Target group.");
-
-            var oldNameArgument = new Argument<string>("oldName", "Current name.");
-            var newNameArgument = new Argument<string>("newName", "New name.");
-
-            var hostArgument = new Argument<string>("host", "Hostname of the node.");
-            var portArgument = new Argument<int>("port", Parsers.ParsePortNumber, false, "Port number of the node.");
-
-            var methodArgument = new Argument<string>("method", Parsers.ParseShadowsocksAEADMethod, false, "The encryption method. Use with --password.");
-            var passwordArgument = new Argument<string>("password", "The password. Use with --method.");
-
-            var ownerArgument = new Argument<string>("owner", "Set the owner.");
-            var tagsArgument = new Argument<string[]>("tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.")
+            var usernameArgument = new Argument<string>("username")
             {
+                Description = "Target user.",
+            };
+            var nodenameArgument = new Argument<string>("nodename")
+            {
+                Description = "Name of the node.",
+            };
+            var groupArgument = new Argument<string>("group")
+            {
+                Description = "Target group.",
+            };
+
+            var oldNameArgument = new Argument<string>("oldName")
+            {
+                Description = "Current name.",
+            };
+            var newNameArgument = new Argument<string>("newName")
+            {
+                Description = "New name.",
+            };
+
+            var hostArgument = new Argument<string>("host")
+            {
+                Description = "Hostname of the node.",
+            };
+            var portArgument = new Argument<int>("port")
+            {
+                Description = "Port number of the node.",
+                CustomParser = Parsers.ParsePortNumber,
+            };
+
+            var methodArgument = new Argument<string>("method")
+            {
+                Description = "The encryption method. Use with --password.",
+                CustomParser = Parsers.ParseShadowsocksAEADMethod,
+            };
+            var passwordArgument = new Argument<string>("password")
+            {
+                Description = "The password. Use with --method.",
+            };
+
+            var ownerArgument = new Argument<string>("owner")
+            {
+                Description = "Set the owner.",
+            };
+            var tagsArgument = new Argument<string[]>("tags")
+            {
+                Description = "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.",
                 Arity = ArgumentArity.OneOrMore,
             };
 
-            var usernamesArgumentZeroOrMore = new Argument<string[]>("usernames", "Zero or more usernames.");
-            var nodenamesArgumentZeroOrMore = new Argument<string[]>("nodenames", "Zero or more node names.");
-            var groupsArgumentZeroOrMore = new Argument<string[]>("groups", "Zero or more group names.");
-
-            var usernamesArgumentOneOrMore = new Argument<string[]>("usernames", "One or more usernames.")
+            var usernamesArgumentZeroOrMore = new Argument<string[]>("usernames")
             {
-                Arity = ArgumentArity.OneOrMore,
+                Description = "Zero or more usernames.",
             };
-            var nodenamesArgumentOneOrMore = new Argument<string[]>("nodenames", "One or more node names.")
+            var nodenamesArgumentZeroOrMore = new Argument<string[]>("nodenames")
             {
-                Arity = ArgumentArity.OneOrMore,
+                Description = "Zero or more node names.",
             };
-            var groupsArgumentOneOrMore = new Argument<string[]>("groups", "One or more group names.")
+            var groupsArgumentZeroOrMore = new Argument<string[]>("groups")
             {
-                Arity = ArgumentArity.OneOrMore,
+                Description = "Zero or more group names.",
             };
 
-            var outlineApiKeyArgument = new Argument<string>("apiKey", "The Outline server API key.");
-
-            var usernamesOption = new Option<string[]>("--usernames", "Target these specific users. If unspecified, target all users.")
+            var usernamesArgumentOneOrMore = new Argument<string[]>("usernames")
             {
+                Description = "One or more usernames.",
+                Arity = ArgumentArity.OneOrMore,
+            };
+            var nodenamesArgumentOneOrMore = new Argument<string[]>("nodenames")
+            {
+                Description = "One or more node names.",
+                Arity = ArgumentArity.OneOrMore,
+            };
+            var groupsArgumentOneOrMore = new Argument<string[]>("groups")
+            {
+                Description = "One or more group names.",
+                Arity = ArgumentArity.OneOrMore,
+            };
+
+            var outlineApiKeyArgument = new Argument<string>("apiKey")
+            {
+                Description = "The Outline server API key.",
+            };
+
+            var usernamesOption = new Option<string[]>("--usernames")
+            {
+                Description = "Target these specific users. If unspecified, target all users.",
                 AllowMultipleArgumentsPerToken = true,
             };
-            var nodenamesOption = new Option<string[]>("--nodenames", "Target these specific nodes. If unspecified, target all nodes.")
+            var nodenamesOption = new Option<string[]>("--nodenames")
             {
+                Description = "Target these specific nodes. If unspecified, target all nodes.",
                 AllowMultipleArgumentsPerToken = true,
             };
-            var groupsOption = new Option<string[]>("--groups", "Target these specific groups. If unspecified, target all groups.")
+            var groupsOption = new Option<string[]>("--groups")
             {
+                Description = "Target these specific groups. If unspecified, target all groups.",
                 AllowMultipleArgumentsPerToken = true,
             };
 
-            var hostOption = new Option<string?>("--host", "Hostname of the node.");
-            var portOption = new Option<int>("--port", Parsers.ParsePortNumber, false, "Port number of the node.");
-            var pluginNameOption = new Option<string?>("--plugin-name", "Plugin name.");
-            var pluginVersionOption = new Option<string?>("--plugin-version", "Required plugin version.");
-            var pluginOptionsOption = new Option<string?>("--plugin-options", "Plugin options, passed as environment variable 'SS_PLUGIN_OPTIONS'.");
-            var pluginArgumentsOption = new Option<string?>("--plugin-arguments", "Plugin startup arguments.");
-            var unsetPluginOption = new Option<bool>("--unset-plugin", "Remove plugin and plugin options from the node.");
+            var hostOption = new Option<string?>("--host")
+            {
+                Description = "Hostname of the node.",
+            };
+            var portOption = new Option<int>("--port")
+            {
+                Description = "Port number of the node.",
+                CustomParser = Parsers.ParsePortNumber,
+            };
+            var pluginNameOption = new Option<string?>("--plugin-name")
+            {
+                Description = "Plugin name.",
+            };
+            var pluginVersionOption = new Option<string?>("--plugin-version")
+            {
+                Description = "Required plugin version.",
+            };
+            var pluginOptionsOption = new Option<string?>("--plugin-options")
+            {
+                Description = "Plugin options, passed as environment variable 'SS_PLUGIN_OPTIONS'.",
+            };
+            var pluginArgumentsOption = new Option<string?>("--plugin-arguments")
+            {
+                Description = "Plugin startup arguments.",
+            };
+            var unsetPluginOption = new Option<bool>("--unset-plugin")
+            {
+                Description = "Remove plugin and plugin options from the node.",
+            };
 
-            var ownerOption = new Option<string?>("--owner", "Set the owner.");
-            var unsetOwnerOption = new Option<bool>("--unset-owner", "Unset the owner.");
+            var ownerOption = new Option<string?>("--owner")
+            {
+                Description = "Set the owner.",
+            };
+            var unsetOwnerOption = new Option<bool>("--unset-owner")
+            {
+                Description = "Unset the owner.",
+            };
 
-            var forceOption = new Option<bool>(new string[] { "-f", "--force" }, "Forcibly overwrite existing settings.");
+            var forceOption = new Option<bool>("--force", "-f")
+            {
+                Description = "Forcibly overwrite existing settings.",
+            };
 
             var tagsOption = new Option<string[]>("--tags", "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.")
             {
@@ -255,81 +336,208 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 AllowMultipleArgumentsPerToken = true,
             };
-            var clearTagsOption = new Option<bool>("--clear-tags", "Remove all tags from the node.");
+            var clearTagsOption = new Option<bool>("--clear-tags")
+            {
+                Description = "Remove all tags from the node.",
+            };
 
             var iPSKOption = new Option<string[]>("--iPSKs", "Identity PSKs.")
             {
                 AllowMultipleArgumentsPerToken = true,
             };
-            var clearIPSKOption = new Option<bool>("--clear-iPSKs", "Remove all identity PSKs from the node.");
+            var clearIPSKOption = new Option<bool>("--clear-iPSKs")
+            {
+                Description = "Remove all identity PSKs from the node.",
+            };
 
-            var globalDataLimitOption = new Option<ulong?>("--global", Parsers.ParseDataString, false, "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
-            var perUserDataLimitOption = new Option<ulong?>("--per-user", Parsers.ParseDataString, false, "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
-            var perGroupDataLimitOption = new Option<ulong?>("--per-group", Parsers.ParseDataString, false, "The per-group data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.");
+            var globalDataLimitOption = new Option<ulong?>("--global")
+            {
+                Description = "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
+                CustomParser = Parsers.ParseDataString,
+            };
+            var perUserDataLimitOption = new Option<ulong?>("--per-user")
+            {
+                Description = "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
+                CustomParser = Parsers.ParseDataString,
+            };
+            var perGroupDataLimitOption = new Option<ulong?>("--per-group")
+            {
+                Description = "The per-group data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
+                CustomParser = Parsers.ParseDataString,
+            };
 
-            var namesOnlyOption = new Option<bool>(new string[] { "-s", "--short", "--names-only" }, "Display names only, without a table.");
-            var onePerLineOption = new Option<bool>(new string[] { "-1", "--one-per-line" }, "Display one name per line.");
+            var namesOnlyOption = new Option<bool>("--names-only", "--short", "-s")
+            {
+                Description = "Display names only, without a table.",
+            };
+            var onePerLineOption = new Option<bool>("--one-per-line", "-1")
+            {
+                Description = "Display one name per line.",
+            };
 
-            var allUsersOption = new Option<bool>(new string[] { "-a", "--all", "--all-users" }, "Target all users.");
-            var allNodesOption = new Option<bool>(new string[] { "-a", "--all", "--all-nodes" }, "Target all nodes in target group.");
-            var allGroupsOption = new Option<bool>(new string[] { "-a", "--all", "--all-groups" }, "Target all groups.");
+            var allUsersOption = new Option<bool>("--all-users", "--all", "-a")
+            {
+                Description = "Target all users.",
+            };
+            var allNodesOption = new Option<bool>("--all-nodes", "--all", "-a")
+            {
+                Description = "Target all nodes in target group.",
+            };
+            var allGroupsOption = new Option<bool>("--all-groups", "--all", "-a")
+            {
+                Description = "Target all groups.",
+            };
 
-            var allUsersNoAliasesOption = new Option<bool>("--all-users", "Target all users.");
-            var allNodesNoAliasesOption = new Option<bool>("--all-nodes", "Target all nodes in target group.");
-            var allGroupsNoAliasesOption = new Option<bool>("--all-groups", "Target all groups.");
+            var allUsersNoAliasesOption = new Option<bool>("--all-users")
+            {
+                Description = "Target all users.",
+            };
+            var allNodesNoAliasesOption = new Option<bool>("--all-nodes")
+            {
+                Description = "Target all nodes in target group.",
+            };
+            var allGroupsNoAliasesOption = new Option<bool>("--all-groups")
+            {
+                Description = "Target all groups.",
+            };
 
-            var sortByOption = new Option<SortBy?>("--sort-by", "Sort rule for data usage records.");
-            var userSortByOption = new Option<SortBy?>("--user-sort-by", "Sort rule for user data usage records.");
-            var groupSortByOption = new Option<SortBy?>("--group-sort-by", "Sort rule for group data usage records.");
+            var sortByOption = new Option<SortBy?>("--sort-by")
+            {
+                Description = "Sort rule for data usage records.",
+            };
+            var userSortByOption = new Option<SortBy?>("--user-sort-by")
+            {
+                Description = "Sort rule for user data usage records.",
+            };
+            var groupSortByOption = new Option<SortBy?>("--group-sort-by")
+            {
+                Description = "Sort rule for group data usage records.",
+            };
 
-            var outlineServerNameOption = new Option<string?>("--name", "Name of the Outline server.");
-            var outlineServerHostnameOption = new Option<string?>("--hostname", "Hostname of the Outline server.");
-            var outlineServerPortOption = new Option<int?>("--port", "Port number for new access keys on the Outline server.");
-            var outlineServerMetricsOption = new Option<bool?>("--metrics", "Enable or disable telemetry on the Outline server.");
-            var outlineServerDefaultUserOption = new Option<string?>("--default-user", "The default user for Outline server's default access key (id: 0).");
+            var outlineServerNameOption = new Option<string?>("--name")
+            {
+                Description = "Name of the Outline server.",
+            };
+            var outlineServerHostnameOption = new Option<string?>("--hostname")
+            {
+                Description = "Hostname of the Outline server.",
+            };
+            var outlineServerPortOption = new Option<int?>("--port")
+            {
+                Description = "Port number for new access keys on the Outline server.",
+            };
+            var outlineServerMetricsOption = new Option<bool?>("--metrics")
+            {
+                Description = "Enable or disable telemetry on the Outline server.",
+            };
+            var outlineServerDefaultUserOption = new Option<string?>("--default-user")
+            {
+                Description = "The default user for Outline server's default access key (id: 0).",
+            };
 
-            var removeCredsOption = new Option<bool>("--remove-creds", "Remove credentials from all associated users.");
-            var noSyncOption = new Option<bool>("--no-sync", "Do not update local user membership storage from retrieved access key list.");
+            var removeCredsOption = new Option<bool>("--remove-creds")
+            {
+                Description = "Remove credentials from all associated users.",
+            };
+            var noSyncOption = new Option<bool>("--no-sync")
+            {
+                Description = "Do not update local user membership storage from retrieved access key list.",
+            };
 
-            var csvOutdirOption = new Option<string?>("--csv-outdir", "Export as CSV to the specified directory.");
+            var csvOutdirOption = new Option<string?>("--csv-outdir")
+            {
+                Description = "Export as CSV to the specified directory.",
+            };
 
-            var settingsUserDataUsageDefaultSortByOption = new Option<SortBy?>("--user-data-usage-default-sort-by", "The default sort rule for user data usage report.");
-            var settingsGroupDataUsageDefaultSortByOption = new Option<SortBy?>("--group-data-usage-default-sort-by", "The default sort rule for group data usage report.");
-            var settingsOnlineConfigSortByNameOption = new Option<bool?>("--online-config-sort-by-name", "Whether online config should sort servers by name.");
-            var settingsOnlineConfigDeliverByGroupOption = new Option<bool?>("--online-config-deliver-by-group", "Whether the legacy SIP008 online config static file generator should generate per-group SIP008 delivery JSON in addition to the single JSON that contains all associated servers of the user.");
-            var settingsOnlineConfigCleanOnUserRemovalOption = new Option<bool?>("--online-config-clean-on-user-removal", "Whether the user's generated static online config files should be removed when the user is being removed.");
-            var settingsOnlineConfigOutputDirectoryOption = new Option<string?>("--online-config-output-directory", "Legacy SIP008 online config static file generator output directory. No trailing slashes allowed.");
-            var settingsOnlineConfigDeliveryRootUriOption = new Option<string?>("--online-config-delivery-root-uri", "URL base for the SIP008 static file delivery links. No trailing slashes allowed.");
-            var settingsOutlineServerApplyDefaultUserOnAssociationOption = new Option<bool?>("--outline-server-apply-default-user-on-association", "Whether to apply the global default user when associating with Outline servers.");
-            var settingsOutlineServerApplyDataLimitOnAssociationOption = new Option<bool?>("--outline-server-apply-data-limit-on-association", "Whether to apply the group's per-user data limit when associating with Outline servers.");
-            var settingsOutlineServerGlobalDefaultUserOption = new Option<string?>("--outline-server-global-default-user", "The global setting for Outline server's default access key's user.");
-            var settingsApiServerBaseUrlOption = new Option<string?>("--api-server-base-url", "The base URL of the API server. MUST NOT contain a trailing slash.");
-            var settingsApiServerSecretPathOption = new Option<string?>("--api-server-secret-path", "The secret path to the API endpoint. This is required to conceal the presence of the API. The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy. But it's recommended to put non-secret part of the path in the base URL.");
+            var settingsUserDataUsageDefaultSortByOption = new Option<SortBy?>("--user-data-usage-default-sort-by")
+            {
+                Description = "The default sort rule for user data usage report.",
+            };
+            var settingsGroupDataUsageDefaultSortByOption = new Option<SortBy?>("--group-data-usage-default-sort-by")
+            {
+                Description = "The default sort rule for group data usage report.",
+            };
+            var settingsOnlineConfigSortByNameOption = new Option<bool?>("--online-config-sort-by-name")
+            {
+                Description = "Whether online config should sort servers by name.",
+            };
+            var settingsOnlineConfigDeliverByGroupOption = new Option<bool?>("--online-config-deliver-by-group")
+            {
+                Description = "Whether the legacy SIP008 online config static file generator should generate per-group SIP008 delivery JSON in addition to the single JSON that contains all associated servers of the user.",
+            };
+            var settingsOnlineConfigCleanOnUserRemovalOption = new Option<bool?>("--online-config-clean-on-user-removal")
+            {
+                Description = "Whether the user's generated static online config files should be removed when the user is being removed.",
+            };
+            var settingsOnlineConfigOutputDirectoryOption = new Option<string?>("--online-config-output-directory")
+            {
+                Description = "Legacy SIP008 online config static file generator output directory. No trailing slashes allowed.",
+            };
+            var settingsOnlineConfigDeliveryRootUriOption = new Option<string?>("--online-config-delivery-root-uri")
+            {
+                Description = "URL base for the SIP008 static file delivery links. No trailing slashes allowed.",
+            };
+            var settingsOutlineServerApplyDefaultUserOnAssociationOption = new Option<bool?>("--outline-server-apply-default-user-on-association")
+            {
+                Description = "Whether to apply the global default user when associating with Outline servers.",
+            };
+            var settingsOutlineServerApplyDataLimitOnAssociationOption = new Option<bool?>("--outline-server-apply-data-limit-on-association")
+            {
+                Description = "Whether to apply the group's per-user data limit when associating with Outline servers.",
+            };
+            var settingsOutlineServerGlobalDefaultUserOption = new Option<string?>("--outline-server-global-default-user")
+            {
+                Description = "The global setting for Outline server's default access key's user.",
+            };
+            var settingsApiServerBaseUrlOption = new Option<string?>("--api-server-base-url")
+            {
+                Description = "The base URL of the API server. MUST NOT contain a trailing slash.",
+            };
+            var settingsApiServerSecretPathOption = new Option<string?>("--api-server-secret-path")
+            {
+                Description = "The secret path to the API endpoint. This is required to conceal the presence of the API. The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy. But it's recommended to put non-secret part of the path in the base URL.",
+            };
 
-            var serviceIntervalOption = new Option<int>("--interval", () => 3600, "The interval between each scheduled run in seconds.");
-            var servicePullOutlineServerOption = new Option<bool>("--pull-outline-server", "Pull from Outline servers for updates of server information, access keys, data usage.");
-            var serviceDeployOutlineServerOption = new Option<bool>("--deploy-outline-server", "Deploy local configurations to Outline servers.");
-            var serviceGenerateOnlineConfigOption = new Option<bool>("--generate-online-config", "Generate online config.");
-            var serviceRegenerateOnlineConfigOption = new Option<bool>("--regenerate-online-config", "Clean and regenerate online config.");
+            var serviceIntervalOption = new Option<int>("--interval")
+            {
+                Description = "The interval between each scheduled run in seconds.",
+                DefaultValueFactory = _ => 3600,
+            };
+            var servicePullOutlineServerOption = new Option<bool>("--pull-outline-server")
+            {
+                Description = "Pull from Outline servers for updates of server information, access keys, data usage.",
+            };
+            var serviceDeployOutlineServerOption = new Option<bool>("--deploy-outline-server")
+            {
+                Description = "Deploy local configurations to Outline servers.",
+            };
+            var serviceGenerateOnlineConfigOption = new Option<bool>("--generate-online-config")
+            {
+                Description = "Generate online config.",
+            };
+            var serviceRegenerateOnlineConfigOption = new Option<bool>("--regenerate-online-config")
+            {
+                Description = "Clean and regenerate online config.",
+            };
 
             var nodeAddBinder = new NodeAddBinder(groupArgument, nodenameArgument, hostArgument, portArgument, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, ownerOption, tagsOption, iPSKOption);
             var nodeEditBinder = new NodeEditBinder(groupArgument, nodenameArgument, hostOption, portOption, pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, unsetPluginOption, ownerOption, unsetOwnerOption, clearTagsOption, addTagsOption, removeTagsOption, iPSKOption, clearIPSKOption);
             var settingsSetBinder = new SettingsSetBinder(settingsUserDataUsageDefaultSortByOption, settingsGroupDataUsageDefaultSortByOption, settingsOnlineConfigSortByNameOption, settingsOnlineConfigDeliverByGroupOption, settingsOnlineConfigCleanOnUserRemovalOption, settingsOnlineConfigOutputDirectoryOption, settingsOnlineConfigDeliveryRootUriOption, settingsOutlineServerApplyDefaultUserOnAssociationOption, settingsOutlineServerApplyDataLimitOnAssociationOption, settingsOutlineServerGlobalDefaultUserOption, settingsApiServerBaseUrlOption, settingsApiServerSecretPathOption);
 
-            userCommand.AddAlias("u");
-            nodeCommand.AddAlias("n");
-            groupCommand.AddAlias("g");
-            onlineConfigCommand.AddAlias("oc");
-            onlineConfigCommand.AddAlias("ooc");
-            onlineConfigCommand.AddAlias("online");
-            outlineServerCommand.AddAlias("os");
-            outlineServerCommand.AddAlias("outline");
-            reportCommand.AddAlias("r");
-            settingsCommand.AddAlias("s");
-            interactiveCommand.AddAlias("i");
-            interactiveCommand.AddAlias("repl");
+            userCommand.Aliases.Add("u");
+            nodeCommand.Aliases.Add("n");
+            groupCommand.Aliases.Add("g");
+            onlineConfigCommand.Aliases.Add("oc");
+            onlineConfigCommand.Aliases.Add("ooc");
+            onlineConfigCommand.Aliases.Add("online");
+            outlineServerCommand.Aliases.Add("os");
+            outlineServerCommand.Aliases.Add("outline");
+            reportCommand.Aliases.Add("r");
+            settingsCommand.Aliases.Add("s");
+            interactiveCommand.Aliases.Add("i");
+            interactiveCommand.Aliases.Add("repl");
 
-            userAddCommand.AddAlias("a");
+            userAddCommand.Aliases.Add("a");
             userAddCommand.Arguments.Add(usernamesArgumentOneOrMore);
             userAddCommand.SetHandler(UserCommand.Add, usernamesArgumentOneOrMore);
 
@@ -337,14 +545,14 @@ namespace ShadowsocksUriGenerator.CLI
             userRenameCommand.Arguments.Add(newNameArgument);
             userRenameCommand.SetHandler(UserCommand.Rename, oldNameArgument, newNameArgument);
 
-            userRemoveCommand.AddAlias("rm");
-            userRemoveCommand.AddAlias("del");
-            userRemoveCommand.AddAlias("delete");
+            userRemoveCommand.Aliases.Add("rm");
+            userRemoveCommand.Aliases.Add("del");
+            userRemoveCommand.Aliases.Add("delete");
             userRemoveCommand.Arguments.Add(usernamesArgumentOneOrMore);
             userRemoveCommand.SetHandler(UserCommand.Remove, usernamesArgumentOneOrMore);
 
-            userListCommand.AddAlias("l");
-            userListCommand.AddAlias("ls");
+            userListCommand.Aliases.Add("l");
+            userListCommand.Aliases.Add("ls");
             userListCommand.Options.Add(namesOnlyOption);
             userListCommand.Options.Add(onePerLineOption);
             userListCommand.SetHandler(UserCommand.List, namesOnlyOption, onePerLineOption);
@@ -361,7 +569,7 @@ namespace ShadowsocksUriGenerator.CLI
             userLeaveGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userLeaveGroupsCommand.SetHandler(UserCommand.LeaveGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
 
-            userAddCredentialCommand.AddAlias("ac");
+            userAddCredentialCommand.Aliases.Add("ac");
             userAddCredentialCommand.Arguments.Add(usernameArgument);
             userAddCredentialCommand.Arguments.Add(methodArgument);
             userAddCredentialCommand.Arguments.Add(passwordArgument);
@@ -370,38 +578,38 @@ namespace ShadowsocksUriGenerator.CLI
             userAddCredentialCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userAddCredentialCommand.SetHandler(UserCommand.AddCredential, usernameArgument, methodArgument, passwordArgument, groupsArgumentZeroOrMore, allGroupsOption);
 
-            userRemoveCredentialsCommand.AddAlias("rc");
+            userRemoveCredentialsCommand.Aliases.Add("rc");
             userRemoveCredentialsCommand.Arguments.Add(usernameArgument);
             userRemoveCredentialsCommand.Arguments.Add(groupsArgumentZeroOrMore);
             userRemoveCredentialsCommand.Options.Add(allGroupsOption);
             userRemoveCredentialsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userRemoveCredentialsCommand.SetHandler(UserCommand.RemoveCredentials, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
 
-            userListCredentialsCommand.AddAlias("lc");
+            userListCredentialsCommand.Aliases.Add("lc");
             userListCredentialsCommand.Options.Add(usernamesOption);
             userListCredentialsCommand.Options.Add(groupsOption);
             userListCredentialsCommand.SetHandler(UserCommand.ListCredentials, usernamesOption, groupsOption);
 
-            userGetSSLinksCommand.AddAlias("ss");
+            userGetSSLinksCommand.Aliases.Add("ss");
             userGetSSLinksCommand.Arguments.Add(usernameArgument);
             userGetSSLinksCommand.Options.Add(groupsOption);
             userGetSSLinksCommand.SetHandler(UserCommand.GetSSLinks, usernameArgument, groupsOption);
 
-            userGetDataUsageCommand.AddAlias("data");
+            userGetDataUsageCommand.Aliases.Add("data");
             userGetDataUsageCommand.Arguments.Add(usernameArgument);
             userGetDataUsageCommand.Options.Add(sortByOption);
             userGetDataUsageCommand.SetHandler(UserCommand.GetDataUsage, usernameArgument, sortByOption);
 
-            userGetDataLimitCommand.AddAlias("gl");
-            userGetDataLimitCommand.AddAlias("gdl");
-            userGetDataLimitCommand.AddAlias("limit");
-            userGetDataLimitCommand.AddAlias("get-limit");
+            userGetDataLimitCommand.Aliases.Add("gl");
+            userGetDataLimitCommand.Aliases.Add("gdl");
+            userGetDataLimitCommand.Aliases.Add("limit");
+            userGetDataLimitCommand.Aliases.Add("get-limit");
             userGetDataLimitCommand.Arguments.Add(usernameArgument);
             userGetDataLimitCommand.SetHandler(UserCommand.GetDataLimit, usernameArgument);
 
-            userSetDataLimitCommand.AddAlias("sl");
-            userSetDataLimitCommand.AddAlias("sdl");
-            userSetDataLimitCommand.AddAlias("set-limit");
+            userSetDataLimitCommand.Aliases.Add("sl");
+            userSetDataLimitCommand.Aliases.Add("sdl");
+            userSetDataLimitCommand.Aliases.Add("set-limit");
             userSetDataLimitCommand.Arguments.Add(usernamesArgumentOneOrMore);
             userSetDataLimitCommand.Options.Add(globalDataLimitOption);
             userSetDataLimitCommand.Options.Add(perGroupDataLimitOption);
@@ -409,7 +617,7 @@ namespace ShadowsocksUriGenerator.CLI
             userSetDataLimitCommand.Validators.Add(UserCommand.ValidateSetDataLimit);
             userSetDataLimitCommand.SetHandler(UserCommand.SetDataLimit, usernamesArgumentOneOrMore, globalDataLimitOption, perGroupDataLimitOption, groupsOption);
 
-            userOwnGroupsCommand.AddAlias("og");
+            userOwnGroupsCommand.Aliases.Add("og");
             userOwnGroupsCommand.Arguments.Add(usernameArgument);
             userOwnGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
             userOwnGroupsCommand.Options.Add(allGroupsOption);
@@ -417,14 +625,14 @@ namespace ShadowsocksUriGenerator.CLI
             userOwnGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userOwnGroupsCommand.SetHandler(UserCommand.OwnGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption, forceOption);
 
-            userDisownGroupsCommand.AddAlias("dg");
+            userDisownGroupsCommand.Aliases.Add("dg");
             userDisownGroupsCommand.Arguments.Add(usernameArgument);
             userDisownGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
             userDisownGroupsCommand.Options.Add(allGroupsOption);
             userDisownGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
             userDisownGroupsCommand.SetHandler(UserCommand.DisownGroups, usernameArgument, groupsArgumentZeroOrMore, allGroupsOption);
 
-            userOwnNodesCommand.AddAlias("on");
+            userOwnNodesCommand.Aliases.Add("on");
             userOwnNodesCommand.Arguments.Add(usernameArgument);
             userOwnNodesCommand.Options.Add(groupsOption);
             userOwnNodesCommand.Options.Add(allGroupsNoAliasesOption);
@@ -435,7 +643,7 @@ namespace ShadowsocksUriGenerator.CLI
             userOwnNodesCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             userOwnNodesCommand.SetHandler(UserCommand.OwnNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, forceOption);
 
-            userDisownNodesCommand.AddAlias("dn");
+            userDisownNodesCommand.Aliases.Add("dn");
             userDisownNodesCommand.Arguments.Add(usernameArgument);
             userDisownNodesCommand.Options.Add(groupsOption);
             userDisownNodesCommand.Options.Add(allGroupsNoAliasesOption);
@@ -445,16 +653,16 @@ namespace ShadowsocksUriGenerator.CLI
             userDisownNodesCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             userDisownNodesCommand.SetHandler(UserCommand.DisownNodes, usernameArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
 
-            userListOwnedGroupsCommand.AddAlias("log");
+            userListOwnedGroupsCommand.Aliases.Add("log");
             userListOwnedGroupsCommand.Arguments.Add(usernameArgument);
             userListOwnedGroupsCommand.SetHandler(UserCommand.ListOwnedGroups, usernameArgument);
 
-            userListOwnedNodesCmmand.AddAlias("lon");
+            userListOwnedNodesCmmand.Aliases.Add("lon");
             userListOwnedNodesCmmand.Arguments.Add(usernameArgument);
             userListOwnedNodesCmmand.Arguments.Add(groupsArgumentZeroOrMore);
             userListOwnedNodesCmmand.SetHandler(UserCommand.ListOwnedNodes, usernameArgument, groupsArgumentZeroOrMore);
 
-            nodeAddCommand.AddAlias("a");
+            nodeAddCommand.Aliases.Add("a");
             nodeAddCommand.Arguments.Add(groupArgument);
             nodeAddCommand.Arguments.Add(nodenameArgument);
             nodeAddCommand.Arguments.Add(hostArgument);
@@ -469,7 +677,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddCommand.Validators.Add(NodeCommand.ValidateNodePlugin);
             nodeAddCommand.SetHandler(NodeCommand.Add, nodeAddBinder);
 
-            nodeEditCommand.AddAlias("e");
+            nodeEditCommand.Aliases.Add("e");
             nodeEditCommand.Arguments.Add(groupArgument);
             nodeEditCommand.Arguments.Add(nodenameArgument);
             nodeEditCommand.Options.Add(hostOption);
@@ -495,43 +703,43 @@ namespace ShadowsocksUriGenerator.CLI
             nodeRenameCommand.Arguments.Add(newNameArgument);
             nodeRenameCommand.SetHandler(NodeCommand.Rename, groupArgument, oldNameArgument, newNameArgument);
 
-            nodeRemoveCommand.AddAlias("rm");
-            nodeRemoveCommand.AddAlias("del");
-            nodeRemoveCommand.AddAlias("delete");
+            nodeRemoveCommand.Aliases.Add("rm");
+            nodeRemoveCommand.Aliases.Add("del");
+            nodeRemoveCommand.Aliases.Add("delete");
             nodeRemoveCommand.Arguments.Add(groupArgument);
             nodeRemoveCommand.Arguments.Add(nodenamesArgumentOneOrMore);
             nodeRemoveCommand.SetHandler(NodeCommand.Remove, groupArgument, nodenamesArgumentOneOrMore);
 
-            nodeListCommand.AddAlias("l");
-            nodeListCommand.AddAlias("ls");
+            nodeListCommand.Aliases.Add("l");
+            nodeListCommand.Aliases.Add("ls");
             nodeListCommand.Arguments.Add(groupsArgumentZeroOrMore);
             nodeListCommand.Options.Add(namesOnlyOption);
             nodeListCommand.Options.Add(onePerLineOption);
             nodeListCommand.SetHandler(NodeCommand.List, groupsArgumentZeroOrMore, namesOnlyOption, onePerLineOption);
 
-            nodeListAnnotationsCommand.AddAlias("la");
-            nodeListAnnotationsCommand.AddAlias("lsa");
+            nodeListAnnotationsCommand.Aliases.Add("la");
+            nodeListAnnotationsCommand.Aliases.Add("lsa");
             nodeListAnnotationsCommand.Arguments.Add(groupsArgumentZeroOrMore);
             nodeListAnnotationsCommand.Options.Add(onePerLineOption);
             nodeListAnnotationsCommand.SetHandler(NodeCommand.ListAnnotations, groupsArgumentZeroOrMore, onePerLineOption);
 
-            nodeActivateCommand.AddAlias("enable");
-            nodeActivateCommand.AddAlias("unhide");
+            nodeActivateCommand.Aliases.Add("enable");
+            nodeActivateCommand.Aliases.Add("unhide");
             nodeActivateCommand.Arguments.Add(groupArgument);
             nodeActivateCommand.Arguments.Add(nodenamesArgumentZeroOrMore);
             nodeActivateCommand.Options.Add(allNodesOption);
             nodeActivateCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeActivateCommand.SetHandler(NodeCommand.Activate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption);
 
-            nodeDeactivateCommand.AddAlias("disable");
-            nodeDeactivateCommand.AddAlias("hide");
+            nodeDeactivateCommand.Aliases.Add("disable");
+            nodeDeactivateCommand.Aliases.Add("hide");
             nodeDeactivateCommand.Arguments.Add(groupArgument);
             nodeDeactivateCommand.Arguments.Add(nodenamesArgumentZeroOrMore);
             nodeDeactivateCommand.Options.Add(allNodesOption);
             nodeDeactivateCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeDeactivateCommand.SetHandler(NodeCommand.Deactivate, groupArgument, nodenamesArgumentZeroOrMore, allNodesOption);
 
-            nodeAddTagsCommand.AddAlias("at");
+            nodeAddTagsCommand.Aliases.Add("at");
             nodeAddTagsCommand.Arguments.Add(tagsArgument);
             nodeAddTagsCommand.Options.Add(groupsOption);
             nodeAddTagsCommand.Options.Add(allGroupsNoAliasesOption);
@@ -541,7 +749,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeAddTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeAddTagsCommand.SetHandler(NodeCommand.AddTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
 
-            nodeEditTagsCommand.AddAlias("et");
+            nodeEditTagsCommand.Aliases.Add("et");
             nodeEditTagsCommand.Options.Add(groupsOption);
             nodeEditTagsCommand.Options.Add(allGroupsNoAliasesOption);
             nodeEditTagsCommand.Options.Add(nodenamesOption);
@@ -553,7 +761,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeEditTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeEditTagsCommand.SetHandler(NodeCommand.EditTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption, clearTagsOption, addTagsOption, removeTagsOption);
 
-            nodeRemoveTagsCommand.AddAlias("rt");
+            nodeRemoveTagsCommand.Aliases.Add("rt");
             nodeRemoveTagsCommand.Arguments.Add(tagsArgument);
             nodeRemoveTagsCommand.Options.Add(groupsOption);
             nodeRemoveTagsCommand.Options.Add(allGroupsNoAliasesOption);
@@ -563,7 +771,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeRemoveTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeRemoveTagsCommand.SetHandler(NodeCommand.RemoveTags, tagsArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
 
-            nodeClearTagsCommand.AddAlias("ct");
+            nodeClearTagsCommand.Aliases.Add("ct");
             nodeClearTagsCommand.Options.Add(groupsOption);
             nodeClearTagsCommand.Options.Add(allGroupsNoAliasesOption);
             nodeClearTagsCommand.Options.Add(nodenamesOption);
@@ -572,7 +780,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeClearTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeClearTagsCommand.SetHandler(NodeCommand.ClearTags, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
 
-            nodeSetOwnerCommand.AddAlias("so");
+            nodeSetOwnerCommand.Aliases.Add("so");
             nodeSetOwnerCommand.Arguments.Add(ownerArgument);
             nodeSetOwnerCommand.Options.Add(groupsOption);
             nodeSetOwnerCommand.Options.Add(allGroupsNoAliasesOption);
@@ -582,7 +790,7 @@ namespace ShadowsocksUriGenerator.CLI
             nodeSetOwnerCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeSetOwnerCommand.SetHandler(NodeCommand.SetOwner, ownerArgument, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
 
-            nodeUnsetOwnerCommand.AddAlias("uo");
+            nodeUnsetOwnerCommand.Aliases.Add("uo");
             nodeUnsetOwnerCommand.Options.Add(groupsOption);
             nodeUnsetOwnerCommand.Options.Add(allGroupsNoAliasesOption);
             nodeUnsetOwnerCommand.Options.Add(nodenamesOption);
@@ -591,12 +799,12 @@ namespace ShadowsocksUriGenerator.CLI
             nodeUnsetOwnerCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
             nodeUnsetOwnerCommand.SetHandler(NodeCommand.UnsetOwner, groupsOption, allGroupsNoAliasesOption, nodenamesOption, allNodesNoAliasesOption);
 
-            groupAddCommand.AddAlias("a");
+            groupAddCommand.Aliases.Add("a");
             groupAddCommand.Arguments.Add(groupsArgumentOneOrMore);
             groupAddCommand.Options.Add(ownerOption);
             groupAddCommand.SetHandler(GroupCommand.Add, groupsArgumentOneOrMore, ownerOption);
 
-            groupEditCommand.AddAlias("e");
+            groupEditCommand.Aliases.Add("e");
             groupEditCommand.Arguments.Add(groupsArgumentOneOrMore);
             groupEditCommand.Options.Add(ownerOption);
             groupEditCommand.Options.Add(unsetOwnerOption);
@@ -607,41 +815,41 @@ namespace ShadowsocksUriGenerator.CLI
             groupRenameCommand.Arguments.Add(newNameArgument);
             groupRenameCommand.SetHandler(GroupCommand.Rename, oldNameArgument, newNameArgument);
 
-            groupRemoveCommand.AddAlias("rm");
-            groupRemoveCommand.AddAlias("del");
-            groupRemoveCommand.AddAlias("delete");
+            groupRemoveCommand.Aliases.Add("rm");
+            groupRemoveCommand.Aliases.Add("del");
+            groupRemoveCommand.Aliases.Add("delete");
             groupRemoveCommand.Arguments.Add(groupsArgumentOneOrMore);
             groupRemoveCommand.SetHandler(GroupCommand.Remove, groupsArgumentOneOrMore);
 
-            groupListCommand.AddAlias("l");
-            groupListCommand.AddAlias("ls");
+            groupListCommand.Aliases.Add("l");
+            groupListCommand.Aliases.Add("ls");
             groupListCommand.Options.Add(namesOnlyOption);
             groupListCommand.Options.Add(onePerLineOption);
             groupListCommand.SetHandler(GroupCommand.List, namesOnlyOption, onePerLineOption);
 
-            groupAddUsersCommand.AddAlias("au");
+            groupAddUsersCommand.Aliases.Add("au");
             groupAddUsersCommand.Arguments.Add(groupArgument);
             groupAddUsersCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             groupAddUsersCommand.Options.Add(allUsersOption);
             groupAddUsersCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupAddUsersCommand.SetHandler(GroupCommand.AddUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption);
 
-            groupRemoveUsersCommand.AddAlias("ru");
+            groupRemoveUsersCommand.Aliases.Add("ru");
             groupRemoveUsersCommand.Arguments.Add(groupArgument);
             groupRemoveUsersCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             groupRemoveUsersCommand.Options.Add(allUsersOption);
             groupRemoveUsersCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveUsersCommand.SetHandler(GroupCommand.RemoveUsers, groupArgument, usernamesArgumentZeroOrMore, allUsersOption);
 
-            groupListUsersCommand.AddAlias("lc");
-            groupListUsersCommand.AddAlias("lm");
-            groupListUsersCommand.AddAlias("lu");
-            groupListUsersCommand.AddAlias("list-credentials");
-            groupListUsersCommand.AddAlias("list-members");
+            groupListUsersCommand.Aliases.Add("lc");
+            groupListUsersCommand.Aliases.Add("lm");
+            groupListUsersCommand.Aliases.Add("lu");
+            groupListUsersCommand.Aliases.Add("list-credentials");
+            groupListUsersCommand.Aliases.Add("list-members");
             groupListUsersCommand.Arguments.Add(groupArgument);
             groupListUsersCommand.SetHandler(GroupCommand.ListUsers, groupArgument);
 
-            groupAddCredentialCommand.AddAlias("ac");
+            groupAddCredentialCommand.Aliases.Add("ac");
             groupAddCredentialCommand.Arguments.Add(groupArgument);
             groupAddCredentialCommand.Arguments.Add(methodArgument);
             groupAddCredentialCommand.Arguments.Add(passwordArgument);
@@ -650,28 +858,28 @@ namespace ShadowsocksUriGenerator.CLI
             groupAddCredentialCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupAddCredentialCommand.SetHandler(GroupCommand.AddCredential, groupArgument, methodArgument, passwordArgument, usernamesArgumentZeroOrMore, allUsersOption);
 
-            groupRemoveCredentialsCommand.AddAlias("rc");
+            groupRemoveCredentialsCommand.Aliases.Add("rc");
             groupRemoveCredentialsCommand.Arguments.Add(groupArgument);
             groupRemoveCredentialsCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             groupRemoveCredentialsCommand.Options.Add(allUsersOption);
             groupRemoveCredentialsCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             groupRemoveCredentialsCommand.SetHandler(GroupCommand.RemoveCredentials, groupArgument, usernamesArgumentZeroOrMore, allUsersOption);
 
-            groupGetDataUsageCommand.AddAlias("data");
+            groupGetDataUsageCommand.Aliases.Add("data");
             groupGetDataUsageCommand.Arguments.Add(groupArgument);
             groupGetDataUsageCommand.Options.Add(sortByOption);
             groupGetDataUsageCommand.SetHandler(GroupCommand.GetDataUsage, groupArgument, sortByOption);
 
-            groupGetDataLimitCommand.AddAlias("gl");
-            groupGetDataLimitCommand.AddAlias("gdl");
-            groupGetDataLimitCommand.AddAlias("limit");
-            groupGetDataLimitCommand.AddAlias("get-limit");
+            groupGetDataLimitCommand.Aliases.Add("gl");
+            groupGetDataLimitCommand.Aliases.Add("gdl");
+            groupGetDataLimitCommand.Aliases.Add("limit");
+            groupGetDataLimitCommand.Aliases.Add("get-limit");
             groupGetDataLimitCommand.Arguments.Add(groupArgument);
             groupGetDataLimitCommand.SetHandler(GroupCommand.GetDataLimit, groupArgument);
 
-            groupSetDataLimitCommand.AddAlias("sl");
-            groupSetDataLimitCommand.AddAlias("sdl");
-            groupSetDataLimitCommand.AddAlias("set-limit");
+            groupSetDataLimitCommand.Aliases.Add("sl");
+            groupSetDataLimitCommand.Aliases.Add("sdl");
+            groupSetDataLimitCommand.Aliases.Add("set-limit");
             groupSetDataLimitCommand.Arguments.Add(groupsArgumentOneOrMore);
             groupSetDataLimitCommand.Options.Add(globalDataLimitOption);
             groupSetDataLimitCommand.Options.Add(perUserDataLimitOption);
@@ -679,29 +887,29 @@ namespace ShadowsocksUriGenerator.CLI
             groupSetDataLimitCommand.Validators.Add(GroupCommand.ValidateSetDataLimit);
             groupSetDataLimitCommand.SetHandler(GroupCommand.SetDataLimit, groupsArgumentOneOrMore, globalDataLimitOption, perUserDataLimitOption, usernamesOption);
 
-            onlineConfigGenerateCommand.AddAlias("g");
-            onlineConfigGenerateCommand.AddAlias("gen");
+            onlineConfigGenerateCommand.Aliases.Add("g");
+            onlineConfigGenerateCommand.Aliases.Add("gen");
             onlineConfigGenerateCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             onlineConfigGenerateCommand.SetHandler(OnlineConfigCommand.Generate, usernamesArgumentZeroOrMore);
 
-            onlineConfigGetLinksCommand.AddAlias("l");
-            onlineConfigGetLinksCommand.AddAlias("link");
-            onlineConfigGetLinksCommand.AddAlias("links");
-            onlineConfigGetLinksCommand.AddAlias("token");
-            onlineConfigGetLinksCommand.AddAlias("tokens");
-            onlineConfigGetLinksCommand.AddAlias("url");
-            onlineConfigGetLinksCommand.AddAlias("urls");
+            onlineConfigGetLinksCommand.Aliases.Add("l");
+            onlineConfigGetLinksCommand.Aliases.Add("link");
+            onlineConfigGetLinksCommand.Aliases.Add("links");
+            onlineConfigGetLinksCommand.Aliases.Add("token");
+            onlineConfigGetLinksCommand.Aliases.Add("tokens");
+            onlineConfigGetLinksCommand.Aliases.Add("url");
+            onlineConfigGetLinksCommand.Aliases.Add("urls");
             onlineConfigGetLinksCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             onlineConfigGetLinksCommand.SetHandler(OnlineConfigCommand.GetLinks, usernamesArgumentZeroOrMore);
 
-            onlineConfigCleanCommand.AddAlias("c");
-            onlineConfigCleanCommand.AddAlias("clear");
+            onlineConfigCleanCommand.Aliases.Add("c");
+            onlineConfigCleanCommand.Aliases.Add("clear");
             onlineConfigCleanCommand.Arguments.Add(usernamesArgumentZeroOrMore);
             onlineConfigCleanCommand.Options.Add(allUsersOption);
             onlineConfigCleanCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
             onlineConfigCleanCommand.SetHandler(OnlineConfigCommand.Clean, usernamesArgumentZeroOrMore, allUsersOption);
 
-            outlineServerAddCommand.AddAlias("a");
+            outlineServerAddCommand.Aliases.Add("a");
             outlineServerAddCommand.Arguments.Add(groupArgument);
             outlineServerAddCommand.Arguments.Add(outlineApiKeyArgument);
             outlineServerAddCommand.SetHandler(OutlineServerCommand.Add, groupArgument, outlineApiKeyArgument);
@@ -717,12 +925,12 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerSetCommand.Options.Add(outlineServerDefaultUserOption);
             outlineServerSetCommand.SetHandler(OutlineServerCommand.Set, groupArgument, outlineServerNameOption, outlineServerHostnameOption, outlineServerPortOption, outlineServerMetricsOption, outlineServerDefaultUserOption);
 
-            outlineServerRemoveCommand.AddAlias("rm");
+            outlineServerRemoveCommand.Aliases.Add("rm");
             outlineServerRemoveCommand.Arguments.Add(groupsArgumentOneOrMore);
             outlineServerRemoveCommand.Options.Add(removeCredsOption);
             outlineServerRemoveCommand.SetHandler(OutlineServerCommand.Remove, groupsArgumentOneOrMore, removeCredsOption);
 
-            outlineServerPullCommand.AddAlias("update");
+            outlineServerPullCommand.Aliases.Add("update");
             outlineServerPullCommand.Arguments.Add(groupsArgumentZeroOrMore);
             outlineServerPullCommand.Options.Add(noSyncOption);
             outlineServerPullCommand.SetHandler(OutlineServerCommand.Pull, groupsArgumentZeroOrMore, noSyncOption);
@@ -730,7 +938,7 @@ namespace ShadowsocksUriGenerator.CLI
             outlineServerDeployCommand.Arguments.Add(groupsArgumentZeroOrMore);
             outlineServerDeployCommand.SetHandler(OutlineServerCommand.Deploy, groupsArgumentZeroOrMore);
 
-            outlineServerRotatePasswordCommand.AddAlias("rotate");
+            outlineServerRotatePasswordCommand.Aliases.Add("rotate");
             outlineServerRotatePasswordCommand.Options.Add(usernamesOption);
             outlineServerRotatePasswordCommand.Options.Add(groupsOption);
             outlineServerRotatePasswordCommand.Options.Add(allGroupsOption);
