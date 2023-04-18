@@ -65,6 +65,7 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
     /// <param name="disableTFO">Whether to disable TCP Fast Open for servers.</param>
     /// <param name="disableUDP">Whether to disable UDP for servers.</param>
     /// <param name="dialerFwmark">Set a fwmark for sockets.</param>
+    /// <param name="dialerTrafficClass">Set a traffic class for sockets.</param>
     /// <param name="mtu">The path MTU between client and server. Defaults to 1492 for PPPoE.</param>
     /// <returns>The online config document in shadowsocks-go client config format.</returns>
     /// <response code="200">Returns the online config document.</response>
@@ -87,6 +88,7 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
         [FromQuery] bool disableTFO,
         [FromQuery] bool disableUDP,
         [FromQuery] int dialerFwmark,
+        [FromQuery] int dialerTrafficClass,
         [FromQuery] int mtu = 1492)
     {
         if (!TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult))
@@ -99,10 +101,10 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
 
         LoggerHelper.OnlineConfig(_logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
-        var clients = servers.Select(x => new ShadowsocksGoClientConfig(x, paddingPolicy, disableTCP, disableTFO, disableUDP, dialerFwmark, mtu));
+        var clients = servers.Select(x => new ShadowsocksGoClientConfig(x, paddingPolicy, disableTCP, disableTFO, disableUDP, dialerFwmark, dialerTrafficClass, mtu));
 
         if (!noDirect)
-            clients = clients.Append(new(disableTCP, disableTFO, disableUDP, dialerFwmark, mtu));
+            clients = clients.Append(new(disableTCP, disableTFO, disableUDP, dialerFwmark, dialerTrafficClass, mtu));
 
         return new ShadowsocksGoConfig()
         {

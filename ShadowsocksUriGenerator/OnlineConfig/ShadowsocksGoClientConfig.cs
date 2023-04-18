@@ -11,6 +11,7 @@ public class ShadowsocksGoClientConfig
     public string? Endpoint { get; set; }
     public string Protocol { get; set; } = "";
     public int DialerFwmark { get; set; }
+    public int DialerTrafficClass { get; set; }
 
     #region TCP
     public bool EnableTCP { get; set; } = true;
@@ -43,17 +44,20 @@ public class ShadowsocksGoClientConfig
     /// <param name="disableTFO">Whether to disable TCP Fast Open.</param>
     /// <param name="disableUDP">Whether to disable UDP.</param>
     /// <param name="dialerFwmark">Set a fwmark for sockets.</param>
+    /// <param name="dialerTrafficClass">Set a traffic class for sockets.</param>
     /// <param name="mtu">The path MTU between client and server.</param>
     public ShadowsocksGoClientConfig(
         bool disableTCP,
         bool disableTFO,
         bool disableUDP,
         int dialerFwmark,
+        int dialerTrafficClass,
         int mtu)
     {
         Name = "direct";
         Protocol = "direct";
         DialerFwmark = dialerFwmark;
+        DialerTrafficClass = dialerTrafficClass;
         EnableTCP = !disableTCP;
         DialerTFO = !disableTFO;
         EnableUDP = !disableUDP;
@@ -69,6 +73,7 @@ public class ShadowsocksGoClientConfig
     /// <param name="disableTFO">Whether to disable TCP Fast Open.</param>
     /// <param name="disableUDP">Whether to disable UDP.</param>
     /// <param name="dialerFwmark">Set a fwmark for sockets.</param>
+    /// <param name="dialerTrafficClass">Set a traffic class for sockets.</param>
     /// <param name="mtu">The path MTU between client and server.</param>
     public ShadowsocksGoClientConfig(
         ShadowsocksServerConfig server,
@@ -77,12 +82,14 @@ public class ShadowsocksGoClientConfig
         bool disableTFO,
         bool disableUDP,
         int dialerFwmark,
+        int dialerTrafficClass,
         int mtu)
     {
         Name = server.Name;
         Endpoint = server.GetHostPort();
         Protocol = server.Method;
         DialerFwmark = dialerFwmark;
+        DialerTrafficClass = dialerTrafficClass;
         EnableTCP = !disableTCP;
         DialerTFO = !disableTFO;
         EnableUDP = !disableUDP;
