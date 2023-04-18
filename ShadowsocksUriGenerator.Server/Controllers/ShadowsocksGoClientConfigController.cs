@@ -36,6 +36,7 @@ public class ShadowsocksGoClientConfigController : OnlineConfigControllerBase
     ///                 "endpoint": "[2001:db8:bd63:362c:2071:a0f6:827:ab6a]:20220",
     ///                 "protocol": "2022-blake3-aes-128-gcm",
     ///                 "dialerFwmark": 0,
+    ///                 "dialerTrafficClass": 0,
     ///                 "enableTCP": true,
     ///                 "dialerTFO": true,
     ///                 "enableUDP": true,
