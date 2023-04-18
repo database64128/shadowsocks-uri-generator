@@ -10,27 +10,32 @@ internal class Program
 {
     private static Task<int> Main(string[] args)
     {
-        var onlineConfigDirOption = new Option<string>("--online-config-dir")
+        var onlineConfigDirOption = new CliOption<string>("--online-config-dir")
         {
             Description = "Directory of generated online config.",
-            IsRequired = true,
+            Required = true,
         };
-        var outputDirOption = new Option<string>("--output-dir")
+        var outputDirOption = new CliOption<string>("--output-dir")
         {
             Description = "Output directory.",
-            IsRequired = true,
+            Required = true,
         };
 
-        var rootCommand = new RootCommand("A rescue tool CLI for restoring ss-uri-gen config from generated online config directory.")
+        var rootCommand = new CliRootCommand("A rescue tool CLI for restoring ss-uri-gen config from generated online config directory.")
         {
             onlineConfigDirOption,
             outputDirOption,
         };
 
-        rootCommand.SetHandler(HandleRootCommand, onlineConfigDirOption, outputDirOption);
+        rootCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var onlineConfigDir = parseResult.GetValue(onlineConfigDirOption)!;
+            var outputDir = parseResult.GetValue(onlineConfigDirOption)!;
+            return HandleRootCommand(onlineConfigDir, outputDir, cancellationToken);
+        });
 
         Console.OutputEncoding = Encoding.UTF8;
-        return rootCommand.InvokeAsync(args);
+        return rootCommand.Parse(args).InvokeAsync();
     }
 
     private static async Task<int> HandleRootCommand(string onlineConfigDir, string outputDir, CancellationToken cancellationToken = default)

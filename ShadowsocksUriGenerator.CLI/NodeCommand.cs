@@ -1,5 +1,4 @@
-﻿using ShadowsocksUriGenerator.CLI.Binders;
-using ShadowsocksUriGenerator.CLI.Utils;
+﻿using ShadowsocksUriGenerator.CLI.Utils;
 using System;
 using System.Collections.Generic;
 using System.CommandLine.Parsing;
@@ -26,7 +25,19 @@ namespace ShadowsocksUriGenerator.CLI
                 commandResult.AddError("You can't set and unset plugin at the same time.");
         }
 
-        public static async Task<int> Add(NodeAddChangeSet nodeAddChangeSet, CancellationToken cancellationToken = default)
+        public static async Task<int> Add(
+            string group,
+            string nodename,
+            string host,
+            int port,
+            string? pluginName,
+            string? pluginVersion,
+            string? pluginOptions,
+            string? pluginArguments,
+            string? owner,
+            string[] tags,
+            string[] identityPSKs,
+            CancellationToken cancellationToken = default)
         {
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
             if (loadNodesErrMsg is not null)
@@ -38,7 +49,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             // Retrieve owner user UUID.
             string? ownerUuid = null;
-            if (!string.IsNullOrEmpty(nodeAddChangeSet.Owner))
+            if (!string.IsNullOrEmpty(owner))
             {
                 var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
                 if (loadUsersErrMsg is not null)
@@ -47,33 +58,33 @@ namespace ShadowsocksUriGenerator.CLI
                     return 1;
                 }
 
-                if (users.UserDict.TryGetValue(nodeAddChangeSet.Owner, out var targetUser))
+                if (users.UserDict.TryGetValue(owner, out var targetUser))
                 {
                     ownerUuid = targetUser.Uuid;
                 }
                 else
                 {
-                    Console.WriteLine($"Warning: The specified owner {nodeAddChangeSet.Owner} is not a user. Skipping.");
+                    Console.WriteLine($"Warning: The specified owner {owner} is not a user. Skipping.");
                 }
             }
 
             // Deduplicate tags.
-            var tags = nodeAddChangeSet.Tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
 
-            var result = nodes.AddNodeToGroup(nodeAddChangeSet.Group, nodeAddChangeSet.Nodename, nodeAddChangeSet.Host, nodeAddChangeSet.Port, nodeAddChangeSet.PluginName, nodeAddChangeSet.PluginVersion, nodeAddChangeSet.PluginOptions, nodeAddChangeSet.PluginArguments, ownerUuid, tags, nodeAddChangeSet.IdentityPSKs);
+            var result = nodes.AddNodeToGroup(group, nodename, host, port, pluginName, pluginVersion, pluginOptions, pluginArguments, ownerUuid, tags, identityPSKs);
             switch (result)
             {
                 case 0:
-                    Console.WriteLine($"Added {nodeAddChangeSet.Nodename} to group {nodeAddChangeSet.Group}.");
+                    Console.WriteLine($"Added {nodename} to group {group}.");
                     break;
                 case -1:
-                    Console.WriteLine($"Error: A node with the name {nodeAddChangeSet.Nodename} already exists in group {nodeAddChangeSet.Group}.");
+                    Console.WriteLine($"Error: A node with the name {nodename} already exists in group {group}.");
                     break;
                 case -2:
-                    Console.WriteLine($"Error: Group {nodeAddChangeSet.Group} doesn't exist.");
+                    Console.WriteLine($"Error: Group {group} doesn't exist.");
                     break;
                 case -3:
-                    Console.WriteLine($"Error: Invalid port number: {nodeAddChangeSet.Port}.");
+                    Console.WriteLine($"Error: Invalid port number: {port}.");
                     break;
                 default:
                     Console.WriteLine($"Unknown error.");
@@ -91,7 +102,22 @@ namespace ShadowsocksUriGenerator.CLI
         }
 
         public static async Task<int> Edit(
-            NodeEditChangeSet nodeEditChangeSet,
+            string group,
+            string nodename,
+            string? host,
+            int port,
+            string? pluginName,
+            string? pluginVersion,
+            string? pluginOptions,
+            string? pluginArguments,
+            bool unsetPlugin,
+            string? owner,
+            bool unsetOwner,
+            bool clearTags,
+            string[] addTags,
+            string[] removeTags,
+            string[] identityPSKs,
+            bool clearIPSKs,
             CancellationToken cancellationToken = default)
         {
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
@@ -102,29 +128,29 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            if (nodes.Groups.TryGetValue(nodeEditChangeSet.Group, out var targetGroup))
+            if (nodes.Groups.TryGetValue(group, out var targetGroup))
             {
-                if (targetGroup.NodeDict.TryGetValue(nodeEditChangeSet.Nodename, out var node))
+                if (targetGroup.NodeDict.TryGetValue(nodename, out var node))
                 {
-                    if (!string.IsNullOrEmpty(nodeEditChangeSet.Host))
-                        node.Host = nodeEditChangeSet.Host;
+                    if (!string.IsNullOrEmpty(host))
+                        node.Host = host;
 
-                    if (nodeEditChangeSet.Port > 0)
-                        node.Port = nodeEditChangeSet.Port;
+                    if (port > 0)
+                        node.Port = port;
 
-                    if (!string.IsNullOrEmpty(nodeEditChangeSet.PluginName))
-                        node.Plugin = nodeEditChangeSet.PluginName;
+                    if (!string.IsNullOrEmpty(pluginName))
+                        node.Plugin = pluginName;
 
-                    if (!string.IsNullOrEmpty(nodeEditChangeSet.PluginVersion))
-                        node.PluginVersion = nodeEditChangeSet.PluginVersion;
+                    if (!string.IsNullOrEmpty(pluginVersion))
+                        node.PluginVersion = pluginVersion;
 
-                    if (!string.IsNullOrEmpty(nodeEditChangeSet.PluginOptions))
-                        node.PluginOpts = nodeEditChangeSet.PluginOptions;
+                    if (!string.IsNullOrEmpty(pluginOptions))
+                        node.PluginOpts = pluginOptions;
 
-                    if (!string.IsNullOrEmpty(nodeEditChangeSet.PluginArguments))
-                        node.PluginArguments = nodeEditChangeSet.PluginArguments;
+                    if (!string.IsNullOrEmpty(pluginArguments))
+                        node.PluginArguments = pluginArguments;
 
-                    if (nodeEditChangeSet.UnsetPlugin)
+                    if (unsetPlugin)
                     {
                         node.Plugin = null;
                         node.PluginVersion = null;
@@ -132,7 +158,7 @@ namespace ShadowsocksUriGenerator.CLI
                         node.PluginArguments = null;
                     }
 
-                    if (!string.IsNullOrEmpty(nodeEditChangeSet.Owner))
+                    if (!string.IsNullOrEmpty(owner))
                     {
                         var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
                         if (loadUsersErrMsg is not null)
@@ -141,29 +167,29 @@ namespace ShadowsocksUriGenerator.CLI
                             return 1;
                         }
 
-                        if (users.UserDict.TryGetValue(nodeEditChangeSet.Owner, out var targetUser))
+                        if (users.UserDict.TryGetValue(owner, out var targetUser))
                         {
                             node.OwnerUuid = targetUser.Uuid;
                         }
                         else
                         {
-                            Console.WriteLine($"Warning: The specified owner {nodeEditChangeSet.Owner} is not a user. Skipping.");
+                            Console.WriteLine($"Warning: The specified owner {owner} is not a user. Skipping.");
                         }
                     }
 
-                    if (nodeEditChangeSet.UnsetOwner)
+                    if (unsetOwner)
                     {
                         node.OwnerUuid = null;
                     }
 
-                    if (nodeEditChangeSet.ClearTags)
+                    if (clearTags)
                     {
                         node.Tags.Clear();
                     }
 
-                    if (nodeEditChangeSet.AddTags.Length > 0)
+                    if (addTags.Length > 0)
                     {
-                        foreach (var tag in nodeEditChangeSet.AddTags)
+                        foreach (var tag in addTags)
                         {
                             if (node.Tags.Exists(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)))
                             {
@@ -176,9 +202,9 @@ namespace ShadowsocksUriGenerator.CLI
                         }
                     }
 
-                    if (nodeEditChangeSet.RemoveTags.Length > 0)
+                    if (removeTags.Length > 0)
                     {
-                        foreach (var tag in nodeEditChangeSet.RemoveTags)
+                        foreach (var tag in removeTags)
                         {
                             if (node.Tags.RemoveAll(x => string.Equals(x, tag, StringComparison.OrdinalIgnoreCase)) == 0)
                             {
@@ -187,12 +213,12 @@ namespace ShadowsocksUriGenerator.CLI
                         }
                     }
 
-                    if (nodeEditChangeSet.IdentityPSKs.Length > 0)
+                    if (identityPSKs.Length > 0)
                     {
-                        node.IdentityPSKs = nodeEditChangeSet.IdentityPSKs.ToList();
+                        node.IdentityPSKs = identityPSKs.ToList();
                     }
 
-                    if (nodeEditChangeSet.ClearIPSKs)
+                    if (clearIPSKs)
                     {
                         node.IdentityPSKs.Clear();
                     }
@@ -208,13 +234,13 @@ namespace ShadowsocksUriGenerator.CLI
                 }
                 else
                 {
-                    Console.WriteLine($"Error: Node {nodeEditChangeSet.Nodename} doesn't exist.");
+                    Console.WriteLine($"Error: Node {nodename} doesn't exist.");
                     return -1;
                 }
             }
             else
             {
-                Console.WriteLine($"Error: Group {nodeEditChangeSet.Group} doesn't exist.");
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
                 return -2;
             }
         }

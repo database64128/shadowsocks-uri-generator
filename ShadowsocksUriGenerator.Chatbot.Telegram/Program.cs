@@ -10,38 +10,38 @@ internal class Program
 {
     private static Task<int> Main(string[] args)
     {
-        var botTokenOption = new Option<string?>("--bot-token")
+        var botTokenOption = new CliOption<string?>("--bot-token")
         {
             Description = "Telegram bot token.",
         };
-        var serviceNameOption = new Option<string?>("--service-name")
+        var serviceNameOption = new CliOption<string?>("--service-name")
         {
             Description = "Service name. Will be displayed in the welcome message.",
         };
-        var usersCanSeeAllUsersOption = new Option<bool?>("--users-can-see-all-users")
+        var usersCanSeeAllUsersOption = new CliOption<bool?>("--users-can-see-all-users")
         {
             Description = "Whether any registered user is allowed to see all registered users.",
         };
-        var usersCanSeeAllGroupsOption = new Option<bool?>("--users-can-see-all-groups")
+        var usersCanSeeAllGroupsOption = new CliOption<bool?>("--users-can-see-all-groups")
         {
             Description = "Whether any registered user is allowed to see all groups.",
         };
-        var usersCanSeeGroupDataUsageOption = new Option<bool?>("--users-can-see-group-data-usage")
+        var usersCanSeeGroupDataUsageOption = new CliOption<bool?>("--users-can-see-group-data-usage")
         {
             Description = "Whether users are allowed to query group data usage metrics.",
         };
-        var usersCanSeeGroupDataLimitOption = new Option<bool?>("--users-can-see-group-data-limit")
+        var usersCanSeeGroupDataLimitOption = new CliOption<bool?>("--users-can-see-group-data-limit")
         {
             Description = "Whether users are allowed to see other group member's data limit.",
         };
-        var allowChatAssociationOption = new Option<bool?>("--allow-chat-association")
+        var allowChatAssociationOption = new CliOption<bool?>("--allow-chat-association")
         {
             Description = "Whether Telegram association through /link in chat is allowed.",
         };
 
-        var configGetCommand = new Command("get", "Get and print bot config.");
+        var configGetCommand = new CliCommand("get", "Get and print bot config.");
 
-        var configSetCommand = new Command("set", "Change bot config.")
+        var configSetCommand = new CliCommand("set", "Change bot config.")
         {
             botTokenOption,
             serviceNameOption,
@@ -52,24 +52,38 @@ internal class Program
             allowChatAssociationOption,
         };
 
-        configGetCommand.SetHandler(ConfigCommand.Get);
-        configSetCommand.SetHandler(ConfigCommand.Set, botTokenOption, serviceNameOption, usersCanSeeAllUsersOption, usersCanSeeAllGroupsOption, usersCanSeeGroupDataUsageOption, usersCanSeeGroupDataLimitOption, allowChatAssociationOption);
+        configGetCommand.SetAction((_, cancellationToken) => ConfigCommand.Get(cancellationToken));
+        configSetCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var botToken = parseResult.GetValue(botTokenOption);
+            var serviceName = parseResult.GetValue(serviceNameOption);
+            var usersCanSeeAllUsers = parseResult.GetValue(usersCanSeeAllUsersOption);
+            var usersCanSeeAllGroups = parseResult.GetValue(usersCanSeeAllGroupsOption);
+            var usersCanSeeGroupDataUsage = parseResult.GetValue(usersCanSeeGroupDataUsageOption);
+            var usersCanSeeGroupDataLimit = parseResult.GetValue(usersCanSeeGroupDataLimitOption);
+            var allowChatAssociation = parseResult.GetValue(allowChatAssociationOption);
+            return ConfigCommand.Set(botToken, serviceName, usersCanSeeAllUsers, usersCanSeeAllGroups, usersCanSeeGroupDataUsage, usersCanSeeGroupDataLimit, allowChatAssociation, cancellationToken);
+        });
 
-        var configCommand = new Command("config", "Print or change bot config.")
+        var configCommand = new CliCommand("config", "Print or change bot config.")
         {
             configGetCommand,
             configSetCommand,
         };
 
-        var rootCommand = new RootCommand("A Telegram bot for user interactions with Shadowsocks URI Generator.")
+        var rootCommand = new CliRootCommand("A Telegram bot for user interactions with Shadowsocks URI Generator.")
         {
             configCommand,
         };
 
         rootCommand.Options.Add(botTokenOption);
-        rootCommand.SetHandler(BotRunner.RunBot, botTokenOption);
+        rootCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var botToken = parseResult.GetValue(botTokenOption);
+            return BotRunner.RunBot(botToken, cancellationToken);
+        });
 
         Console.OutputEncoding = Encoding.UTF8;
-        return rootCommand.InvokeAsync(args);
+        return rootCommand.Parse(args).InvokeAsync();
     }
 }
