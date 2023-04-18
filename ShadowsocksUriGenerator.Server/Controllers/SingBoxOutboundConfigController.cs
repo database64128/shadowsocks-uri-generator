@@ -67,11 +67,13 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
     /// <param name="multiplexMaxStreams">Max number of streams.</param>
     /// <param name="detour">Select an upstream outbound.</param>
     /// <param name="bindInterface">The network interface to bind to.</param>
-    /// <param name="bindAddress">The address to bind to.</param>
+    /// <param name="inet4BindAddress">The IPv4 address to bind to.</param>
+    /// <param name="inet6BindAddress">The IPv6 address to bind to.</param>
     /// <param name="routingMark">Set a fwmark on sockets.</param>
     /// <param name="reuseAddr">Whether to set SO_REUSEADDR.</param>
     /// <param name="connectTimeout">The connect timeout in Go's duration string format.</param>
-    /// <param name="tfo">Whether to enable TCP fast open.</param>
+    /// <param name="tcpFastOpen">Whether to enable TCP fast open.</param>
+    /// <param name="udpFragment">Whether to enable UDP fragmentation.</param>
     /// <param name="domainStrategy">One of prefer_ipv4 prefer_ipv6 ipv4_only ipv6_only.</param>
     /// <param name="fallbackDelay">Happy Eyeballs fallback delay.</param>
     /// <returns>The online config document in sing-box config format.</returns>
@@ -101,11 +103,13 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
         [FromQuery] int multiplexMaxStreams,
         [FromQuery] string? detour,
         [FromQuery] string? bindInterface,
-        [FromQuery] string? bindAddress,
+        [FromQuery] string? inet4BindAddress,
+        [FromQuery] string? inet6BindAddress,
         [FromQuery] int routingMark,
         [FromQuery] bool reuseAddr,
         [FromQuery] string? connectTimeout,
-        [FromQuery] bool tfo,
+        [FromQuery] bool tcpFastOpen,
+        [FromQuery] bool udpFragment,
         [FromQuery] string? domainStrategy,
         [FromQuery] string? fallbackDelay)
     {
@@ -119,7 +123,7 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
 
         LoggerHelper.OnlineConfig(_logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
-        var outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, bindAddress, routingMark, reuseAddr, connectTimeout, tfo, domainStrategy, fallbackDelay));
+        var outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, inet4BindAddress, inet6BindAddress, routingMark, reuseAddr, connectTimeout, tcpFastOpen, udpFragment, domainStrategy, fallbackDelay));
 
         if (!noSelector && servers.Any())
         {

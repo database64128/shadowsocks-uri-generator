@@ -16,6 +16,8 @@ public class SingBoxOutboundConfig
     #region ShadowsocksOutboundOptions
     public string? Method { get; set; }
     public string? Password { get; set; }
+    public string? Plugin { get; set; }
+    public string? PluginOpts { get; set; }
     public string? Network { get; set; }
     public bool UdpOverTcp { get; set; }
     public SingBoxMultiplexConfig? Multiplex { get; set; }
@@ -24,11 +26,13 @@ public class SingBoxOutboundConfig
     #region DialerOptions
     public string? Detour { get; set; }
     public string? BindInterface { get; set; }
-    public string? BindAddress { get; set; }
+    public string? Inet4BindAddress { get; set; }
+    public string? Inet6BindAddress { get; set; }
     public int RoutingMark { get; set; }
     public bool ReuseAddr { get; set; }
     public string? ConnectTimeout { get; set; }
     public bool TcpFastOpen { get; set; }
+    public bool UdpFragment { get; set; }
     public string? DomainStrategy { get; set; }
     public string? FallbackDelay { get; set; }
     #endregion
@@ -53,11 +57,13 @@ public class SingBoxOutboundConfig
         int multiplexMaxStreams,
         string? detour,
         string? bindInterface,
-        string? bindAddress,
+        string? inet4BindAddress,
+        string? inet6BindAddress,
         int routingMark,
         bool reuseAddr,
         string? connectTimeout,
-        bool tfo,
+        bool tcpFastOpen,
+        bool udpFragment,
         string? domainStrategy,
         string? fallbackDelay)
     {
@@ -68,6 +74,8 @@ public class SingBoxOutboundConfig
         ServerPort = server.Port;
         Method = server.Method;
         Password = server.GetPassword();
+        Plugin = server.PluginName;
+        PluginOpts = server.PluginOptions;
         Network = network;
         UdpOverTcp = uot;
         if (multiplex)
@@ -82,11 +90,13 @@ public class SingBoxOutboundConfig
 
         Detour = detour;
         BindInterface = bindInterface;
-        BindAddress = bindAddress;
+        Inet4BindAddress = inet4BindAddress;
+        Inet6BindAddress = inet6BindAddress;
         RoutingMark = routingMark;
         ReuseAddr = reuseAddr;
         ConnectTimeout = connectTimeout;
-        TcpFastOpen = tfo;
+        TcpFastOpen = tcpFastOpen;
+        UdpFragment = udpFragment;
         DomainStrategy = domainStrategy;
         FallbackDelay = fallbackDelay;
     }
