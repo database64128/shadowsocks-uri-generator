@@ -11,6 +11,11 @@ namespace ShadowsocksUriGenerator.Outline
 {
     public class ApiClient : IDisposable
     {
+        private readonly ApiKey _apiKey;
+        private readonly HttpClient _httpClient;
+        private readonly bool _disposeHttpClient;
+        private bool _disposedValue;
+
         /// <summary>
         /// Creates an Outline API client for the specified API key.
         /// </summary>
@@ -42,12 +47,9 @@ namespace ShadowsocksUriGenerator.Outline
                 {
                     Timeout = TimeSpan.FromSeconds(30),
                 };
+                _disposeHttpClient = true;
             }
         }
-
-        private readonly ApiKey _apiKey;
-        private readonly HttpClient _httpClient;
-        private bool disposedValue;
 
         /// <inheritdoc cref="HttpClient.Timeout"/>
         public TimeSpan Timeout
@@ -64,13 +66,13 @@ namespace ShadowsocksUriGenerator.Outline
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (_disposeHttpClient && !_disposedValue)
             {
                 if (disposing)
                 {
                     _httpClient.Dispose();
                 }
-                disposedValue = true;
+                _disposedValue = true;
             }
         }
 
