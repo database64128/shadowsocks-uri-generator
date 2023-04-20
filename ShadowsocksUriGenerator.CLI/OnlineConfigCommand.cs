@@ -1,4 +1,5 @@
-﻿using ShadowsocksUriGenerator.OnlineConfig;
+﻿using ShadowsocksUriGenerator.Data;
+using ShadowsocksUriGenerator.OnlineConfig;
 using System;
 using System.Text.Json;
 using System.Threading;

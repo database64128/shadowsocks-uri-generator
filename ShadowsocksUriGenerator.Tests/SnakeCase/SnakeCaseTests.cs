@@ -21,6 +21,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
+using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Text.Json;
 using Xunit;
@@ -38,10 +39,12 @@ namespace ShadowsocksUriGenerator.Tests.SnakeCase
         [Fact]
         public void JsonSerializerSnakeCaseSettings()
         {
-            Person person = new();
-            person.BirthDate = new DateTime(2000, 11, 20, 23, 55, 44, DateTimeKind.Utc);
-            person.LastModified = new DateTime(2000, 11, 20, 23, 55, 44, DateTimeKind.Utc);
-            person.Name = "Name!";
+            Person person = new()
+            {
+                BirthDate = new DateTime(2000, 11, 20, 23, 55, 44, DateTimeKind.Utc),
+                LastModified = new DateTime(2000, 11, 20, 23, 55, 44, DateTimeKind.Utc),
+                Name = "Name!",
+            };
 
             string json = JsonSerializer.Serialize(person, s_snakeCaseAndIndentedOption);
 

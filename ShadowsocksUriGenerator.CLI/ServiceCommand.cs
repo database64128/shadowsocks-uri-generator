@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
+using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
 using System;
 using System.CommandLine.Parsing;

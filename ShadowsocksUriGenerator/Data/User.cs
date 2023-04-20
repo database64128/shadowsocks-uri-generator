@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace ShadowsocksUriGenerator
+namespace ShadowsocksUriGenerator.Data
 {
     /// <summary>
     /// Each user has a unique name and a list of credentials.

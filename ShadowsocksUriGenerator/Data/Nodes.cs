@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Outline;
+using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShadowsocksUriGenerator
+namespace ShadowsocksUriGenerator.Data
 {
     /// <summary>
     /// The class for storing node information in Nodes.json
@@ -358,7 +359,7 @@ namespace ShadowsocksUriGenerator
         /// Null if the group doesn't exist or has no associated API key.
         /// </returns>
         public string? GetOutlineApiKeyStringFromGroup(string group)
-            => GetOutlineApiKeyFromGroup(group) is ApiKey apiKey ? JsonSerializer.Serialize(apiKey, Outline.Utilities.apiKeyJsonSerializerOptions) : null;
+            => GetOutlineApiKeyFromGroup(group) is ApiKey apiKey ? JsonSerializer.Serialize(apiKey, Utilities.apiKeyJsonSerializerOptions) : null;
 
         /// <summary>
         /// Gets the Outline server information object.

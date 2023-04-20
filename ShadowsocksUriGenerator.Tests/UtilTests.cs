@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using ShadowsocksUriGenerator.Utils;
+using Xunit;
 
 namespace ShadowsocksUriGenerator.Tests
 {

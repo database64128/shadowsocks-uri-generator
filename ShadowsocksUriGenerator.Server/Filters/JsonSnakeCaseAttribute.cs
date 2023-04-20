@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using ShadowsocksUriGenerator.Utils;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 

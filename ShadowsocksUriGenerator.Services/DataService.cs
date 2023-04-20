@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
+using ShadowsocksUriGenerator.Data;
+using ShadowsocksUriGenerator.Utils;
 using System;
 using System.IO;
 using System.Linq;
@@ -37,7 +39,7 @@ namespace ShadowsocksUriGenerator.Services
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)
             {
-                _logger.LogError(loadUsersErrMsg);
+                _logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
             }
             else
             {
@@ -48,7 +50,7 @@ namespace ShadowsocksUriGenerator.Services
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
             if (loadNodesErrMsg is not null)
             {
-                _logger.LogError(loadNodesErrMsg);
+                _logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
             }
             else
             {
@@ -59,7 +61,7 @@ namespace ShadowsocksUriGenerator.Services
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
             if (loadSettingsErrMsg is not null)
             {
-                _logger.LogError(loadSettingsErrMsg);
+                _logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
             }
             else
             {
@@ -108,11 +110,11 @@ namespace ShadowsocksUriGenerator.Services
 
             if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
-                _logger.LogWarning($"File {e.Name} was deleted!");
+                _logger.LogWarning("File {Name} was deleted!", e.Name);
                 return;
             }
 
-            _logger.LogInformation($"Acting on {e.ChangeType} event on file {e.Name}");
+            _logger.LogInformation("Acting on {ChangeType} event on file {Name}", e.ChangeType, e.Name);
 
             switch (e.Name)
             {
@@ -121,7 +123,7 @@ namespace ShadowsocksUriGenerator.Services
                         var (users, loadUsersErrMsg) = await Users.LoadUsersAsync();
                         if (loadUsersErrMsg is not null)
                         {
-                            _logger.LogError(loadUsersErrMsg);
+                            _logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
                         }
                         else
                         {
@@ -137,7 +139,7 @@ namespace ShadowsocksUriGenerator.Services
                         var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync();
                         if (loadNodesErrMsg is not null)
                         {
-                            _logger.LogError(loadNodesErrMsg);
+                            _logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
                         }
                         else
                         {
@@ -153,7 +155,7 @@ namespace ShadowsocksUriGenerator.Services
                         var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync();
                         if (loadSettingsErrMsg is not null)
                         {
-                            _logger.LogError(loadSettingsErrMsg);
+                            _logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
                         }
                         else
                         {

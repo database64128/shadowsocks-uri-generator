@@ -1,4 +1,6 @@
 ﻿using ShadowsocksUriGenerator.CLI.Utils;
+using ShadowsocksUriGenerator.Data;
+using ShadowsocksUriGenerator.Utils;
 using System;
 using System.IO;
 using System.Linq;

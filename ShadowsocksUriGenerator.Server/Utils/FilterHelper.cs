@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using ShadowsocksUriGenerator.Data;
+using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.Server.Utils
 {

@@ -1,3 +1,4 @@
+using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
 using System;
 using System.Linq;

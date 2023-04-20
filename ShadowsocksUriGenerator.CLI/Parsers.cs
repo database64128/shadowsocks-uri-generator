@@ -1,4 +1,5 @@
-﻿using System.CommandLine.Parsing;
+﻿using ShadowsocksUriGenerator.Utils;
+using System.CommandLine.Parsing;
 using System.Linq;
 
 namespace ShadowsocksUriGenerator.CLI

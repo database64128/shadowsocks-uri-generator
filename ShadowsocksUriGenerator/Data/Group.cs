@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Outline;
+using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShadowsocksUriGenerator
+namespace ShadowsocksUriGenerator.Data
 {
     /// <summary>
     /// Nodes in a group share the same credential for a user.
@@ -287,7 +288,7 @@ namespace ShadowsocksUriGenerator
         {
             try
             {
-                OutlineApiKey = JsonSerializer.Deserialize<ApiKey>(apiKey, Outline.Utilities.apiKeyJsonSerializerOptions);
+                OutlineApiKey = JsonSerializer.Deserialize<ApiKey>(apiKey, Utilities.apiKeyJsonSerializerOptions);
             }
             catch (JsonException)
             {
@@ -856,7 +857,7 @@ namespace ShadowsocksUriGenerator
                     return $"Error when creating user for {username} on group {group}'s Outline server: {await response.Content.ReadAsStringAsync(cancellationToken)}";
 
                 // Deserialize access key
-                var accessKey = await HttpContentJsonExtensions.ReadFromJsonAsync<AccessKey>(response.Content, Outline.Utilities.commonJsonDeserializerOptions, cancellationToken);
+                var accessKey = await response.Content.ReadFromJsonAsync<AccessKey>(Utilities.commonJsonDeserializerOptions, cancellationToken);
                 if (accessKey is null)
                     return $"Error when deserializing access key for user {username} on group {group}'s Outline server: the result is null.";
 

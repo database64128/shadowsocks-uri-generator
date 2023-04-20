@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShadowsocksUriGenerator.Utils;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace ShadowsocksUriGenerator
+namespace ShadowsocksUriGenerator.Data
 {
     /// <summary>
     /// The class for storing user information in Users.json.

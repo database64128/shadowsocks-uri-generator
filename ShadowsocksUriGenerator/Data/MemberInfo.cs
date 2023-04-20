@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Serialization;
 
-namespace ShadowsocksUriGenerator;
+namespace ShadowsocksUriGenerator.Data;
 
 /// <summary>
 /// Stores a user's credential and data limit in a group.

@@ -9,7 +9,7 @@ using System;
 using System.Text;
 using System.Text.Json;
 
-namespace ShadowsocksUriGenerator
+namespace ShadowsocksUriGenerator.Utils
 {
     public class JsonSnakeCaseNamingPolicy : JsonNamingPolicy
     {
@@ -47,7 +47,7 @@ namespace ShadowsocksUriGenerator
                     switch (state)
                     {
                         case SnakeCaseState.Upper:
-                            bool hasNext = (i + 1 < nameSpan.Length);
+                            bool hasNext = i + 1 < nameSpan.Length;
                             if (i > 0 && hasNext)
                             {
                                 char nextChar = nameSpan[i + 1];

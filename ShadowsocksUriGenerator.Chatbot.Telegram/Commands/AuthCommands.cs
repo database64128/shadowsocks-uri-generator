@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Chatbot.Telegram.Utils;
+using ShadowsocksUriGenerator.Data;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using ShadowsocksUriGenerator.Data;
+using ShadowsocksUriGenerator.Utils;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;

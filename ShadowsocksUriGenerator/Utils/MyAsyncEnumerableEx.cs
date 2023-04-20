@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
-namespace System.Linq
+namespace ShadowsocksUriGenerator.Utils
 {
     /// <summary>
     /// Workaround for https://github.com/dotnet/reactive/issues/1284.

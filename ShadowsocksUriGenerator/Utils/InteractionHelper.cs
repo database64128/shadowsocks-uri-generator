@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ShadowsocksUriGenerator;
+namespace ShadowsocksUriGenerator.Utils;
 
 public static class InteractionHelper
 {

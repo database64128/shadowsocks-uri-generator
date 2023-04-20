@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using ShadowsocksUriGenerator.Data;
 
 namespace ShadowsocksUriGenerator.Services
 {
