@@ -8,12 +8,11 @@ using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types.InputFiles;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
 {
-    public static class ChatHelper
+    public static partial class ChatHelper
     {
         /// <summary>
         /// Sends a possibly long text message.
@@ -25,6 +24,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             this ITelegramBotClient botClient,
             ChatId chatId,
             string text,
+            int? messageThreadId = null,
             ParseMode? parseMode = null,
             IEnumerable<MessageEntity>? entities = null,
             bool? disableWebPagePreview = null,
@@ -39,6 +39,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             {
                 return botClient.SendTextMessageAsync(chatId,
                                                       text,
+                                                      messageThreadId,
                                                       parseMode,
                                                       entities,
                                                       disableWebPagePreview,
@@ -62,6 +63,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                 return botClient.SendTextFileFromStringAsync(chatId,
                                                              filename,
                                                              text,
+                                                             messageThreadId,
                                                              null,
                                                              null,
                                                              parseMode,
@@ -87,7 +89,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             ChatId chatId,
             string filename,
             string text,
-            InputMedia? thumb = null,
+        int? messageThreadId = null,
+            InputFile? thumbnail = null,
             string? caption = null,
             ParseMode? parseMode = null,
             IEnumerable<MessageEntity>? captionEntities = null,
@@ -101,8 +104,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         {
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
             return await botClient.SendDocumentAsync(chatId,
-                                                     new(stream, filename),
-                                                     thumb,
+                                                     InputFile.FromStream(stream, filename),
+                                                     messageThreadId,
+                                                     thumbnail,
                                                      caption,
                                                      parseMode,
                                                      captionEntities,
@@ -115,6 +119,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                                                      cancellationToken);
         }
 
+        [GeneratedRegex("[_*[\\]()~`>#+\\-=|{}.!]")]
+        private static partial Regex EscapeMarkdownV2PlaintextRegex();
+
+        [GeneratedRegex("[`\\\\]")]
+        private static partial Regex EscapeMarkdownV2CodeBlockRegex();
+
         /// <summary>
         /// Escapes the plaintext per the MarkdownV2 requirements.
         /// This method does not handle markdown entities.
@@ -122,7 +132,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// <param name="plaintext">The plaintext to be escaped.</param>
         /// <returns>An escaped string.</returns>
         public static string EscapeMarkdownV2Plaintext(string plaintext)
-            => Regex.Replace(plaintext, @"[_*[\]()~`>#+\-=|{}.!]", @"\$&");
+            => EscapeMarkdownV2PlaintextRegex().Replace(plaintext, @"\$&");
 
         /// <summary>
         /// Escapes the code per the MarkdownV2 requirements.
@@ -130,7 +140,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// <param name="code">The code to be escaped.</param>
         /// <returns>The escaped code.</returns>
         public static string EscapeMarkdownV2CodeBlock(string code)
-            => Regex.Replace(code, @"[`\\]", @"\$&");
+            => EscapeMarkdownV2CodeBlockRegex().Replace(code, @"\$&");
 
         /// <summary>
         /// Parses a text message into a command and an argument if applicable.

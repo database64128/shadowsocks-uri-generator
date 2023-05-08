@@ -23,7 +23,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             return botClient.SendTextMessageAsync(message.Chat.Id,
                                                   replyMarkdownV2,
-                                                  ParseMode.MarkdownV2,
+                                                  parseMode: ParseMode.MarkdownV2,
                                                   replyToMessageId: message.MessageId,
                                                   cancellationToken: cancellationToken);
         }

@@ -102,7 +102,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                     var sendSummaryTask = botClient.SendTextMessageAsync(message.Chat.Id,
                                                                          replyMarkdownV2,
-                                                                         ParseMode.MarkdownV2,
+                                                                         parseMode: ParseMode.MarkdownV2,
                                                                          cancellationToken: cancellationToken);
 
                     var sendDataUsageByGroup = botClient.SendTextFileFromStringAsync(message.Chat.Id,
@@ -237,18 +237,18 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                     await botClient.SendTextMessageAsync(message.Chat.Id,
                                                          replyMarkdownV2,
-                                                         ParseMode.MarkdownV2,
+                                                         parseMode: ParseMode.MarkdownV2,
                                                          replyToMessageId: message.MessageId,
                                                          cancellationToken: cancellationToken);
 
                     await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                                      byGroupSB.ToString(),
-                                                                     ParseMode.MarkdownV2,
+                                                                     parseMode: ParseMode.MarkdownV2,
                                                                      cancellationToken: cancellationToken);
 
                     await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                                      byUserSB.ToString(),
-                                                                     ParseMode.MarkdownV2,
+                                                                     parseMode: ParseMode.MarkdownV2,
                                                                      cancellationToken: cancellationToken);
 
                     return;
@@ -262,7 +262,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendTextMessageAsync(message.Chat.Id,
                                                  replyMarkdownV2,
-                                                 ParseMode.MarkdownV2,
+                                                 parseMode: ParseMode.MarkdownV2,
                                                  replyToMessageId: message.MessageId,
                                                  cancellationToken: cancellationToken);
         }

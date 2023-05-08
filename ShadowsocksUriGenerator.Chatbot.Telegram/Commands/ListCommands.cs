@@ -78,7 +78,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                              replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
+                                                             parseMode: ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
         }
@@ -205,7 +205,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                              replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
+                                                             parseMode: ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
         }
@@ -308,7 +308,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                              replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
+                                                             parseMode: ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
         }
@@ -412,7 +412,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                              replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
+                                                             parseMode: ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
         }
@@ -501,7 +501,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                              replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
+                                                             parseMode: ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
         }
@@ -573,7 +573,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
             await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
                                                              replyMarkdownV2,
-                                                             ParseMode.MarkdownV2,
+                                                             parseMode: ParseMode.MarkdownV2,
                                                              replyToMessageId: message.MessageId,
                                                              cancellationToken: cancellationToken);
         }
