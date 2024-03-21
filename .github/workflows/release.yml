@@ -10,7 +10,7 @@ jobs:
     name: Publish and upload
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2022]
+        os: [ubuntu-latest, windows-latest]
       fail-fast: false
     runs-on: ${{ matrix.os }}
     defaults:
@@ -51,7 +51,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
 
       - name: Publish self-contained for Windows ARM64
-        if: matrix.os == 'windows-2022'
+        if: matrix.os == 'windows-latest'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
@@ -59,7 +59,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
 
       - name: Publish self-contained for Windows x64
-        if: matrix.os == 'windows-2022'
+        if: matrix.os == 'windows-latest'
         run: |
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r win-x64 --self-contained
@@ -103,7 +103,7 @@ jobs:
           tar -acf ../../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-linux-x64.tar.zst .
 
       - name: Package for Windows
-        if: matrix.os == 'windows-2022'
+        if: matrix.os == 'windows-latest'
         run: |
           # ShadowsocksUriGenerator.CLI
           cd ShadowsocksUriGenerator.CLI/bin/Release/net7.0/publish
@@ -159,7 +159,7 @@ jobs:
 
       - name: Upload release assets for Windows
         uses: svenstaro/upload-release-action@v2
-        if: matrix.os == 'windows-2022'
+        if: matrix.os == 'windows-latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ShadowsocksUriGenerator.*/bin/Release/net7.0/ss-uri-gen-*-windows*.*
