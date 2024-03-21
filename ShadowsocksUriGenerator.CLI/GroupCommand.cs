@@ -259,7 +259,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            List<(string group, int nodesCount, string owner, string outlineServerName)> groups = new();
+            List<(string group, int nodesCount, string owner, string outlineServerName)> groups = [];
 
             foreach (var groupEntry in nodes.Groups)
             {
@@ -450,7 +450,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            List<(string username, string method, string password)> members = new();
+            List<(string username, string method, string password)> members = [];
 
             foreach (var user in users.UserDict)
             {
@@ -685,22 +685,22 @@ namespace ShadowsocksUriGenerator.CLI
                     records.Reverse();
                     break;
                 case SortBy.NameAscending:
-                    records = records.OrderBy(x => x.username).ToList();
+                    records = [.. records.OrderBy(x => x.username)];
                     break;
                 case SortBy.NameDescending:
-                    records = records.OrderByDescending(x => x.username).ToList();
+                    records = [.. records.OrderByDescending(x => x.username)];
                     break;
                 case SortBy.DataUsedAscending:
-                    records = records.OrderBy(x => x.bytesUsed).ToList();
+                    records = [.. records.OrderBy(x => x.bytesUsed)];
                     break;
                 case SortBy.DataUsedDescending:
-                    records = records.OrderByDescending(x => x.bytesUsed).ToList();
+                    records = [.. records.OrderByDescending(x => x.bytesUsed)];
                     break;
                 case SortBy.DataRemainingAscending:
-                    records = records.OrderBy(x => x.bytesRemaining).ToList();
+                    records = [.. records.OrderBy(x => x.bytesRemaining)];
                     break;
                 case SortBy.DataRemainingDescending:
-                    records = records.OrderByDescending(x => x.bytesRemaining).ToList();
+                    records = [.. records.OrderByDescending(x => x.bytesRemaining)];
                     break;
             }
 

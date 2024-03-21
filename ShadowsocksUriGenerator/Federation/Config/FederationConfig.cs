@@ -18,13 +18,13 @@ public class FederationConfig
     /// </summary>
     public int Version { get; set; } = _defaultVersion;
 
-    public Dictionary<ulong, HostUserConfig> HostUsers { get; set; } = new();
+    public Dictionary<ulong, HostUserConfig> HostUsers { get; set; } = [];
 
-    public Dictionary<ulong, HostGroupConfigShadowsocksSimple> HostGroupsShadowsocksSimple { get; set; } = new();
+    public Dictionary<ulong, HostGroupConfigShadowsocksSimple> HostGroupsShadowsocksSimple { get; set; } = [];
 
-    public Dictionary<ulong, HostGroupConfigShadowsocksManager> HostGroupsShadowsocksManager { get; set; } = new();
+    public Dictionary<ulong, HostGroupConfigShadowsocksManager> HostGroupsShadowsocksManager { get; set; } = [];
 
-    public Dictionary<ulong, HostGroupConfigOutline> HostGroupsOutline { get; set; } = new();
+    public Dictionary<ulong, HostGroupConfigOutline> HostGroupsOutline { get; set; } = [];
 
-    public Dictionary<ulong, FederatedPeerConfig> FederatedPeers { get; set; } = new();
+    public Dictionary<ulong, FederatedPeerConfig> FederatedPeers { get; set; } = [];
 }

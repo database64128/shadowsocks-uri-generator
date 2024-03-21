@@ -42,7 +42,7 @@ namespace ShadowsocksUriGenerator.Data
         /// key is group name.
         /// value is group info.
         /// </summary>
-        public Dictionary<string, Group> Groups { get; set; } = new();
+        public Dictionary<string, Group> Groups { get; set; } = [];
 
         /// <summary>
         /// Adds a new node group to the group dictionary.

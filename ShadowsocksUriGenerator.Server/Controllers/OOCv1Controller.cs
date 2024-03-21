@@ -11,16 +11,8 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("ooc/v1")]
-public class OOCv1Controller : OnlineConfigControllerBase
+public class OOCv1Controller(ILogger<OOCv1Controller> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
 {
-    private readonly ILogger<OOCv1Controller> _logger;
-    private readonly IDataService _dataService;
-
-    public OOCv1Controller(ILogger<OOCv1Controller> logger, IDataService dataService) : base(dataService)
-    {
-        _logger = logger;
-        _dataService = dataService;
-    }
 
     /// <summary>
     /// Gets online config by user ID in Open Online Config 1 format.
@@ -73,12 +65,12 @@ public class OOCv1Controller : OnlineConfigControllerBase
         if (!TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult))
             return objectResult;
 
-        var servers = user.GetShadowsocksServers(_dataService.UsersData, _dataService.NodesData, group, tag, targetGroupOwnerIds, targetNodeOwnerIds);
+        var servers = user.GetShadowsocksServers(DataService.UsersData, DataService.NodesData, group, tag, targetGroupOwnerIds, targetNodeOwnerIds);
 
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
 
-        LoggerHelper.OnlineConfig(_logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
+        LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         return new OOCv1ShadowsocksConfig()
         {

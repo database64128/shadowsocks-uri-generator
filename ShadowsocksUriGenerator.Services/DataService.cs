@@ -10,10 +10,9 @@ using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Services
 {
-    public class DataService : IDataService, IDisposable
+    public class DataService(ILogger<DataService> logger) : IDataService, IDisposable
     {
-        private readonly ILogger<DataService> _logger;
-        private readonly FileSystemWatcher _watcher;
+        private readonly FileSystemWatcher _watcher = new(FileHelper.configDirectory, "*.json");
         private bool disposedValue;
         private bool isStarted;
 
@@ -22,12 +21,6 @@ namespace ShadowsocksUriGenerator.Services
         public Nodes NodesData { get; private set; } = new();
 
         public Settings SettingsData { get; private set; } = new();
-
-        public DataService(ILogger<DataService> logger)
-        {
-            _logger = logger;
-            _watcher = new(FileHelper.configDirectory, "*.json");
-        }
 
         public async Task StartAsync(CancellationToken cancellationToken = default)
         {
@@ -39,39 +32,39 @@ namespace ShadowsocksUriGenerator.Services
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)
             {
-                _logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
+                logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
             }
             else
             {
                 UsersData = users;
-                _logger.LogInformation("Loaded Users.json");
+                logger.LogInformation("Loaded Users.json");
             }
 
             var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
             if (loadNodesErrMsg is not null)
             {
-                _logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
+                logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
             }
             else
             {
                 NodesData = loadedNodes;
-                _logger.LogInformation("Loaded Nodes.json");
+                logger.LogInformation("Loaded Nodes.json");
             }
 
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
             if (loadSettingsErrMsg is not null)
             {
-                _logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
+                logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
             }
             else
             {
                 SettingsData = settings;
-                _logger.LogInformation("Loaded Settings.json");
+                logger.LogInformation("Loaded Settings.json");
             }
 
             isStarted = true;
 
-            _logger.LogInformation("Started data service asynchronously");
+            logger.LogInformation("Started data service asynchronously");
         }
 
         private void StartFileWatcher()
@@ -100,7 +93,7 @@ namespace ShadowsocksUriGenerator.Services
 
             _watcher.EnableRaisingEvents = true;
 
-            _logger.LogInformation("Started file watcher watching Users.json, Nodes.json, Settings.json");
+            logger.LogInformation("Started file watcher watching Users.json, Nodes.json, Settings.json");
         }
 
         private async void UpdateDataAsync(FileSystemEventArgs e)
@@ -110,11 +103,11 @@ namespace ShadowsocksUriGenerator.Services
 
             if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
-                _logger.LogWarning("File {Name} was deleted!", e.Name);
+                logger.LogWarning("File {Name} was deleted!", e.Name);
                 return;
             }
 
-            _logger.LogInformation("Acting on {ChangeType} event on file {Name}", e.ChangeType, e.Name);
+            logger.LogInformation("Acting on {ChangeType} event on file {Name}", e.ChangeType, e.Name);
 
             switch (e.Name)
             {
@@ -123,12 +116,12 @@ namespace ShadowsocksUriGenerator.Services
                         var (users, loadUsersErrMsg) = await Users.LoadUsersAsync();
                         if (loadUsersErrMsg is not null)
                         {
-                            _logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
+                            logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
                         }
                         else
                         {
                             UsersData = users;
-                            _logger.LogInformation("Reloaded Users.json");
+                            logger.LogInformation("Reloaded Users.json");
                         }
 
                         break;
@@ -139,12 +132,12 @@ namespace ShadowsocksUriGenerator.Services
                         var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync();
                         if (loadNodesErrMsg is not null)
                         {
-                            _logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
+                            logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
                         }
                         else
                         {
                             NodesData = loadedNodes;
-                            _logger.LogInformation("Reloaded Nodes.json");
+                            logger.LogInformation("Reloaded Nodes.json");
                         }
 
                         break;
@@ -155,12 +148,12 @@ namespace ShadowsocksUriGenerator.Services
                         var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync();
                         if (loadSettingsErrMsg is not null)
                         {
-                            _logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
+                            logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
                         }
                         else
                         {
                             SettingsData = settings;
-                            _logger.LogInformation("Reloaded Settings.json");
+                            logger.LogInformation("Reloaded Settings.json");
                         }
 
                         break;
@@ -174,7 +167,7 @@ namespace ShadowsocksUriGenerator.Services
         public Task StopAsync(CancellationToken cancellationToken = default)
         {
             _watcher.EnableRaisingEvents = false;
-            _logger.LogInformation("Stopped file watcher");
+            logger.LogInformation("Stopped file watcher");
             return Task.CompletedTask;
         }
 

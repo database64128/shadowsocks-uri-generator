@@ -30,5 +30,5 @@ public class FederatedShadowsocksServerConfig
     /// <summary>
     /// Gets or sets the list of annotated tags.
     /// </summary>
-    public List<string> Tags { get; set; } = new();
+    public List<string> Tags { get; set; } = [];
 }

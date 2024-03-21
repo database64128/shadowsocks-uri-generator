@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.OnlineConfig;
 
@@ -33,5 +32,5 @@ public class SIP008Config
     /// <summary>
     /// Gets or sets the list of servers.
     /// </summary>
-    public IEnumerable<SIP008Server> Servers { get; set; } = Array.Empty<SIP008Server>();
+    public IEnumerable<SIP008Server> Servers { get; set; } = [];
 }

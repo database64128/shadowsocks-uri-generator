@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using ShadowsocksUriGenerator.Utils;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator.Server.Filters
@@ -18,7 +18,7 @@ namespace ShadowsocksUriGenerator.Server.Filters
                     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
                     Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
                     IgnoreReadOnlyProperties = true,
-                    PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
                 }));
             }
         }

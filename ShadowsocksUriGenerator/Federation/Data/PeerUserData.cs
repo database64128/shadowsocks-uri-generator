@@ -14,12 +14,12 @@ public class PeerUserData
     /// Key is host group ID.
     /// Value is credential.
     /// </summary>
-    public Dictionary<ulong, FederatedShadowsocksServerCredential> Credentials { get; set; } = new();
+    public Dictionary<ulong, FederatedShadowsocksServerCredential> Credentials { get; set; } = [];
 
     /// <summary>
     /// Stores user data usage stats for all host groups.
     /// Key is host group ID.
     /// Value is data usage.
     /// </summary>
-    public Dictionary<ulong, DataUsage> DataUsageStats { get; set; } = new();
+    public Dictionary<ulong, DataUsage> DataUsageStats { get; set; } = [];
 }

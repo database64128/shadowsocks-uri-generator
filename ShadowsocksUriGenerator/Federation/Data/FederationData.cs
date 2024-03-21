@@ -18,11 +18,11 @@ public class FederationData
     /// </summary>
     public int Version { get; set; } = _defaultVersion;
 
-    public Dictionary<ulong, HostUserData> HostUsers { get; set; } = new();
+    public Dictionary<ulong, HostUserData> HostUsers { get; set; } = [];
 
-    public Dictionary<ulong, HostGroupDataShadowsocksManager> HostGroupsShadowsocksManager { get; set; } = new();
+    public Dictionary<ulong, HostGroupDataShadowsocksManager> HostGroupsShadowsocksManager { get; set; } = [];
 
-    public Dictionary<ulong, HostGroupDataOutline> HostGroupsOutline { get; set; } = new();
+    public Dictionary<ulong, HostGroupDataOutline> HostGroupsOutline { get; set; } = [];
 
-    public Dictionary<ulong, FederatedPeerData> FederatedPeers { get; set; } = new();
+    public Dictionary<ulong, FederatedPeerData> FederatedPeers { get; set; } = [];
 }

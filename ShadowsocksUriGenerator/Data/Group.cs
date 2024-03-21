@@ -77,7 +77,7 @@ namespace ShadowsocksUriGenerator.Data
         /// 1.1.1.1:853
         /// </summary>
         [JsonPropertyName("Nodes")]
-        public Dictionary<string, Node> NodeDict { get; set; } = new();
+        public Dictionary<string, Node> NodeDict { get; set; } = [];
 
         /// <summary>
         /// The Outline API client instance.
@@ -112,8 +112,8 @@ namespace ShadowsocksUriGenerator.Data
                     PluginOpts = pluginOpts,
                     PluginArguments = pluginArguments,
                     OwnerUuid = ownerUuid,
-                    Tags = tags.ToList(),
-                    IdentityPSKs = iPSKs.ToList(),
+                    Tags = [.. tags],
+                    IdentityPSKs = [.. iPSKs],
                 };
 
                 NodeDict.Add(name, node);
@@ -250,7 +250,7 @@ namespace ShadowsocksUriGenerator.Data
         /// <returns>A list of data usage records as tuples.</returns>
         public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage()
         {
-            List<(string username, ulong bytesUsed, ulong bytesRemaining)> result = new();
+            List<(string username, ulong bytesUsed, ulong bytesRemaining)> result = [];
 
             if (OutlineAccessKeys is null || OutlineDataUsage is null)
                 return result;
@@ -647,7 +647,7 @@ namespace ShadowsocksUriGenerator.Data
                 }
             }
 
-            OutlineAccessKeys ??= new();
+            OutlineAccessKeys ??= [];
             _apiClient ??= new(OutlineApiKey, httpClient);
 
             // Filter out
@@ -784,7 +784,7 @@ namespace ShadowsocksUriGenerator.Data
                 }
             }
 
-            OutlineAccessKeys ??= new();
+            OutlineAccessKeys ??= [];
             _apiClient ??= new(OutlineApiKey, httpClient);
 
             // Filter out access keys that are linked to a user.
@@ -847,7 +847,7 @@ namespace ShadowsocksUriGenerator.Data
                 throw new InvalidOperationException("Outline API key is not found.");
 
             _apiClient ??= new(OutlineApiKey, httpClient);
-            OutlineAccessKeys ??= new();
+            OutlineAccessKeys ??= [];
 
             try
             {

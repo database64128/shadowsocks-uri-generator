@@ -78,7 +78,7 @@ internal class ManagerApiTransport : IManagerApiTransport, IDisposable
             while (true)
             {
                 var receiveTask = _socket.ReceiveAsync(buf, SocketFlags.None, cancellationToken).AsTask();
-                Task[] tasks = { receiveTask, Task.Delay(_socket.ReceiveTimeout, cancellationToken), };
+                Task[] tasks = [receiveTask, Task.Delay(_socket.ReceiveTimeout, cancellationToken),];
                 var finishedTask = await Task.WhenAny(tasks);
                 if (finishedTask != receiveTask) // timeout
                 {

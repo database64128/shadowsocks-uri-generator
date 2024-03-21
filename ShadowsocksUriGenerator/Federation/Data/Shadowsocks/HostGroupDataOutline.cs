@@ -16,7 +16,7 @@ public class HostGroupDataOutline : HostGroupDataShadowsocks
     /// Key is user ID.
     /// Value is access key ID.
     /// </summary>
-    public Dictionary<ulong, int> UserAccessKeyDict { get; set; } = new();
+    public Dictionary<ulong, int> UserAccessKeyDict { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the per-user data limit of the group in bytes.
@@ -31,5 +31,5 @@ public class HostGroupDataOutline : HostGroupDataShadowsocks
     /// Value is data limit.
     /// Value 0UL means no data limit.
     /// </summary>
-    public Dictionary<ulong, ulong> UserDataLimitDict { get; set; } = new();
+    public Dictionary<ulong, ulong> UserDataLimitDict { get; set; } = [];
 }

@@ -13,7 +13,7 @@ namespace ShadowsocksUriGenerator.Manager;
 
 public class ManagerApiClient : IManagerApiClient, IDisposable
 {
-    private readonly IManagerApiTransport _transport;
+    private readonly ManagerApiTransport _transport;
     private bool disposedValue;
 
     public ManagerApiClient(UnixDomainSocketEndPoint endPoint) => _transport = new ManagerApiTransport(endPoint);
@@ -71,7 +71,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             ArrayPool<byte>.Shared.Return(buf);
         }
-        return response ?? new();
+        return response ?? [];
     }
 
     public Dictionary<int, ulong> Stat(Dictionary<int, ulong> request)
@@ -90,7 +90,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             ArrayPool<byte>.Shared.Return(buf);
         }
-        return response ?? new();
+        return response ?? [];
     }
 
     public async Task<ManagerApiResponse> AddAsync(ManagerApiAddRequest request, CancellationToken cancellationToken = default)
@@ -144,7 +144,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             ArrayPool<byte>.Shared.Return(buf);
         }
-        return response ?? new();
+        return response ?? [];
     }
 
     public async Task<Dictionary<int, ulong>> StatAsync(Dictionary<int, ulong> request, CancellationToken cancellationToken = default)
@@ -163,7 +163,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             ArrayPool<byte>.Shared.Return(buf);
         }
-        return response ?? new();
+        return response ?? [];
     }
 
     private static byte[] MakeStatRequest(Dictionary<int, ulong> request)

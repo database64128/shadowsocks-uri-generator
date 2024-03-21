@@ -18,5 +18,5 @@ public abstract class HostGroupConfigShadowsocks
     /// Key is server ID. Starts from 0.
     /// Value is server config.
     /// </summary>
-    public Dictionary<ulong, FederatedShadowsocksServerConfig> Servers { get; set; } = new();
+    public Dictionary<ulong, FederatedShadowsocksServerConfig> Servers { get; set; } = [];
 }

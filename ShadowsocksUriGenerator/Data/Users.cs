@@ -36,7 +36,7 @@ namespace ShadowsocksUriGenerator.Data
         /// value is user info.
         /// </summary>
         [JsonPropertyName("Users")]
-        public Dictionary<string, User> UserDict { get; set; } = new();
+        public Dictionary<string, User> UserDict { get; set; } = [];
 
         /// <summary>
         /// Adds a new user to UserDict.

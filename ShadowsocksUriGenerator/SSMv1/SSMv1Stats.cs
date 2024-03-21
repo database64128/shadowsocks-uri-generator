@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ShadowsocksUriGenerator.SSMv1;
+﻿namespace ShadowsocksUriGenerator.SSMv1;
 
 /// <summary>
 /// Traffic stats.
@@ -46,5 +44,5 @@ public class SSMv1Stats : SSMv1StatsBase
     /// <summary>
     /// Per-user traffic stats.
     /// </summary>
-    public SSMv1UserStats[] Users { get; set; } = Array.Empty<SSMv1UserStats>();
+    public SSMv1UserStats[] Users { get; set; } = [];
 }

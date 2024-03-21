@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <AssemblyName>ss-uri-gen-chatbot-telegram</AssemblyName>
     <ApplicationIcon>ss-uri-gen-chatbot-telegram.ico</ApplicationIcon>

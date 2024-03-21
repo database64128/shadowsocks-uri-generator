@@ -75,11 +75,11 @@ namespace ShadowsocksUriGenerator.Tests
             nodes.AddGroup("C");
 
             // Add
-            var successAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
-            var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", 443, "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv", null, Array.Empty<string>(), Array.Empty<string>());
-            var successAddWithOwnerAndTags = nodes.AddNodeToGroup("C", "MyNode2", "github.com", 443, null, null, null, null, "a2865866-5dc8-4eae-9772-692d10c274df", new string[] { "direct", "US", }, Array.Empty<string>());
-            var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
-            var badGroupAdd = nodes.AddNodeToGroup("D", "MyNode0", "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
+            var successAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443, null, null, null, null, null, [], []);
+            var successAddWithPlugin = nodes.AddNodeToGroup("B", "MyNode1", "github.com", 443, "v2ray-plugin", "1.0", "server;tls;host=github.com", "-vvvvvv", null, [], []);
+            var successAddWithOwnerAndTags = nodes.AddNodeToGroup("C", "MyNode2", "github.com", 443, null, null, null, null, "a2865866-5dc8-4eae-9772-692d10c274df", ["direct", "US",], []);
+            var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443, null, null, null, null, null, [], []);
+            var badGroupAdd = nodes.AddNodeToGroup("D", "MyNode0", "github.com", 443, null, null, null, null, null, [], []);
 
             Assert.Equal(0, successAdd);
             Assert.Equal(0, successAddWithPlugin);
@@ -138,7 +138,7 @@ namespace ShadowsocksUriGenerator.Tests
             using var nodes = new Nodes();
             nodes.AddGroup(addToGroup);
             foreach (var nodeName in nodesToAdd)
-                nodes.AddNodeToGroup(addToGroup, nodeName, "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
+                nodes.AddNodeToGroup(addToGroup, nodeName, "github.com", 443, null, null, null, null, null, [], []);
             var nodeDict = nodes.Groups[addToGroup].NodeDict;
             var count = nodeDict.Count;
             var oldNameExists = nodeDict.TryGetValue(oldName, out var node);
@@ -162,8 +162,8 @@ namespace ShadowsocksUriGenerator.Tests
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
             nodes.AddGroup("MyGroupWithPlugin");
-            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443, null, null, null, null, null, Array.Empty<string>(), Array.Empty<string>());
-            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com", null, null, null, Array.Empty<string>(), Array.Empty<string>());
+            nodes.AddNodeToGroup("MyGroup", "MyNode", "github.com", 443, null, null, null, null, null, [], []);
+            nodes.AddNodeToGroup("MyGroupWithPlugin", "MyNodeWithPlugin", "github.com", 443, "v2ray-plugin", "server;tls;host=github.com", null, null, null, [], []);
             var users = new Users();
             users.AddUser("root");
             users.AddCredentialToUser("root", "MyGroup", "chacha20-ietf-poly1305", "ymghiR#75TNqpa");

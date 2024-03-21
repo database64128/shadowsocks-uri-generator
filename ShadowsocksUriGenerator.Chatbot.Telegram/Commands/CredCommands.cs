@@ -211,7 +211,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 var username = userEntry.Value.Key;
                 var user = userEntry.Value.Value;
 
-                List<(string group, string method, string password)> filteredCreds = new();
+                List<(string group, string method, string password)> filteredCreds = [];
 
                 foreach (var membership in user.Memberships)
                 {

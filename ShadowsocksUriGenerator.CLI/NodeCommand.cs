@@ -216,7 +216,7 @@ namespace ShadowsocksUriGenerator.CLI
 
                     if (identityPSKs.Length > 0)
                     {
-                        node.IdentityPSKs = identityPSKs.ToList();
+                        node.IdentityPSKs = [.. identityPSKs];
                     }
 
                     if (clearIPSKs)
@@ -356,7 +356,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return 0;
             }
 
-            List<(string group, string nodeName, Node node)> filteredNodes = new();
+            List<(string group, string nodeName, Node node)> filteredNodes = [];
 
             foreach (var groupEntry in nodes.Groups)
             {
@@ -632,7 +632,7 @@ namespace ShadowsocksUriGenerator.CLI
             string[] nodenames,
             bool allNodes,
             CancellationToken cancellationToken = default)
-            => EditTags(groups, allGroups, nodenames, allNodes, false, tags, Array.Empty<string>(), cancellationToken);
+            => EditTags(groups, allGroups, nodenames, allNodes, false, tags, [], cancellationToken);
 
         public static async Task<int> EditTags(
             string[] groups,
@@ -721,7 +721,7 @@ namespace ShadowsocksUriGenerator.CLI
             string[] nodenames,
             bool allNodes,
             CancellationToken cancellationToken = default)
-            => EditTags(groups, allGroups, nodenames, allNodes, false, Array.Empty<string>(), tags, cancellationToken);
+            => EditTags(groups, allGroups, nodenames, allNodes, false, [], tags, cancellationToken);
 
         public static Task<int> ClearTags(
             string[] groups,
@@ -729,7 +729,7 @@ namespace ShadowsocksUriGenerator.CLI
             string[] nodenames,
             bool allNodes,
             CancellationToken cancellationToken = default)
-            => EditTags(groups, allGroups, nodenames, allNodes, true, Array.Empty<string>(), Array.Empty<string>(), cancellationToken);
+            => EditTags(groups, allGroups, nodenames, allNodes, true, [], [], cancellationToken);
 
         public static Task<int> SetOwner(
             string owner,

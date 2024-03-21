@@ -43,7 +43,7 @@ namespace ShadowsocksUriGenerator.Data
         /// Key is the associated group name.
         /// Value is user's member information to the group.
         /// </summary>
-        public Dictionary<string, MemberInfo> Memberships { get; set; } = new();
+        public Dictionary<string, MemberInfo> Memberships { get; set; } = [];
 
         /// <summary>
         /// For compatibility only. Do not use.
@@ -69,16 +69,16 @@ namespace ShadowsocksUriGenerator.Data
         /// <returns>0 for success. 2 for duplicated credential.</returns>
         public int AddCredential(string group, string method, string password)
         {
-            if (!Memberships.ContainsKey(group)) // not in group, add user to it
+            if (!Memberships.TryGetValue(group, out MemberInfo? memberInfo)) // not in group, add user to it
             {
-                var memberInfo = new MemberInfo(method, password);
+                memberInfo = new MemberInfo(method, password);
                 Memberships.Add(group, memberInfo);
                 return 0;
             }
-            else if (!Memberships[group].HasCredential) // already in group without credential, add credential
+            else if (!memberInfo.HasCredential) // already in group without credential, add credential
             {
-                Memberships[group].Method = method;
-                Memberships[group].Password = password;
+                memberInfo.Method = method;
+                memberInfo.Password = password;
                 return 0;
             }
             else // already in group with credential
@@ -200,7 +200,7 @@ namespace ShadowsocksUriGenerator.Data
         }
 
         public IEnumerable<Uri> GetSSUris(Users users, Nodes nodes, params string[] groups) =>
-            GetShadowsocksServers(users, nodes, groups, Array.Empty<string>(), Array.Empty<string>(), Array.Empty<string>())
+            GetShadowsocksServers(users, nodes, groups, [], [], [])
             .Select(x => x.ToUri());
 
         /// <summary>
@@ -252,7 +252,7 @@ namespace ShadowsocksUriGenerator.Data
         /// <returns>A list of data usage records as tuples.</returns>
         public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage(string username, Nodes nodes)
         {
-            List<(string group, ulong bytesUsed, ulong bytesRemaining)> results = new();
+            List<(string group, ulong bytesUsed, ulong bytesRemaining)> results = [];
             var bytesUsedInGroup = 0UL; // make compiler happy
 
             foreach (var groupEntry in nodes.Groups)

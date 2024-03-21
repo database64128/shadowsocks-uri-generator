@@ -121,7 +121,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
                 using var nodes = loadedNodes;
 
-                List<(string group, string nodeName, Node node)> filteredNodes = new();
+                List<(string group, string nodeName, Node node)> filteredNodes = [];
 
                 foreach (var groupEntry in nodes.Groups)
                 {
@@ -351,7 +351,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
                 using var nodes = loadedNodes;
 
-                List<(string group, int nodeCount, string owner)> tableEntries = new();
+                List<(string group, int nodeCount, string owner)> tableEntries = [];
 
                 foreach (var groupEntry in nodes.Groups)
                 {

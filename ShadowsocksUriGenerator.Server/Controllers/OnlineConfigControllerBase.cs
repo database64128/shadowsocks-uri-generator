@@ -7,11 +7,9 @@ using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
-public abstract class OnlineConfigControllerBase : ControllerBase
+public abstract class OnlineConfigControllerBase(IDataService dataService) : ControllerBase
 {
-    private readonly IDataService _dataService;
-
-    public OnlineConfigControllerBase(IDataService dataService) => _dataService = dataService;
+    protected IDataService DataService => dataService;
 
     protected bool TryGetUserEntry(
         string id,
@@ -30,27 +28,27 @@ public abstract class OnlineConfigControllerBase : ControllerBase
         targetNodeOwnerIds = null;
         objectResult = null;
 
-        if (!_dataService.UsersData.TryGetUserById(id, out var userEntry))
+        if (!dataService.UsersData.TryGetUserById(id, out var userEntry))
         {
             objectResult = NotFound($"User ID {id} doesn't exist.");
             return false;
         }
 
-        var validGroups = group.All(x => _dataService.NodesData.Groups.ContainsKey(x));
+        var validGroups = group.All(x => dataService.NodesData.Groups.ContainsKey(x));
         if (!validGroups)
         {
             objectResult = BadRequest("Not all groups exist.");
             return false;
         }
 
-        var validGroupOwners = FilterHelper.TryGetUserIds(_dataService.UsersData, groupOwner, out targetGroupOwnerIds);
+        var validGroupOwners = FilterHelper.TryGetUserIds(dataService.UsersData, groupOwner, out targetGroupOwnerIds);
         if (!validGroupOwners)
         {
             objectResult = BadRequest("Not all group owners exist.");
             return false;
         }
 
-        var validNodeOwners = FilterHelper.TryGetUserIds(_dataService.UsersData, nodeOwner, out targetNodeOwnerIds);
+        var validNodeOwners = FilterHelper.TryGetUserIds(dataService.UsersData, nodeOwner, out targetNodeOwnerIds);
         if (!validNodeOwners)
         {
             objectResult = BadRequest("Not all node owners exist.");

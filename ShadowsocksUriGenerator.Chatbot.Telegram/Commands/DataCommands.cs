@@ -80,7 +80,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     var records = userEntry.Value.Value.GetDataUsage(username, nodes);
 
                     // sort records
-                    records = records.OrderByDescending(x => x.bytesUsed).ToList();
+                    records = [.. records.OrderByDescending(x => x.bytesUsed)];
 
                     var maxNameLength = records.Select(x => x.group.Length)
                                                .DefaultIfEmpty()

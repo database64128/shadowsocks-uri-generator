@@ -30,7 +30,7 @@ namespace ShadowsocksUriGenerator.Utils
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             IgnoreReadOnlyProperties = true,
-            PropertyNamingPolicy = new JsonSnakeCaseNamingPolicy(),
+            PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
             WriteIndented = true,
         };
 

@@ -43,7 +43,7 @@ public class ShadowsocksServerConfig
     /// <summary>
     /// Gets or sets the identity PSKs.
     /// </summary>
-    public IEnumerable<string> IdentityPSKs { get; set; } = Array.Empty<string>();
+    public IEnumerable<string> IdentityPSKs { get; set; } = [];
 
     /// <summary>
     /// Gets or sets the plugin name.
@@ -83,7 +83,7 @@ public class ShadowsocksServerConfig
     /// <summary>
     /// Gets or sets the list of annotated tags.
     /// </summary>
-    public IEnumerable<string> Tags { get; set; } = Array.Empty<string>();
+    public IEnumerable<string> Tags { get; set; } = [];
 
     /// <summary>
     /// Gets the string representation of host:port.

@@ -33,7 +33,7 @@ namespace ShadowsocksUriGenerator.Server.Utils
                 }
             }
 
-            ids = idList.ToArray();
+            ids = [.. idList];
             return result;
         }
     }

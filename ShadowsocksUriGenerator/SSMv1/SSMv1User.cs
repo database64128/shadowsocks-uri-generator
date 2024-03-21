@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator.SSMv1;
 
@@ -40,7 +39,7 @@ public class SSMv1UserInfoList
     /// <summary>
     /// Gets or sets the list of users.
     /// </summary>
-    public SSMv1UserInfo[] Users { get; set; } = Array.Empty<SSMv1UserInfo>();
+    public SSMv1UserInfo[] Users { get; set; } = [];
 }
 
 /// <summary>

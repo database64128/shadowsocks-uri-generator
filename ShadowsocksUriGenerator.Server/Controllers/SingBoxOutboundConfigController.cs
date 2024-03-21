@@ -13,16 +13,8 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiConventionType(typeof(DefaultApiConventions))]
 [JsonSnakeCase]
 [Route("sing-box/outbounds")]
-public class SingBoxOutboundConfigController : OnlineConfigControllerBase
+public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
 {
-    private readonly ILogger<SingBoxOutboundConfigController> _logger;
-    private readonly IDataService _dataService;
-
-    public SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, IDataService dataService) : base(dataService)
-    {
-        _logger = logger;
-        _dataService = dataService;
-    }
 
     /// <summary>
     /// Gets online config by user ID in sing-box outbound config format.
@@ -116,12 +108,12 @@ public class SingBoxOutboundConfigController : OnlineConfigControllerBase
         if (!TryGetUserEntry(id, group, groupOwner, nodeOwner, out var username, out var user, out var targetGroupOwnerIds, out var targetNodeOwnerIds, out var objectResult))
             return objectResult;
 
-        var servers = user.GetShadowsocksServers(_dataService.UsersData, _dataService.NodesData, group, tag, targetGroupOwnerIds, targetNodeOwnerIds);
+        var servers = user.GetShadowsocksServers(DataService.UsersData, DataService.NodesData, group, tag, targetGroupOwnerIds, targetNodeOwnerIds);
 
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
 
-        LoggerHelper.OnlineConfig(_logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
+        LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         var outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, inet4BindAddress, inet6BindAddress, routingMark, reuseAddr, connectTimeout, tcpFastOpen, udpFragment, domainStrategy, fallbackDelay));
 

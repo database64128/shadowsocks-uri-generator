@@ -215,7 +215,7 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = loadedNodes;
 
             if (allGroups)
-                groups = nodes.Groups.Keys.ToArray();
+                groups = [.. nodes.Groups.Keys];
 
             foreach (var group in groups)
             {
@@ -331,7 +331,7 @@ namespace ShadowsocksUriGenerator.CLI
             using var nodes = loadedNodes;
 
             if (allGroups)
-                groups = nodes.Groups.Keys.ToArray();
+                groups = [.. nodes.Groups.Keys];
 
             foreach (var group in groups)
             {
@@ -440,7 +440,7 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            List<(string username, string group, string method, string password)> filteredCreds = new();
+            List<(string username, string group, string method, string password)> filteredCreds = [];
 
             foreach (var user in users.UserDict)
             {
@@ -568,22 +568,22 @@ namespace ShadowsocksUriGenerator.CLI
                     records.Reverse();
                     break;
                 case SortBy.NameAscending:
-                    records = records.OrderBy(x => x.group).ToList();
+                    records = [.. records.OrderBy(x => x.group)];
                     break;
                 case SortBy.NameDescending:
-                    records = records.OrderByDescending(x => x.group).ToList();
+                    records = [.. records.OrderByDescending(x => x.group)];
                     break;
                 case SortBy.DataUsedAscending:
-                    records = records.OrderBy(x => x.bytesUsed).ToList();
+                    records = [.. records.OrderBy(x => x.bytesUsed)];
                     break;
                 case SortBy.DataUsedDescending:
-                    records = records.OrderByDescending(x => x.bytesUsed).ToList();
+                    records = [.. records.OrderByDescending(x => x.bytesUsed)];
                     break;
                 case SortBy.DataRemainingAscending:
-                    records = records.OrderBy(x => x.bytesRemaining).ToList();
+                    records = [.. records.OrderBy(x => x.bytesRemaining)];
                     break;
                 case SortBy.DataRemainingDescending:
-                    records = records.OrderByDescending(x => x.bytesRemaining).ToList();
+                    records = [.. records.OrderByDescending(x => x.bytesRemaining)];
                     break;
             }
 
