@@ -2,16 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.OnlineConfig;
-using ShadowsocksUriGenerator.Server.Filters;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
+using ShadowsocksUriGenerator.Utils;
 using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
-[JsonSnakeCase]
 [Route("sing-box/outbounds")]
 public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
 {
@@ -128,9 +127,11 @@ public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigContro
             });
         }
 
-        return new SingBoxConfig()
+        var resp = new SingBoxConfig()
         {
             Outbounds = outbounds,
         };
+
+        return new JsonResult(resp, FileHelper.APISnakeCaseJsonSerializerOptions);
     }
 }

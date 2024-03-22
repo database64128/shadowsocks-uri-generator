@@ -560,7 +560,7 @@ namespace ShadowsocksUriGenerator.Data
         /// </returns>
         public static async Task<(Nodes nodes, string? errMsg)> LoadNodesAsync(CancellationToken cancellationToken = default)
         {
-            var (nodes, errMsg) = await FileHelper.LoadJsonAsync<Nodes>("Nodes.json", FileHelper.commonJsonDeserializerOptions, cancellationToken);
+            var (nodes, errMsg) = await FileHelper.LoadJsonAsync<Nodes>("Nodes.json", FileHelper.DataJsonSerializerOptions, cancellationToken);
             if (errMsg is null && nodes.Version != DefaultVersion)
             {
                 nodes.UpdateNodes();
@@ -579,7 +579,7 @@ namespace ShadowsocksUriGenerator.Data
         /// Null if no errors occurred.
         /// </returns>
         public static Task<string?> SaveNodesAsync(Nodes nodes, CancellationToken cancellationToken = default)
-            => FileHelper.SaveJsonAsync("Nodes.json", nodes, FileHelper.dataJsonSerializerOptions, false, false, cancellationToken);
+            => FileHelper.SaveJsonAsync("Nodes.json", nodes, FileHelper.DataJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the current object to the latest version.

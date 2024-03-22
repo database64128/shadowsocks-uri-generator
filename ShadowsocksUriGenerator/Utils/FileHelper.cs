@@ -10,34 +10,31 @@ namespace ShadowsocksUriGenerator.Utils
 {
     public static class FileHelper
     {
-        public static readonly JsonSerializerOptions commonJsonSerializerOptions = new()
+        public static readonly JsonSerializerOptions ConfigJsonSerializerOptions = new()
         {
+            AllowTrailingCommas = true,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             IgnoreReadOnlyProperties = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
             WriteIndented = true,
         };
 
-        public static readonly JsonSerializerOptions dataJsonSerializerOptions = new()
+        public static readonly JsonSerializerOptions DataJsonSerializerOptions = new()
         {
+            AllowTrailingCommas = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             IgnoreReadOnlyProperties = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
             WriteIndented = true,
         };
 
-        public static readonly JsonSerializerOptions snakeCaseJsonSerializerOptions = new()
+        public static readonly JsonSerializerOptions APISnakeCaseJsonSerializerOptions = new()
         {
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
             Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
             IgnoreReadOnlyProperties = true,
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            WriteIndented = true,
-        };
-
-        public static readonly JsonSerializerOptions commonJsonDeserializerOptions = new()
-        {
-            AllowTrailingCommas = true,
-            ReadCommentHandling = JsonCommentHandling.Skip,
             WriteIndented = true,
         };
 

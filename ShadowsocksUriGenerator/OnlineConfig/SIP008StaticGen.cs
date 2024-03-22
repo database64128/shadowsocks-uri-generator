@@ -182,7 +182,7 @@ namespace ShadowsocksUriGenerator.OnlineConfig
                 var errMsg = await FileHelper.SaveJsonAsync(
                     $"{settings.OnlineConfigOutputDirectory}/{x.Key}.json",
                     x.Value,
-                    FileHelper.snakeCaseJsonSerializerOptions,
+                    FileHelper.APISnakeCaseJsonSerializerOptions,
                     false,
                     true,
                     cancellationToken);

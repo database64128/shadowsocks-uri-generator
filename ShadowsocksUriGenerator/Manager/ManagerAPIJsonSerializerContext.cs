@@ -12,6 +12,6 @@ namespace ShadowsocksUriGenerator.Manager;
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
     IgnoreReadOnlyProperties = true,
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
-public partial class ManagerAPIJsonSerializerContext : JsonSerializerContext
+public partial class ManagerApiJsonSerializerContext : JsonSerializerContext
 {
 }

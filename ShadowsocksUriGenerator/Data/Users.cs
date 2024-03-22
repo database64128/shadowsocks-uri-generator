@@ -413,7 +413,7 @@ namespace ShadowsocksUriGenerator.Data
         /// </returns>
         public static async Task<(Users users, string? errMsg)> LoadUsersAsync(CancellationToken cancellationToken = default)
         {
-            var (users, errMsg) = await FileHelper.LoadJsonAsync<Users>("Users.json", FileHelper.commonJsonDeserializerOptions, cancellationToken);
+            var (users, errMsg) = await FileHelper.LoadJsonAsync<Users>("Users.json", FileHelper.DataJsonSerializerOptions, cancellationToken);
             if (errMsg is null && users.Version != DefaultVersion)
             {
                 users.UpdateUsers();
@@ -432,7 +432,7 @@ namespace ShadowsocksUriGenerator.Data
         /// Null if no errors occurred.
         /// </returns>
         public static Task<string?> SaveUsersAsync(Users users, CancellationToken cancellationToken = default)
-            => FileHelper.SaveJsonAsync("Users.json", users, FileHelper.dataJsonSerializerOptions, false, false, cancellationToken);
+            => FileHelper.SaveJsonAsync("Users.json", users, FileHelper.DataJsonSerializerOptions, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the current object to the latest version.

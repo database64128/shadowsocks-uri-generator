@@ -29,13 +29,13 @@ namespace ShadowsocksUriGenerator.Rescue
 
             var usersErrMsg = await FileHelper.SaveJsonAsync($"{configDir}Users.json",
                                                             users,
-                                                            FileHelper.dataJsonSerializerOptions,
+                                                            FileHelper.DataJsonSerializerOptions,
                                                             false,
                                                             false,
                                                             cancellationToken);
             var nodesErrMsg = await FileHelper.SaveJsonAsync($"{configDir}Nodes.json",
                                                             nodes,
-                                                            FileHelper.dataJsonSerializerOptions,
+                                                            FileHelper.DataJsonSerializerOptions,
                                                             false,
                                                             false,
                                                             cancellationToken);

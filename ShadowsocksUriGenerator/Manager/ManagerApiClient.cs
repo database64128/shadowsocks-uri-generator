@@ -45,7 +45,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             if (bytesReceived > 6)
             {
-                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerAPIJsonSerializerContext.Default.SIP008Config);
+                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerApiJsonSerializerContext.Default.SIP008Config);
             }
         }
         finally
@@ -64,7 +64,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             if (bytesReceived > 6)
             {
-                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerAPIJsonSerializerContext.Default.DictionaryInt32UInt64);
+                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerApiJsonSerializerContext.Default.DictionaryInt32UInt64);
             }
         }
         finally
@@ -83,7 +83,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             if (bytesReceived > 6)
             {
-                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerAPIJsonSerializerContext.Default.DictionaryInt32UInt64);
+                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerApiJsonSerializerContext.Default.DictionaryInt32UInt64);
             }
         }
         finally
@@ -118,7 +118,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             if (bytesReceived > 6)
             {
-                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerAPIJsonSerializerContext.Default.SIP008Config);
+                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerApiJsonSerializerContext.Default.SIP008Config);
             }
         }
         finally
@@ -137,7 +137,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             if (bytesReceived > 6)
             {
-                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerAPIJsonSerializerContext.Default.DictionaryInt32UInt64);
+                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerApiJsonSerializerContext.Default.DictionaryInt32UInt64);
             }
         }
         finally
@@ -156,7 +156,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
         {
             if (bytesReceived > 6)
             {
-                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerAPIJsonSerializerContext.Default.DictionaryInt32UInt64);
+                response = JsonSerializer.Deserialize(buf.AsSpan()[6..bytesReceived], ManagerApiJsonSerializerContext.Default.DictionaryInt32UInt64);
             }
         }
         finally
@@ -168,7 +168,7 @@ public class ManagerApiClient : IManagerApiClient, IDisposable
 
     private static byte[] MakeStatRequest(Dictionary<int, ulong> request)
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(request, ManagerAPIJsonSerializerContext.Default.DictionaryInt32UInt64);
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(request, ManagerApiJsonSerializerContext.Default.DictionaryInt32UInt64);
         var requestBytes = ArrayPool<byte>.Shared.Rent(6 + jsonBytes.Length);
         _ = Encoding.UTF8.GetBytes("stat: ", requestBytes);
         jsonBytes.CopyTo(requestBytes, jsonBytes.Length);

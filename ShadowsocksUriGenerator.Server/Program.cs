@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
+using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Services;
 using System;
 using System.IO;
@@ -18,6 +19,11 @@ builder.Services.AddControllers()
                     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault;
                     options.JsonSerializerOptions.Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
                     options.JsonSerializerOptions.IgnoreReadOnlyProperties = true;
+
+                    // STJ source generation only works with minimal API.
+                    // So the following lines effectively do nothing right now.
+                    options.JsonSerializerOptions.TypeInfoResolverChain.Add(OnlineConfigCamelCaseJsonSerializerContext.Default);
+                    options.JsonSerializerOptions.TypeInfoResolverChain.Add(OnlineConfigSnakeCaseJsonSerializerContext.Default);
                 });
 
 builder.Services.AddSwaggerGen(c =>

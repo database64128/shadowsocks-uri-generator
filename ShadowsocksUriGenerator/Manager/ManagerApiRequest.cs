@@ -28,7 +28,7 @@ public class ManagerApiAddRequest
 
     public byte[] ToBytes()
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this, ManagerAPIJsonSerializerContext.Default.ManagerApiAddRequest);
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this, ManagerApiJsonSerializerContext.Default.ManagerApiAddRequest);
         var requestBytes = ArrayPool<byte>.Shared.Rent(5 + jsonBytes.Length);
         _ = Encoding.UTF8.GetBytes("add: ", requestBytes);
         jsonBytes.CopyTo(requestBytes, jsonBytes.Length);
@@ -43,7 +43,7 @@ public class ManagerApiRemoveRequest
 
     public byte[] ToBytes()
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this, ManagerAPIJsonSerializerContext.Default.ManagerApiRemoveRequest);
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(this, ManagerApiJsonSerializerContext.Default.ManagerApiRemoveRequest);
         var requestBytes = ArrayPool<byte>.Shared.Rent(8 + jsonBytes.Length);
         _ = Encoding.UTF8.GetBytes("remove: ", requestBytes);
         jsonBytes.CopyTo(requestBytes, jsonBytes.Length);

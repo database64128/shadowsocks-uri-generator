@@ -2,16 +2,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.OnlineConfig;
-using ShadowsocksUriGenerator.Server.Filters;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
+using ShadowsocksUriGenerator.Utils;
 using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
-[JsonSnakeCase]
 [Route("sip008")]
 public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
 {
@@ -75,7 +74,7 @@ public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dat
 
         LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
-        return new SIP008Config()
+        var resp = new SIP008Config()
         {
             Username = username,
             Id = id,
@@ -83,5 +82,7 @@ public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dat
             BytesRemaining = user.BytesRemaining > 0UL ? user.BytesRemaining : null,
             Servers = servers.Select(x => new SIP008Server(x)),
         };
+
+        return new JsonResult(resp, FileHelper.APISnakeCaseJsonSerializerOptions);
     }
 }
