@@ -1,26 +1,6 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "commitMessagePrefix": "🔼",
     "extends": [
-        "config:base",
-        ":automergeBranch",
-        ":automergeDigest",
-        ":automergeMinor",
-        ":disableRateLimiting"
-    ],
-    "packageRules": [
-        {
-            "matchPackageNames": [
-                "System.Interactive.Async",
-                "System.Linq.Async"
-            ],
-            "groupName": "Ix.NET"
-        },
-        {
-            "matchPackagePrefixes": [
-                "Swashbuckle"
-            ],
-            "groupName": "Swashbuckle"
-        }
+        "github>database64128/renovate-config:dotnet"
     ]
 }
