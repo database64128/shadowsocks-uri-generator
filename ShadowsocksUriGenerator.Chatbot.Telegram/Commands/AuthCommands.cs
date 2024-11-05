@@ -21,11 +21,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
 ✈️ To get your boarding pass, please use `/link <UUID>` to link your Telegram account to your user\.";
 
-            return botClient.SendTextMessageAsync(message.Chat.Id,
-                                                  replyMarkdownV2,
-                                                  parseMode: ParseMode.MarkdownV2,
-                                                  replyToMessageId: message.MessageId,
-                                                  cancellationToken: cancellationToken);
+            return botClient.SendMessage(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task LinkAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -101,10 +102,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 }
             }
 
-            await botClient.SendTextMessageAsync(message.Chat.Id,
-                                                 reply,
-                                                 replyToMessageId: message.MessageId,
-                                                 cancellationToken: cancellationToken);
+            _ = await botClient.SendMessage(
+                message.Chat.Id,
+                reply,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task UnlinkAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
@@ -149,10 +151,11 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: not linked");
             }
 
-            await botClient.SendTextMessageAsync(message.Chat.Id,
-                                                 reply,
-                                                 replyToMessageId: message.MessageId,
-                                                 cancellationToken: cancellationToken);
+            _ = await botClient.SendMessage(
+                message.Chat.Id,
+                reply,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

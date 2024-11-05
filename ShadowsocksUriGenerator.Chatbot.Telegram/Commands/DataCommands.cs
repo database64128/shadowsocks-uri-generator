@@ -144,11 +144,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task GetUserDataLimitAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -253,11 +254,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task GetGroupDataUsageAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -346,11 +348,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         private static void GetGroupDataUsageCore(StringBuilder replyBuilder, KeyValuePair<string, Group> groupEntry)
@@ -513,11 +516,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

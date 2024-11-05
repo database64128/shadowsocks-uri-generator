@@ -19,104 +19,106 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
         /// Short messages are sent as text messages.
         /// Long messages are sent as text files.
         /// </summary>
-        /// <inheritdoc cref="TelegramBotClientExtensions.SendTextMessageAsync(ITelegramBotClient, ChatId, string, ParseMode?, IEnumerable{MessageEntity}?, bool?, bool?, int?, bool?, IReplyMarkup?, CancellationToken)"/>
-        public static Task SendPossiblyLongTextMessageAsync(
+        /// <inheritdoc cref="TelegramBotClientExtensions.SendMessage"/>
+        public static Task<Message> SendPossiblyLongTextMessageAsync(
             this ITelegramBotClient botClient,
             ChatId chatId,
             string text,
-            int? messageThreadId = null,
-            ParseMode? parseMode = null,
-            IEnumerable<MessageEntity>? entities = null,
-            bool? disableWebPagePreview = null,
-            bool? disableNotification = null,
-            bool? protectContent = null,
-            int? replyToMessageId = null,
-            bool? allowSendingWithoutReply = null,
-            IReplyMarkup? replyMarkup = null,
+            ParseMode parseMode = default,
+            ReplyParameters? replyParameters = default,
+            IReplyMarkup? replyMarkup = default,
+            LinkPreviewOptions? linkPreviewOptions = default,
+            int? messageThreadId = default,
+            IEnumerable<MessageEntity>? entities = default,
+            bool disableNotification = default,
+            bool protectContent = default,
+            string? messageEffectId = default,
+            string? businessConnectionId = default,
+            bool allowPaidBroadcast = default,
             CancellationToken cancellationToken = default)
-        {
-            if (text.Length <= 4096)
+            => text.Length switch
             {
-                return botClient.SendTextMessageAsync(chatId,
-                                                      text,
-                                                      messageThreadId,
-                                                      parseMode,
-                                                      entities,
-                                                      disableWebPagePreview,
-                                                      disableNotification,
-                                                      protectContent,
-                                                      replyToMessageId,
-                                                      allowSendingWithoutReply,
-                                                      replyMarkup,
-                                                      cancellationToken);
-            }
-            else // too large, send as file
-            {
-                var filename = parseMode switch
-                {
-                    ParseMode.Markdown => "long-message.md",
-                    ParseMode.Html => "long-message.html",
-                    ParseMode.MarkdownV2 => "long-message.md",
-                    _ => "long-message.txt",
-                };
-
-                return botClient.SendTextFileFromStringAsync(chatId,
-                                                             filename,
-                                                             text,
-                                                             messageThreadId,
-                                                             null,
-                                                             null,
-                                                             parseMode,
-                                                             entities,
-                                                             null,
-                                                             disableNotification,
-                                                             protectContent,
-                                                             replyToMessageId,
-                                                             null,
-                                                             replyMarkup,
-                                                             cancellationToken);
-            }
-        }
+                <= 4096 => botClient.SendMessage(
+                    chatId,
+                    text,
+                    parseMode,
+                    replyParameters,
+                    replyMarkup,
+                    linkPreviewOptions,
+                    messageThreadId,
+                    entities,
+                    disableNotification,
+                    protectContent,
+                    messageEffectId,
+                    businessConnectionId,
+                    allowPaidBroadcast,
+                    cancellationToken),
+                _ => botClient.SendTextFileFromStringAsync(
+                    chatId,
+                    parseMode switch
+                    {
+                        ParseMode.Markdown => "long-message.md",
+                        ParseMode.Html => "long-message.html",
+                        ParseMode.MarkdownV2 => "long-message.md",
+                        _ => "long-message.txt",
+                    },
+                    text,
+                    parseMode: parseMode,
+                    replyParameters: replyParameters,
+                    replyMarkup: replyMarkup,
+                    messageThreadId: messageThreadId,
+                    disableNotification: disableNotification,
+                    protectContent: protectContent,
+                    messageEffectId: messageEffectId,
+                    businessConnectionId: businessConnectionId,
+                    allowPaidBroadcast: allowPaidBroadcast,
+                    cancellationToken: cancellationToken)
+            };
 
         /// <summary>
         /// Sends a string as a text file.
         /// </summary>
         /// <param name="filename">Filename.</param>
         /// <param name="text">The string to send.</param>
-        /// <inheritdoc cref="TelegramBotClientExtensions.SendDocumentAsync(ITelegramBotClient, ChatId, InputOnlineFile, InputMedia?, string?, ParseMode?, IEnumerable{MessageEntity}?, bool?, bool?, int?, bool?, IReplyMarkup?, CancellationToken)"/>
+        /// <inheritdoc cref="TelegramBotClientExtensions.SendDocument"/>
         public static async Task<Message> SendTextFileFromStringAsync(
             this ITelegramBotClient botClient,
             ChatId chatId,
             string filename,
             string text,
-        int? messageThreadId = null,
-            InputFile? thumbnail = null,
-            string? caption = null,
-            ParseMode? parseMode = null,
-            IEnumerable<MessageEntity>? captionEntities = null,
-            bool? disableContentTypeDetection = null,
-            bool? disableNotification = null,
-            bool? protectContent = null,
-            int? replyToMessageId = null,
-            bool? allowSendingWithoutReply = null,
-            IReplyMarkup? replyMarkup = null,
+            string? caption = default,
+            ParseMode parseMode = default,
+            ReplyParameters? replyParameters = default,
+            IReplyMarkup? replyMarkup = default,
+            InputFile? thumbnail = default,
+            int? messageThreadId = default,
+            IEnumerable<MessageEntity>? captionEntities = default,
+            bool disableContentTypeDetection = default,
+            bool disableNotification = default,
+            bool protectContent = default,
+            string? messageEffectId = default,
+            string? businessConnectionId = default,
+            bool allowPaidBroadcast = default,
             CancellationToken cancellationToken = default)
         {
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
-            return await botClient.SendDocumentAsync(chatId,
-                                                     InputFile.FromStream(stream, filename),
-                                                     messageThreadId,
-                                                     thumbnail,
-                                                     caption,
-                                                     parseMode,
-                                                     captionEntities,
-                                                     disableContentTypeDetection,
-                                                     disableNotification,
-                                                     protectContent,
-                                                     replyToMessageId,
-                                                     allowSendingWithoutReply,
-                                                     replyMarkup,
-                                                     cancellationToken);
+            return await botClient.SendDocument(
+                chatId,
+                InputFile.FromStream(stream, filename),
+                caption,
+                parseMode,
+                replyParameters,
+                replyMarkup,
+                thumbnail,
+                messageThreadId,
+                captionEntities,
+                disableContentTypeDetection,
+                disableNotification,
+                protectContent,
+                messageEffectId,
+                businessConnectionId,
+                allowPaidBroadcast,
+                cancellationToken);
         }
 
         [GeneratedRegex("[_*[\\]()~`>#+\\-=|{}.!]")]

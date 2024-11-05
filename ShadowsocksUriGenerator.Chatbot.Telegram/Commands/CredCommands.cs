@@ -78,11 +78,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             reply,
-                                                             disableWebPagePreview: true,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                reply,
+                linkPreviewOptions: new() { IsDisabled = true, },
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task GetOnlineConfigLinksAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
@@ -171,12 +172,13 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             disableWebPagePreview: true,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                linkPreviewOptions: new() { IsDisabled = true, },
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task GetCredentialsAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -258,11 +260,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

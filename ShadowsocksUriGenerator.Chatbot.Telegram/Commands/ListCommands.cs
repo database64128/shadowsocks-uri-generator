@@ -76,11 +76,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task ListNodesAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -203,11 +204,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task ListOwnedNodesAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -306,11 +308,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task ListGroupsAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
@@ -410,11 +413,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task ListOwnedGroupsAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -499,11 +503,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
 
         public static async Task ListGroupMembersAsync(ITelegramBotClient botClient, Message message, string? argument, CancellationToken cancellationToken = default)
@@ -571,11 +576,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                             replyMarkdownV2,
-                                                             parseMode: ParseMode.MarkdownV2,
-                                                             replyToMessageId: message.MessageId,
-                                                             cancellationToken: cancellationToken);
+            _ = await botClient.SendPossiblyLongTextMessageAsync(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

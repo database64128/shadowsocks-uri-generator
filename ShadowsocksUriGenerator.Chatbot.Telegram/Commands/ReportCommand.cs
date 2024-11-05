@@ -100,22 +100,25 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     var (dataUsageByGroup, dataUsageByUser) = ReportHelper.GenerateDataUsageCSV(recordsByGroup, recordsByUser);
                     Console.WriteLine(" Response: successful query.");
 
-                    var sendSummaryTask = botClient.SendTextMessageAsync(message.Chat.Id,
-                                                                         replyMarkdownV2,
-                                                                         parseMode: ParseMode.MarkdownV2,
-                                                                         cancellationToken: cancellationToken);
+                    Task sendSummaryTask = botClient.SendMessage(
+                        message.Chat.Id,
+                        replyMarkdownV2,
+                        parseMode: ParseMode.MarkdownV2,
+                        cancellationToken: cancellationToken);
 
-                    var sendDataUsageByGroup = botClient.SendTextFileFromStringAsync(message.Chat.Id,
-                                                                                "data-usage-by-group.csv",
-                                                                                dataUsageByGroup,
-                                                                                caption: "Data usage by group",
-                                                                                cancellationToken: cancellationToken);
+                    Task sendDataUsageByGroup = botClient.SendTextFileFromStringAsync(
+                        message.Chat.Id,
+                        "data-usage-by-group.csv",
+                        dataUsageByGroup,
+                        caption: "Data usage by group",
+                        cancellationToken: cancellationToken);
 
-                    var sendDataUsageByUser = botClient.SendTextFileFromStringAsync(message.Chat.Id,
-                                                                                "data-usage-by-user.csv",
-                                                                                dataUsageByUser,
-                                                                                caption: "Data usage by user",
-                                                                                cancellationToken: cancellationToken);
+                    Task sendDataUsageByUser = botClient.SendTextFileFromStringAsync(
+                        message.Chat.Id,
+                        "data-usage-by-user.csv",
+                        dataUsageByUser,
+                        caption: "Data usage by user",
+                        cancellationToken: cancellationToken);
 
                     await Task.WhenAll(sendSummaryTask, sendDataUsageByGroup, sendDataUsageByUser);
                     return;
@@ -235,21 +238,24 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                     replyMarkdownV2 = replyBuilder.ToString();
                     Console.WriteLine(" Response: successful query.");
 
-                    await botClient.SendTextMessageAsync(message.Chat.Id,
-                                                         replyMarkdownV2,
-                                                         parseMode: ParseMode.MarkdownV2,
-                                                         replyToMessageId: message.MessageId,
-                                                         cancellationToken: cancellationToken);
+                    _ = await botClient.SendMessage(
+                        message.Chat.Id,
+                        replyMarkdownV2,
+                        parseMode: ParseMode.MarkdownV2,
+                        replyParameters: message,
+                        cancellationToken: cancellationToken);
 
-                    await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                                     byGroupSB.ToString(),
-                                                                     parseMode: ParseMode.MarkdownV2,
-                                                                     cancellationToken: cancellationToken);
+                    _ = await botClient.SendPossiblyLongTextMessageAsync(
+                        message.Chat.Id,
+                        byGroupSB.ToString(),
+                        parseMode: ParseMode.MarkdownV2,
+                        cancellationToken: cancellationToken);
 
-                    await botClient.SendPossiblyLongTextMessageAsync(message.Chat.Id,
-                                                                     byUserSB.ToString(),
-                                                                     parseMode: ParseMode.MarkdownV2,
-                                                                     cancellationToken: cancellationToken);
+                    _ = await botClient.SendPossiblyLongTextMessageAsync(
+                        message.Chat.Id,
+                        byUserSB.ToString(),
+                        parseMode: ParseMode.MarkdownV2,
+                        cancellationToken: cancellationToken);
 
                     return;
                 }
@@ -260,11 +266,12 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 Console.WriteLine(" Response: user not linked.");
             }
 
-            await botClient.SendTextMessageAsync(message.Chat.Id,
-                                                 replyMarkdownV2,
-                                                 parseMode: ParseMode.MarkdownV2,
-                                                 replyToMessageId: message.MessageId,
-                                                 cancellationToken: cancellationToken);
+            _ = await botClient.SendMessage(
+                message.Chat.Id,
+                replyMarkdownV2,
+                parseMode: ParseMode.MarkdownV2,
+                replyParameters: message,
+                cancellationToken: cancellationToken);
         }
     }
 }

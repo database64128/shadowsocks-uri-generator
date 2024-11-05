@@ -36,15 +36,15 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.CLI
                 var bot = new TelegramBotClient(botToken);
                 Console.WriteLine("Created Telegram bot instance with API token.");
 
-                var me = await bot.GetMeAsync(cancellationToken);
+                var me = await bot.GetMe(cancellationToken);
                 if (string.IsNullOrEmpty(me.Username))
                     throw new Exception("Error: bot username is null or empty.");
 
-                await bot.SetMyCommandsAsync(UpdateHandler.BotCommandsPublic, null, null, cancellationToken);
+                await bot.SetMyCommands(UpdateHandler.BotCommandsPublic, null, null, cancellationToken);
                 Console.WriteLine($"Registered {UpdateHandler.BotCommandsPublic.Length} bot commands for all chats.");
 
                 var privateChatCommands = UpdateHandler.BotCommandsPrivate.Concat(UpdateHandler.BotCommandsPublic);
-                await bot.SetMyCommandsAsync(privateChatCommands, BotCommandScope.AllPrivateChats(), null, cancellationToken);
+                await bot.SetMyCommands(privateChatCommands, BotCommandScope.AllPrivateChats(), null, cancellationToken);
                 Console.WriteLine($"Registered {privateChatCommands.Count()} bot commands for private chats.");
 
                 Console.WriteLine($"Started Telegram bot: @{me.Username} ({me.Id}).");
