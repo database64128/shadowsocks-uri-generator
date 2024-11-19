@@ -451,9 +451,9 @@ namespace ShadowsocksUriGenerator.Data
                         tasks.Add(_apiClient.SetAccessKeyNameAsync("0", defaultUser, cancellationToken));
                 }
 
-                var results = await Task.WhenAll(tasks);
-                foreach (var responseMessage in results)
+                await foreach (var finishedTask in Task.WhenEach(tasks))
                 {
+                    var responseMessage = await finishedTask;
                     if (!responseMessage.IsSuccessStatusCode)
                     {
                         errMsgSB.AppendLine($"Error when applying settings to Outline server: {await responseMessage.Content.ReadAsStringAsync(cancellationToken)}");
@@ -534,25 +534,14 @@ namespace ShadowsocksUriGenerator.Data
                 var accessKeysTask = _apiClient.GetAccessKeysAsync(cancellationToken);
                 var dataUsageTask = _apiClient.GetDataUsageAsync(cancellationToken);
 
-                var tasks = new List<Task>()
+                await foreach (var finishedTask in Task.WhenEach(serverInfoTask, accessKeysTask, dataUsageTask))
                 {
-                    serverInfoTask,
-                    accessKeysTask,
-                    dataUsageTask,
-                };
-
-                while (tasks.Count > 0)
-                {
-                    var finishedTask = await Task.WhenAny(tasks);
-
                     if (finishedTask == serverInfoTask)
-                        OutlineServerInfo = await (Task<ServerInfo?>)finishedTask;
+                        OutlineServerInfo = await serverInfoTask;
                     else if (finishedTask == accessKeysTask)
-                        OutlineAccessKeys = (await (Task<AccessKeysResponse?>)finishedTask)?.AccessKeys;
+                        OutlineAccessKeys = (await accessKeysTask)?.AccessKeys;
                     else if (finishedTask == dataUsageTask)
-                        OutlineDataUsage = await (Task<DataUsage?>)finishedTask;
-
-                    tasks.Remove(finishedTask);
+                        OutlineDataUsage = await dataUsageTask;
                 }
 
                 if (updateLocalUserMemberships)
@@ -668,35 +657,31 @@ namespace ShadowsocksUriGenerator.Data
             var accessKeysToUpdateDataLimit = OutlineAccessKeys.SelectMany(accessKey => existingUsersInGroupWithDataLimit.Where(userEntry => userEntry.Key == accessKey.Name && userEntry.Value.Memberships[group].DataLimitInBytes != (accessKey.DataLimit?.Bytes ?? 0UL)).Select(userEntry => (accessKey, userEntry.Value.Memberships[group].DataLimitInBytes)));
             var accessKeysToRemoveDataLimit = existingAccessKeysOnOutlineServerWithDataLimit.Where(x => existingUsernamesInGroupWithNoDataLimit.Contains(x.Name));
 
-            var tasks = new List<Task<string?>>
-            {
+            ReadOnlySpan<Task<string?>> tasks =
+            [
                 // Per-user data limit
                 ApplyPerUserDataLimitToOutlineServer(group, httpClient, cancellationToken),
-            };
 
-            // Add
-            tasks.AddRange(usersToCreate.Select(userEntry => AddUserToOutlineServer(userEntry.Key, userEntry.Value, group, httpClient, cancellationToken)));
+                // Add
+                .. usersToCreate.Select(userEntry => AddUserToOutlineServer(userEntry.Key, userEntry.Value, group, httpClient, cancellationToken)),
 
-            // Remove
-            tasks.AddRange(accessKeysToRemove.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken)));
+                // Remove
+                .. accessKeysToRemove.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken)),
 
-            // Update data limit
-            tasks.AddRange(accessKeysToUpdateDataLimit.Select(x => SetAccessKeyDataLimitOnOutlineServer(x.accessKey, x.DataLimitInBytes, group, httpClient, cancellationToken)));
+                // Update data limit
+                .. accessKeysToUpdateDataLimit.Select(x => SetAccessKeyDataLimitOnOutlineServer(x.accessKey, x.DataLimitInBytes, group, httpClient, cancellationToken)),
 
-            // Remove data limit
-            tasks.AddRange(accessKeysToRemoveDataLimit.Select(accessKey => DeleteAccessKeyDataLimitOnOutlineServer(accessKey, group, httpClient, cancellationToken)));
+                // Remove data limit
+                .. accessKeysToRemoveDataLimit.Select(accessKey => DeleteAccessKeyDataLimitOnOutlineServer(accessKey, group, httpClient, cancellationToken)),
+            ];
 
-            while (tasks.Count > 0)
+            await foreach (var finishedTask in Task.WhenEach(tasks))
             {
-                var finishedTask = await Task.WhenAny(tasks);
-
                 var errMsg = await finishedTask;
                 if (errMsg is not null)
                 {
                     yield return errMsg;
                 }
-
-                tasks.Remove(finishedTask);
             }
         }
 
@@ -797,33 +782,25 @@ namespace ShadowsocksUriGenerator.Data
                 : accessKeysLinkedToUser.ToArray();
 
             // Remove
-            var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken)).ToList();
-            while (removalTasks.Count > 0)
+            var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken));
+            await foreach (var finishedTask in Task.WhenEach(removalTasks))
             {
-                var finishedTask = await Task.WhenAny(removalTasks);
-
                 var errMsg = await finishedTask;
                 if (errMsg is not null)
                 {
                     yield return errMsg;
                 }
-
-                removalTasks.Remove(finishedTask);
             }
 
             // Add
-            var addTasks = targetAccessKeys.Select(accessKey => AddUserToOutlineServer(accessKey.Name, users.UserDict[accessKey.Name], group, httpClient, cancellationToken)).ToList();
-            while (addTasks.Count > 0)
+            var addTasks = targetAccessKeys.Select(accessKey => AddUserToOutlineServer(accessKey.Name, users.UserDict[accessKey.Name], group, httpClient, cancellationToken));
+            await foreach (var finishedTask in Task.WhenEach(addTasks))
             {
-                var finishedTask = await Task.WhenAny(addTasks);
-
                 var errMsg = await finishedTask;
                 if (errMsg is not null)
                 {
                     yield return errMsg;
                 }
-
-                addTasks.Remove(finishedTask);
             }
         }
 

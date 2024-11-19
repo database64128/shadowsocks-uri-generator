@@ -79,14 +79,14 @@ namespace ShadowsocksUriGenerator.Data
             UserDict.Add(newName, user);
 
             var tasks = user.Memberships.Select(x => nodes.RenameUserInGroup(x.Key, oldName, newName, cancellationToken));
-            var results = await Task.WhenAll(tasks);
             var errMsgSB = new StringBuilder();
 
-            foreach (var result in results)
+            await foreach (var finishedTask in Task.WhenEach(tasks))
             {
-                if (result is not null)
+                var errMsg = await finishedTask;
+                if (errMsg is not null)
                 {
-                    errMsgSB.AppendLine(result);
+                    errMsgSB.AppendLine(errMsg);
                 }
             }
 
