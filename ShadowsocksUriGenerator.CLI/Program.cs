@@ -9,28 +9,28 @@ internal class Program
 {
     private static Task<int> Main(string[] args)
     {
-        var userAddCommand = new CliCommand("add", "Add users.");
-        var userRenameCommand = new CliCommand("rename", "Renames an existing user with a new name.");
-        var userRemoveCommand = new CliCommand("remove", "Remove users.");
-        var userListCommand = new CliCommand("list", "List all users.");
-        var userJoinGroupsCommand = new CliCommand("join", "Join groups.");
-        var userLeaveGroupsCommand = new CliCommand("leave", "Leave groups.");
-        var userAddCredentialCommand = new CliCommand("add-credential", "Add a credential for the user to access nodes in the group.");
-        var userRemoveCredentialsCommand = new CliCommand("remove-credentials", "Remove the group's credential from the user.");
-        var userListCredentialsCommand = new CliCommand("list-credentials", "List user-group credentials.");
-        var userGetSSLinksCommand = new CliCommand("get-ss-links", "Get the user's Shadowsocks URLs.");
-        var userGetDataUsageCommand = new CliCommand("get-data-usage", "Get the user's data usage records.");
-        var userGetDataLimitCommand = new CliCommand("get-data-limit", "Get the user's data limit settings.");
-        var userSetDataLimitCommand = new CliCommand("set-data-limit", "Set a global or per-group data limit on the specified users in all or the specified groups.");
+        var userAddCommand = new Command("add", "Add users.");
+        var userRenameCommand = new Command("rename", "Renames an existing user with a new name.");
+        var userRemoveCommand = new Command("remove", "Remove users.");
+        var userListCommand = new Command("list", "List all users.");
+        var userJoinGroupsCommand = new Command("join", "Join groups.");
+        var userLeaveGroupsCommand = new Command("leave", "Leave groups.");
+        var userAddCredentialCommand = new Command("add-credential", "Add a credential for the user to access nodes in the group.");
+        var userRemoveCredentialsCommand = new Command("remove-credentials", "Remove the group's credential from the user.");
+        var userListCredentialsCommand = new Command("list-credentials", "List user-group credentials.");
+        var userGetSSLinksCommand = new Command("get-ss-links", "Get the user's Shadowsocks URLs.");
+        var userGetDataUsageCommand = new Command("get-data-usage", "Get the user's data usage records.");
+        var userGetDataLimitCommand = new Command("get-data-limit", "Get the user's data limit settings.");
+        var userSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-group data limit on the specified users in all or the specified groups.");
 
-        var userOwnGroupsCommand = new CliCommand("own-groups", "Set as owner of groups.");
-        var userDisownGroupsCommand = new CliCommand("disown-groups", "Disown groups.");
-        var userOwnNodesCommand = new CliCommand("own-nodes", "Set as owner of nodes.");
-        var userDisownNodesCommand = new CliCommand("disown-nodes", "Disown nodes.");
-        var userListOwnedGroupsCommand = new CliCommand("list-owned-groups", "List owned groups.");
-        var userListOwnedNodesCmmand = new CliCommand("list-owned-nodes", "List owned nodes.");
+        var userOwnGroupsCommand = new Command("own-groups", "Set as owner of groups.");
+        var userDisownGroupsCommand = new Command("disown-groups", "Disown groups.");
+        var userOwnNodesCommand = new Command("own-nodes", "Set as owner of nodes.");
+        var userDisownNodesCommand = new Command("disown-nodes", "Disown nodes.");
+        var userListOwnedGroupsCommand = new Command("list-owned-groups", "List owned groups.");
+        var userListOwnedNodesCmmand = new Command("list-owned-nodes", "List owned nodes.");
 
-        var userCommand = new CliCommand("user", "Manage users.")
+        var userCommand = new Command("user", "Manage users.")
         {
             userAddCommand,
             userRenameCommand,
@@ -53,24 +53,24 @@ internal class Program
             userListOwnedNodesCmmand,
         };
 
-        var nodeAddCommand = new CliCommand("add", "Add a node to a group.");
-        var nodeEditCommand = new CliCommand("edit", "Edit an existing node in a group.");
-        var nodeRenameCommand = new CliCommand("rename", "Rename an existing node with a new name.");
-        var nodeRemoveCommand = new CliCommand("remove", "Remove nodes from a group.");
-        var nodeListCommand = new CliCommand("list", "List nodes from the specified group or all groups.");
-        var nodeListAnnotationsCommand = new CliCommand("list-annotations", "List annotations (ownership and tags) on nodes from the specified group or all groups.");
-        var nodeActivateCommand = new CliCommand("activate", "Activate a deactivated node to include it in delivery.");
-        var nodeDeactivateCommand = new CliCommand("deactivate", "Deactivate a node to exclude it from delivery.");
+        var nodeAddCommand = new Command("add", "Add a node to a group.");
+        var nodeEditCommand = new Command("edit", "Edit an existing node in a group.");
+        var nodeRenameCommand = new Command("rename", "Rename an existing node with a new name.");
+        var nodeRemoveCommand = new Command("remove", "Remove nodes from a group.");
+        var nodeListCommand = new Command("list", "List nodes from the specified group or all groups.");
+        var nodeListAnnotationsCommand = new Command("list-annotations", "List annotations (ownership and tags) on nodes from the specified group or all groups.");
+        var nodeActivateCommand = new Command("activate", "Activate a deactivated node to include it in delivery.");
+        var nodeDeactivateCommand = new Command("deactivate", "Deactivate a node to exclude it from delivery.");
 
-        var nodeAddTagsCommand = new CliCommand("add-tags", "Add new tags to the node.");
-        var nodeEditTagsCommand = new CliCommand("edit-tags", "Edit tags on the node.");
-        var nodeRemoveTagsCommand = new CliCommand("remove-tags", "Remove tags from the node.");
-        var nodeClearTagsCommand = new CliCommand("clear-tags", "Clear tags from the node.");
+        var nodeAddTagsCommand = new Command("add-tags", "Add new tags to the node.");
+        var nodeEditTagsCommand = new Command("edit-tags", "Edit tags on the node.");
+        var nodeRemoveTagsCommand = new Command("remove-tags", "Remove tags from the node.");
+        var nodeClearTagsCommand = new Command("clear-tags", "Clear tags from the node.");
 
-        var nodeSetOwnerCommand = new CliCommand("set-owner", "Set node owner.");
-        var nodeUnsetOwnerCommand = new CliCommand("unset-owner", "Unset node owner.");
+        var nodeSetOwnerCommand = new Command("set-owner", "Set node owner.");
+        var nodeUnsetOwnerCommand = new Command("unset-owner", "Unset node owner.");
 
-        var nodeCommand = new CliCommand("node", "Manage nodes.")
+        var nodeCommand = new Command("node", "Manage nodes.")
         {
             nodeAddCommand,
             nodeEditCommand,
@@ -88,21 +88,21 @@ internal class Program
             nodeUnsetOwnerCommand,
         };
 
-        var groupAddCommand = new CliCommand("add", "Add groups.");
-        var groupEditCommand = new CliCommand("edit", "Edit groups.");
-        var groupRenameCommand = new CliCommand("rename", "Renames an existing group with a new name.");
-        var groupRemoveCommand = new CliCommand("remove", "Remove groups and its nodes.");
-        var groupListCommand = new CliCommand("list", "List all groups.");
-        var groupAddUsersCommand = new CliCommand("add-users", "Add users to the group.");
-        var groupRemoveUsersCommand = new CliCommand("remove-users", "Remove users from the group.");
-        var groupListUsersCommand = new CliCommand("list-users", "List group members and credentials.");
-        var groupAddCredentialCommand = new CliCommand("add-credential", "Add credential to selected users in the group.");
-        var groupRemoveCredentialsCommand = new CliCommand("remove-credentials", "Remove credentials from selected users in the group.");
-        var groupGetDataUsageCommand = new CliCommand("get-data-usage", "Get the group's data usage records.");
-        var groupGetDataLimitCommand = new CliCommand("get-data-limit", "Get the group's data limit settings.");
-        var groupSetDataLimitCommand = new CliCommand("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
+        var groupAddCommand = new Command("add", "Add groups.");
+        var groupEditCommand = new Command("edit", "Edit groups.");
+        var groupRenameCommand = new Command("rename", "Renames an existing group with a new name.");
+        var groupRemoveCommand = new Command("remove", "Remove groups and its nodes.");
+        var groupListCommand = new Command("list", "List all groups.");
+        var groupAddUsersCommand = new Command("add-users", "Add users to the group.");
+        var groupRemoveUsersCommand = new Command("remove-users", "Remove users from the group.");
+        var groupListUsersCommand = new Command("list-users", "List group members and credentials.");
+        var groupAddCredentialCommand = new Command("add-credential", "Add credential to selected users in the group.");
+        var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
+        var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
+        var groupGetDataLimitCommand = new Command("get-data-limit", "Get the group's data limit settings.");
+        var groupSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
 
-        var groupCommand = new CliCommand("group", "Manage groups.")
+        var groupCommand = new Command("group", "Manage groups.")
         {
             groupAddCommand,
             groupEditCommand,
@@ -119,26 +119,26 @@ internal class Program
             groupSetDataLimitCommand,
         };
 
-        var onlineConfigGenerateCommand = new CliCommand("generate", "[Legacy] Generate static SIP008 delivery JSON files for specified or all users.");
-        var onlineConfigGetLinksCommand = new CliCommand("get-links", "Get online config API URLs and tokens for specified or all users.");
-        var onlineConfigCleanCommand = new CliCommand("clean", "[Legacy] Clean static SIP008 delivery files for specified or all users.");
+        var onlineConfigGenerateCommand = new Command("generate", "[Legacy] Generate static SIP008 delivery JSON files for specified or all users.");
+        var onlineConfigGetLinksCommand = new Command("get-links", "Get online config API URLs and tokens for specified or all users.");
+        var onlineConfigCleanCommand = new Command("clean", "[Legacy] Clean static SIP008 delivery files for specified or all users.");
 
-        var onlineConfigCommand = new CliCommand("online-config", "Manage online config.")
+        var onlineConfigCommand = new Command("online-config", "Manage online config.")
         {
             onlineConfigGenerateCommand,
             onlineConfigGetLinksCommand,
             onlineConfigCleanCommand,
         };
 
-        var outlineServerAddCommand = new CliCommand("add", "Associate an Outline server with a group.");
-        var outlineServerGetCommand = new CliCommand("get", "Get the associated Outline server's information.");
-        var outlineServerSetCommand = new CliCommand("set", "Change settings of the associated Outline server.");
-        var outlineServerRemoveCommand = new CliCommand("remove", "Remove the Outline server from the group.");
-        var outlineServerPullCommand = new CliCommand("pull", "Pull server information, access keys, and metrics from Outline servers of specified or all groups.");
-        var outlineServerDeployCommand = new CliCommand("deploy", "Deploy local configuration to Outline servers of specified or all groups.");
-        var outlineServerRotatePasswordCommand = new CliCommand("rotate-password", "Rotate passwords for the specified users and/or groups.");
+        var outlineServerAddCommand = new Command("add", "Associate an Outline server with a group.");
+        var outlineServerGetCommand = new Command("get", "Get the associated Outline server's information.");
+        var outlineServerSetCommand = new Command("set", "Change settings of the associated Outline server.");
+        var outlineServerRemoveCommand = new Command("remove", "Remove the Outline server from the group.");
+        var outlineServerPullCommand = new Command("pull", "Pull server information, access keys, and metrics from Outline servers of specified or all groups.");
+        var outlineServerDeployCommand = new Command("deploy", "Deploy local configuration to Outline servers of specified or all groups.");
+        var outlineServerRotatePasswordCommand = new Command("rotate-password", "Rotate passwords for the specified users and/or groups.");
 
-        var outlineServerCommand = new CliCommand("outline-server", "Manage Outline servers.")
+        var outlineServerCommand = new Command("outline-server", "Manage Outline servers.")
         {
             outlineServerAddCommand,
             outlineServerGetCommand,
@@ -149,22 +149,22 @@ internal class Program
             outlineServerRotatePasswordCommand,
         };
 
-        var reportCommand = new CliCommand("report", "Generate data usage report.");
+        var reportCommand = new Command("report", "Generate data usage report.");
 
-        var settingsGetCommand = new CliCommand("get", "Get and print all settings.");
-        var settingsSetCommand = new CliCommand("set", "Change settings.");
+        var settingsGetCommand = new Command("get", "Get and print all settings.");
+        var settingsSetCommand = new Command("set", "Change settings.");
 
-        var settingsCommand = new CliCommand("settings", "Manage settings.")
+        var settingsCommand = new Command("settings", "Manage settings.")
         {
             settingsGetCommand,
             settingsSetCommand,
         };
 
-        var interactiveCommand = new CliCommand("interactive", "Enter interactive mode (REPL). Exit with 'exit' or 'quit'.");
+        var interactiveCommand = new Command("interactive", "Enter interactive mode (REPL). Exit with 'exit' or 'quit'.");
 
-        var serviceCommand = new CliCommand("service", "Run as a service to execute scheduled tasks.");
+        var serviceCommand = new Command("service", "Run as a service to execute scheduled tasks.");
 
-        var rootCommand = new CliRootCommand("A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).")
+        var rootCommand = new RootCommand("A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).")
         {
             userCommand,
             nodeCommand,
@@ -177,348 +177,348 @@ internal class Program
             serviceCommand,
         };
 
-        var usernameArgument = new CliArgument<string>("username")
+        var usernameArgument = new Argument<string>("username")
         {
             Description = "Target user.",
         };
-        var nodenameArgument = new CliArgument<string>("nodename")
+        var nodenameArgument = new Argument<string>("nodename")
         {
             Description = "Name of the node.",
         };
-        var groupArgument = new CliArgument<string>("group")
+        var groupArgument = new Argument<string>("group")
         {
             Description = "Target group.",
         };
 
-        var oldNameArgument = new CliArgument<string>("oldName")
+        var oldNameArgument = new Argument<string>("oldName")
         {
             Description = "Current name.",
         };
-        var newNameArgument = new CliArgument<string>("newName")
+        var newNameArgument = new Argument<string>("newName")
         {
             Description = "New name.",
         };
 
-        var hostArgument = new CliArgument<string>("host")
+        var hostArgument = new Argument<string>("host")
         {
             Description = "Hostname of the node.",
         };
-        var portArgument = new CliArgument<int>("port")
+        var portArgument = new Argument<int>("port")
         {
             Description = "Port number of the node.",
             CustomParser = Parsers.ParsePortNumber,
         };
 
-        var methodArgument = new CliArgument<string>("method")
+        var methodArgument = new Argument<string>("method")
         {
             Description = "The encryption method. Use with --password.",
             CustomParser = Parsers.ParseShadowsocksAEADMethod,
         };
-        var passwordArgument = new CliArgument<string>("password")
+        var passwordArgument = new Argument<string>("password")
         {
             Description = "The password. Use with --method.",
         };
 
-        var ownerArgument = new CliArgument<string>("owner")
+        var ownerArgument = new Argument<string>("owner")
         {
             Description = "Set the owner.",
         };
-        var tagsArgument = new CliArgument<string[]>("tags")
+        var tagsArgument = new Argument<string[]>("tags")
         {
             Description = "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.",
             Arity = ArgumentArity.OneOrMore,
         };
 
-        var usernamesArgumentZeroOrMore = new CliArgument<string[]>("usernames")
+        var usernamesArgumentZeroOrMore = new Argument<string[]>("usernames")
         {
             Description = "Zero or more usernames.",
         };
-        var nodenamesArgumentZeroOrMore = new CliArgument<string[]>("nodenames")
+        var nodenamesArgumentZeroOrMore = new Argument<string[]>("nodenames")
         {
             Description = "Zero or more node names.",
         };
-        var groupsArgumentZeroOrMore = new CliArgument<string[]>("groups")
+        var groupsArgumentZeroOrMore = new Argument<string[]>("groups")
         {
             Description = "Zero or more group names.",
         };
 
-        var usernamesArgumentOneOrMore = new CliArgument<string[]>("usernames")
+        var usernamesArgumentOneOrMore = new Argument<string[]>("usernames")
         {
             Description = "One or more usernames.",
             Arity = ArgumentArity.OneOrMore,
         };
-        var nodenamesArgumentOneOrMore = new CliArgument<string[]>("nodenames")
+        var nodenamesArgumentOneOrMore = new Argument<string[]>("nodenames")
         {
             Description = "One or more node names.",
             Arity = ArgumentArity.OneOrMore,
         };
-        var groupsArgumentOneOrMore = new CliArgument<string[]>("groups")
+        var groupsArgumentOneOrMore = new Argument<string[]>("groups")
         {
             Description = "One or more group names.",
             Arity = ArgumentArity.OneOrMore,
         };
 
-        var outlineApiKeyArgument = new CliArgument<string>("apiKey")
+        var outlineApiKeyArgument = new Argument<string>("apiKey")
         {
             Description = "The Outline server API key.",
         };
 
-        var usernamesOption = new CliOption<string[]>("--usernames")
+        var usernamesOption = new Option<string[]>("--usernames")
         {
             Description = "Target these specific users. If unspecified, target all users.",
             AllowMultipleArgumentsPerToken = true,
         };
-        var nodenamesOption = new CliOption<string[]>("--nodenames")
+        var nodenamesOption = new Option<string[]>("--nodenames")
         {
             Description = "Target these specific nodes. If unspecified, target all nodes.",
             AllowMultipleArgumentsPerToken = true,
         };
-        var groupsOption = new CliOption<string[]>("--groups")
+        var groupsOption = new Option<string[]>("--groups")
         {
             Description = "Target these specific groups. If unspecified, target all groups.",
             AllowMultipleArgumentsPerToken = true,
         };
 
-        var hostOption = new CliOption<string?>("--host")
+        var hostOption = new Option<string?>("--host")
         {
             Description = "Hostname of the node.",
         };
-        var portOption = new CliOption<int>("--port")
+        var portOption = new Option<int>("--port")
         {
             Description = "Port number of the node.",
             CustomParser = Parsers.ParsePortNumber,
         };
-        var pluginNameOption = new CliOption<string?>("--plugin-name")
+        var pluginNameOption = new Option<string?>("--plugin-name")
         {
             Description = "Plugin name.",
         };
-        var pluginVersionOption = new CliOption<string?>("--plugin-version")
+        var pluginVersionOption = new Option<string?>("--plugin-version")
         {
             Description = "Required plugin version.",
         };
-        var pluginOptionsOption = new CliOption<string?>("--plugin-options")
+        var pluginOptionsOption = new Option<string?>("--plugin-options")
         {
             Description = "Plugin options, passed as environment variable 'SS_PLUGIN_OPTIONS'.",
         };
-        var pluginArgumentsOption = new CliOption<string?>("--plugin-arguments")
+        var pluginArgumentsOption = new Option<string?>("--plugin-arguments")
         {
             Description = "Plugin startup arguments.",
         };
-        var unsetPluginOption = new CliOption<bool>("--unset-plugin")
+        var unsetPluginOption = new Option<bool>("--unset-plugin")
         {
             Description = "Remove plugin and plugin options from the node.",
         };
 
-        var ownerOption = new CliOption<string?>("--owner")
+        var ownerOption = new Option<string?>("--owner")
         {
             Description = "Set the owner.",
         };
-        var unsetOwnerOption = new CliOption<bool>("--unset-owner")
+        var unsetOwnerOption = new Option<bool>("--unset-owner")
         {
             Description = "Unset the owner.",
         };
 
-        var forceOption = new CliOption<bool>("--force", "-f")
+        var forceOption = new Option<bool>("--force", "-f")
         {
             Description = "Forcibly overwrite existing settings.",
         };
 
-        var tagsOption = new CliOption<string[]>("--tags")
+        var tagsOption = new Option<string[]>("--tags")
         {
             Description = "Tags that annotate the node. Will be deduplicated in a case-insensitive manner.",
             AllowMultipleArgumentsPerToken = true,
         };
-        var addTagsOption = new CliOption<string[]>("--add-tags")
+        var addTagsOption = new Option<string[]>("--add-tags")
         {
             Description = "Tags to add to the node. Will be deduplicated in a case-insensitive manner.",
             AllowMultipleArgumentsPerToken = true,
         };
-        var removeTagsOption = new CliOption<string[]>("--remove-tags")
+        var removeTagsOption = new Option<string[]>("--remove-tags")
         {
             Description = "Tags to remove from the node. Matched in a case-insensitive manner.",
             AllowMultipleArgumentsPerToken = true,
         };
-        var clearTagsOption = new CliOption<bool>("--clear-tags")
+        var clearTagsOption = new Option<bool>("--clear-tags")
         {
             Description = "Remove all tags from the node.",
         };
 
-        var iPSKOption = new CliOption<string[]>("--iPSKs")
+        var iPSKOption = new Option<string[]>("--iPSKs")
         {
             Description = "Identity PSKs.",
             AllowMultipleArgumentsPerToken = true,
         };
-        var clearIPSKOption = new CliOption<bool>("--clear-iPSKs")
+        var clearIPSKOption = new Option<bool>("--clear-iPSKs")
         {
             Description = "Remove all identity PSKs from the node.",
         };
 
-        var globalDataLimitOption = new CliOption<ulong?>("--global")
+        var globalDataLimitOption = new Option<ulong?>("--global")
         {
             Description = "The global data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
             CustomParser = Parsers.ParseDataString,
         };
-        var perUserDataLimitOption = new CliOption<ulong?>("--per-user")
+        var perUserDataLimitOption = new Option<ulong?>("--per-user")
         {
             Description = "The per-user data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
             CustomParser = Parsers.ParseDataString,
         };
-        var perGroupDataLimitOption = new CliOption<ulong?>("--per-group")
+        var perGroupDataLimitOption = new Option<ulong?>("--per-group")
         {
             Description = "The per-group data limit in bytes. 0 is interpreted as unlimited. Examples: '1024', '2K', '4M', '8G', '16T', '32P'.",
             CustomParser = Parsers.ParseDataString,
         };
 
-        var namesOnlyOption = new CliOption<bool>("--names-only", "--short", "-s")
+        var namesOnlyOption = new Option<bool>("--names-only", "--short", "-s")
         {
             Description = "Display names only, without a table.",
         };
-        var onePerLineOption = new CliOption<bool>("--one-per-line", "-1")
+        var onePerLineOption = new Option<bool>("--one-per-line", "-1")
         {
             Description = "Display one name per line.",
         };
 
-        var allUsersOption = new CliOption<bool>("--all-users", "--all", "-a")
+        var allUsersOption = new Option<bool>("--all-users", "--all", "-a")
         {
             Description = "Target all users.",
         };
-        var allNodesOption = new CliOption<bool>("--all-nodes", "--all", "-a")
+        var allNodesOption = new Option<bool>("--all-nodes", "--all", "-a")
         {
             Description = "Target all nodes in target group.",
         };
-        var allGroupsOption = new CliOption<bool>("--all-groups", "--all", "-a")
+        var allGroupsOption = new Option<bool>("--all-groups", "--all", "-a")
         {
             Description = "Target all groups.",
         };
 
-        var allUsersNoAliasesOption = new CliOption<bool>("--all-users")
+        var allUsersNoAliasesOption = new Option<bool>("--all-users")
         {
             Description = "Target all users.",
         };
-        var allNodesNoAliasesOption = new CliOption<bool>("--all-nodes")
+        var allNodesNoAliasesOption = new Option<bool>("--all-nodes")
         {
             Description = "Target all nodes in target group.",
         };
-        var allGroupsNoAliasesOption = new CliOption<bool>("--all-groups")
+        var allGroupsNoAliasesOption = new Option<bool>("--all-groups")
         {
             Description = "Target all groups.",
         };
 
-        var sortByOption = new CliOption<SortBy?>("--sort-by")
+        var sortByOption = new Option<SortBy?>("--sort-by")
         {
             Description = "Sort rule for data usage records.",
         };
-        var userSortByOption = new CliOption<SortBy?>("--user-sort-by")
+        var userSortByOption = new Option<SortBy?>("--user-sort-by")
         {
             Description = "Sort rule for user data usage records.",
         };
-        var groupSortByOption = new CliOption<SortBy?>("--group-sort-by")
+        var groupSortByOption = new Option<SortBy?>("--group-sort-by")
         {
             Description = "Sort rule for group data usage records.",
         };
 
-        var outlineServerNameOption = new CliOption<string?>("--name")
+        var outlineServerNameOption = new Option<string?>("--name")
         {
             Description = "Name of the Outline server.",
         };
-        var outlineServerHostnameOption = new CliOption<string?>("--hostname")
+        var outlineServerHostnameOption = new Option<string?>("--hostname")
         {
             Description = "Hostname of the Outline server.",
         };
-        var outlineServerPortOption = new CliOption<int?>("--port")
+        var outlineServerPortOption = new Option<int?>("--port")
         {
             Description = "Port number for new access keys on the Outline server.",
         };
-        var outlineServerMetricsOption = new CliOption<bool?>("--metrics")
+        var outlineServerMetricsOption = new Option<bool?>("--metrics")
         {
             Description = "Enable or disable telemetry on the Outline server.",
         };
-        var outlineServerDefaultUserOption = new CliOption<string?>("--default-user")
+        var outlineServerDefaultUserOption = new Option<string?>("--default-user")
         {
             Description = "The default user for Outline server's default access key (id: 0).",
         };
 
-        var removeCredsOption = new CliOption<bool>("--remove-creds")
+        var removeCredsOption = new Option<bool>("--remove-creds")
         {
             Description = "Remove credentials from all associated users.",
         };
-        var noSyncOption = new CliOption<bool>("--no-sync")
+        var noSyncOption = new Option<bool>("--no-sync")
         {
             Description = "Do not update local user membership storage from retrieved access key list.",
         };
 
-        var csvOutdirOption = new CliOption<string?>("--csv-outdir")
+        var csvOutdirOption = new Option<string?>("--csv-outdir")
         {
             Description = "Export as CSV to the specified directory.",
         };
 
-        var settingsUserDataUsageDefaultSortByOption = new CliOption<SortBy?>("--user-data-usage-default-sort-by")
+        var settingsUserDataUsageDefaultSortByOption = new Option<SortBy?>("--user-data-usage-default-sort-by")
         {
             Description = "The default sort rule for user data usage report.",
         };
-        var settingsGroupDataUsageDefaultSortByOption = new CliOption<SortBy?>("--group-data-usage-default-sort-by")
+        var settingsGroupDataUsageDefaultSortByOption = new Option<SortBy?>("--group-data-usage-default-sort-by")
         {
             Description = "The default sort rule for group data usage report.",
         };
-        var settingsOnlineConfigSortByNameOption = new CliOption<bool?>("--online-config-sort-by-name")
+        var settingsOnlineConfigSortByNameOption = new Option<bool?>("--online-config-sort-by-name")
         {
             Description = "Whether online config should sort servers by name.",
         };
-        var settingsOnlineConfigDeliverByGroupOption = new CliOption<bool?>("--online-config-deliver-by-group")
+        var settingsOnlineConfigDeliverByGroupOption = new Option<bool?>("--online-config-deliver-by-group")
         {
             Description = "Whether the legacy SIP008 online config static file generator should generate per-group SIP008 delivery JSON in addition to the single JSON that contains all associated servers of the user.",
         };
-        var settingsOnlineConfigCleanOnUserRemovalOption = new CliOption<bool?>("--online-config-clean-on-user-removal")
+        var settingsOnlineConfigCleanOnUserRemovalOption = new Option<bool?>("--online-config-clean-on-user-removal")
         {
             Description = "Whether the user's generated static online config files should be removed when the user is being removed.",
         };
-        var settingsOnlineConfigOutputDirectoryOption = new CliOption<string?>("--online-config-output-directory")
+        var settingsOnlineConfigOutputDirectoryOption = new Option<string?>("--online-config-output-directory")
         {
             Description = "Legacy SIP008 online config static file generator output directory. No trailing slashes allowed.",
         };
-        var settingsOnlineConfigDeliveryRootUriOption = new CliOption<string?>("--online-config-delivery-root-uri")
+        var settingsOnlineConfigDeliveryRootUriOption = new Option<string?>("--online-config-delivery-root-uri")
         {
             Description = "URL base for the SIP008 static file delivery links. No trailing slashes allowed.",
         };
-        var settingsOutlineServerApplyDefaultUserOnAssociationOption = new CliOption<bool?>("--outline-server-apply-default-user-on-association")
+        var settingsOutlineServerApplyDefaultUserOnAssociationOption = new Option<bool?>("--outline-server-apply-default-user-on-association")
         {
             Description = "Whether to apply the global default user when associating with Outline servers.",
         };
-        var settingsOutlineServerApplyDataLimitOnAssociationOption = new CliOption<bool?>("--outline-server-apply-data-limit-on-association")
+        var settingsOutlineServerApplyDataLimitOnAssociationOption = new Option<bool?>("--outline-server-apply-data-limit-on-association")
         {
             Description = "Whether to apply the group's per-user data limit when associating with Outline servers.",
         };
-        var settingsOutlineServerGlobalDefaultUserOption = new CliOption<string?>("--outline-server-global-default-user")
+        var settingsOutlineServerGlobalDefaultUserOption = new Option<string?>("--outline-server-global-default-user")
         {
             Description = "The global setting for Outline server's default access key's user.",
         };
-        var settingsApiServerBaseUrlOption = new CliOption<string?>("--api-server-base-url")
+        var settingsApiServerBaseUrlOption = new Option<string?>("--api-server-base-url")
         {
             Description = "The base URL of the API server. MUST NOT contain a trailing slash.",
         };
-        var settingsApiServerSecretPathOption = new CliOption<string?>("--api-server-secret-path")
+        var settingsApiServerSecretPathOption = new Option<string?>("--api-server-secret-path")
         {
             Description = "The secret path to the API endpoint. This is required to conceal the presence of the API. The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy. But it's recommended to put non-secret part of the path in the base URL.",
         };
 
-        var serviceIntervalOption = new CliOption<int>("--interval")
+        var serviceIntervalOption = new Option<int>("--interval")
         {
             Description = "The interval between each scheduled run in seconds.",
             DefaultValueFactory = _ => 3600,
         };
-        var servicePullOutlineServerOption = new CliOption<bool>("--pull-outline-server")
+        var servicePullOutlineServerOption = new Option<bool>("--pull-outline-server")
         {
             Description = "Pull from Outline servers for updates of server information, access keys, data usage.",
         };
-        var serviceDeployOutlineServerOption = new CliOption<bool>("--deploy-outline-server")
+        var serviceDeployOutlineServerOption = new Option<bool>("--deploy-outline-server")
         {
             Description = "Deploy local configurations to Outline servers.",
         };
-        var serviceGenerateOnlineConfigOption = new CliOption<bool>("--generate-online-config")
+        var serviceGenerateOnlineConfigOption = new Option<bool>("--generate-online-config")
         {
             Description = "Generate online config.",
         };
-        var serviceRegenerateOnlineConfigOption = new CliOption<bool>("--regenerate-online-config")
+        var serviceRegenerateOnlineConfigOption = new Option<bool>("--regenerate-online-config")
         {
             Description = "Clean and regenerate online config.",
         };

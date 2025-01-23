@@ -10,38 +10,38 @@ internal class Program
 {
     private static Task<int> Main(string[] args)
     {
-        var botTokenOption = new CliOption<string?>("--bot-token")
+        var botTokenOption = new Option<string?>("--bot-token")
         {
             Description = "Telegram bot token.",
         };
-        var serviceNameOption = new CliOption<string?>("--service-name")
+        var serviceNameOption = new Option<string?>("--service-name")
         {
             Description = "Service name. Will be displayed in the welcome message.",
         };
-        var usersCanSeeAllUsersOption = new CliOption<bool?>("--users-can-see-all-users")
+        var usersCanSeeAllUsersOption = new Option<bool?>("--users-can-see-all-users")
         {
             Description = "Whether any registered user is allowed to see all registered users.",
         };
-        var usersCanSeeAllGroupsOption = new CliOption<bool?>("--users-can-see-all-groups")
+        var usersCanSeeAllGroupsOption = new Option<bool?>("--users-can-see-all-groups")
         {
             Description = "Whether any registered user is allowed to see all groups.",
         };
-        var usersCanSeeGroupDataUsageOption = new CliOption<bool?>("--users-can-see-group-data-usage")
+        var usersCanSeeGroupDataUsageOption = new Option<bool?>("--users-can-see-group-data-usage")
         {
             Description = "Whether users are allowed to query group data usage metrics.",
         };
-        var usersCanSeeGroupDataLimitOption = new CliOption<bool?>("--users-can-see-group-data-limit")
+        var usersCanSeeGroupDataLimitOption = new Option<bool?>("--users-can-see-group-data-limit")
         {
             Description = "Whether users are allowed to see other group member's data limit.",
         };
-        var allowChatAssociationOption = new CliOption<bool?>("--allow-chat-association")
+        var allowChatAssociationOption = new Option<bool?>("--allow-chat-association")
         {
             Description = "Whether Telegram association through /link in chat is allowed.",
         };
 
-        var configGetCommand = new CliCommand("get", "Get and print bot config.");
+        var configGetCommand = new Command("get", "Get and print bot config.");
 
-        var configSetCommand = new CliCommand("set", "Change bot config.")
+        var configSetCommand = new Command("set", "Change bot config.")
         {
             botTokenOption,
             serviceNameOption,
@@ -65,13 +65,13 @@ internal class Program
             return ConfigCommand.Set(botToken, serviceName, usersCanSeeAllUsers, usersCanSeeAllGroups, usersCanSeeGroupDataUsage, usersCanSeeGroupDataLimit, allowChatAssociation, cancellationToken);
         });
 
-        var configCommand = new CliCommand("config", "Print or change bot config.")
+        var configCommand = new Command("config", "Print or change bot config.")
         {
             configGetCommand,
             configSetCommand,
         };
 
-        var rootCommand = new CliRootCommand("A Telegram bot for user interactions with Shadowsocks URI Generator.")
+        var rootCommand = new RootCommand("A Telegram bot for user interactions with Shadowsocks URI Generator.")
         {
             configCommand,
         };

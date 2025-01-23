@@ -10,18 +10,18 @@ internal class Program
 {
     private static Task<int> Main(string[] args)
     {
-        var onlineConfigDirOption = new CliOption<string>("--online-config-dir")
+        var onlineConfigDirOption = new Option<string>("--online-config-dir")
         {
             Description = "Directory of generated online config.",
             Required = true,
         };
-        var outputDirOption = new CliOption<string>("--output-dir")
+        var outputDirOption = new Option<string>("--output-dir")
         {
             Description = "Output directory.",
             Required = true,
         };
 
-        var rootCommand = new CliRootCommand("A rescue tool CLI for restoring ss-uri-gen config from generated online config directory.")
+        var rootCommand = new RootCommand("A rescue tool CLI for restoring ss-uri-gen config from generated online config directory.")
         {
             onlineConfigDirOption,
             outputDirOption,
