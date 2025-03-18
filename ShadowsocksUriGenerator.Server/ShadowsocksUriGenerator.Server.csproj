@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="7.3.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" />
+    <PackageReference Include="Swashbuckle.AspNetCore.ReDoc" Version="7.3.2" />
   </ItemGroup>
 
   <ItemGroup>
