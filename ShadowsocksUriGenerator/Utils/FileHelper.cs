@@ -38,31 +38,6 @@ namespace ShadowsocksUriGenerator.Utils
             WriteIndented = true,
         };
 
-        public static readonly string configDirectory;
-
-        static FileHelper()
-        {
-#if PACKAGED
-            // ~/.config on Linux
-            // ~/AppData/Roaming on Windows
-            var appDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            configDirectory = $"{appDataPath}/shadowsocks-uri-generator";
-#else
-            // Use executable directory
-            // Executable directory for single-file deployments in .NET 5: https://docs.microsoft.com/en-us/dotnet/core/deploying/single-file
-            configDirectory = AppContext.BaseDirectory;
-#endif
-        }
-
-        /// <summary>
-        /// Gets the fully qualified absolute path
-        /// that the original path points to.
-        /// </summary>
-        /// <param name="path">A relative or absolute path.</param>
-        /// <returns>A fully qualified path.</returns>
-        public static string GetAbsolutePath(string path)
-            => Path.IsPathFullyQualified(path) ? path : $"{configDirectory}/{path}";
-
         /// <summary>
         /// Loads data from a JSON file.
         /// </summary>
@@ -76,14 +51,8 @@ namespace ShadowsocksUriGenerator.Utils
         /// </returns>
         public static async Task<(T, string? errMsg)> LoadJsonAsync<T>(string filename, JsonSerializerOptions? jsonSerializerOptions = null, CancellationToken cancellationToken = default) where T : class, new()
         {
-            // extend relative path
-            filename = GetAbsolutePath(filename);
-
             if (!File.Exists(filename))
                 return (new(), null);
-
-            if (cancellationToken.IsCancellationRequested)
-                return (new(), "The operation was canceled.");
 
             T? jsonData = null;
             string? errMsg = null;
@@ -127,17 +96,11 @@ namespace ShadowsocksUriGenerator.Utils
             bool noBackup = false,
             CancellationToken cancellationToken = default)
         {
-            // extend relative path
-            filename = GetAbsolutePath(filename);
-
             string? errMsg = null;
             FileStream? jsonFile = null;
 
             try
             {
-                if (cancellationToken.IsCancellationRequested)
-                    return "The operation was canceled.";
-
                 // create directory
                 var directoryPath = Path.GetDirectoryName(filename);
                 if (directoryPath is null)

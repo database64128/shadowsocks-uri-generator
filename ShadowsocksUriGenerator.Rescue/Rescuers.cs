@@ -29,8 +29,6 @@ namespace ShadowsocksUriGenerator.Rescue
         /// </returns>
         public static async Task<(Users? users, Nodes? nodes, string? errMsg)> FromOnlineConfig(string onlineConfigDir, CancellationToken cancellationToken = default)
         {
-            onlineConfigDir = FileHelper.GetAbsolutePath(onlineConfigDir);
-
             try
             {
                 var onlineConfigDirInfo = new DirectoryInfo(onlineConfigDir);

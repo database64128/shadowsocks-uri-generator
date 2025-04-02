@@ -222,15 +222,16 @@ namespace ShadowsocksUriGenerator.OnlineConfig
         /// <param name="userUuids">The list of users whose online config file will be removed.</param>
         public static void Remove(string directory, params string[] userUuids)
         {
-            directory = FileHelper.GetAbsolutePath(directory);
-            if (Directory.Exists(directory))
-                foreach (var uuid in userUuids)
-                {
-                    var path = $"{directory}/{uuid}";
-                    if (Directory.Exists(path))
-                        Directory.Delete(path, true);
-                    File.Delete($"{path}.json");
-                }
+            if (!Directory.Exists(directory))
+                return;
+
+            foreach (var uuid in userUuids)
+            {
+                var path = $"{directory}/{uuid}";
+                if (Directory.Exists(path))
+                    Directory.Delete(path, true);
+                File.Delete($"{path}.json");
+            }
         }
     }
 }

@@ -27,9 +27,7 @@ Shadowsocks URI Generator is a management and distribution platform for censorsh
 
 ## Build
 
-Prerequisites: .NET 8 SDK
-
-Note for packagers: The application by default uses executable directory as config directory. To use user's config directory, define the constant `PACKAGED` when building.
+Prerequisites: .NET 9 SDK
 
 ```console
 $ # Build with Release configuration
@@ -40,17 +38,6 @@ $ dotnet publish ShadowsocksUriGenerator -c Release
 
 $ # Publish as self-contained for Linux x64
 $ dotnet publish ShadowsocksUriGenerator -c Release \
-    -p:PublishSingleFile=true \
-    -p:PublishTrimmed=true \
-    -p:DebuggerSupport=false \
-    -p:EnableUnsafeBinaryFormatterSerialization=false \
-    -p:EnableUnsafeUTF7Encoding=false \
-    -p:InvariantGlobalization=true \
-    -r linux-x64 --self-contained
-
-$ # Publish as self-contained for packaging on Linux x64
-$ dotnet publish ShadowsocksUriGenerator -c Release \
-    -p:DefineConstants=PACKAGED \
     -p:PublishSingleFile=true \
     -p:PublishTrimmed=true \
     -p:DebuggerSupport=false \
@@ -73,8 +60,6 @@ $ ss-uri-gen-server
 ```console
 $ systemctl --user enable --now ss-uri-gen-server.service
 ```
-
-When built with `PACKAGED`, it searches for `appsettings.json` in Shadowsocks URI Generator's config directory. Make sure to supplement `appsettings.json` before starting the server.
 
 Some `appsettings.json` samples are included in the project directory. `appsettings.systemd.json` is configured to use the systemd logging format.
 
@@ -205,7 +190,6 @@ $ ss-uri-gen-chatbot-telegram --bot-token "1234567:4TT8bAc8GHUspu3ERYn-KGcvsvGB9
 - The icons are from [Material Design Icons](https://materialdesignicons.com/) and are licensed under the [Pictogrammers Free License](https://dev.materialdesignicons.com/license).
 - [`System.CommandLine`](https://github.com/dotnet/command-line-api) is licensed under the MIT license.
 - `System.Linq.Async`, `System.Interactive.Async` and `System.Reactive` are from [dotnet/reactive](https://github.com/dotnet/reactive). They are licensed under the MIT license.
-- `JsonSnakeCaseNamingPolicy` is adopted from [dotnet/corefx#40003](https://github.com/dotnet/corefx/pull/40003). It's licensed under the MIT license.
 - [`Telegram.Bot`](https://github.com/TelegramBots/Telegram.Bot) and [`Telegram.Bot.Extensions.Polling`](https://github.com/TelegramBots/Telegram.Bot.Extensions.Polling) are licensed under the MIT license.
 
-© 2024 database64128
+© 2025 database64128

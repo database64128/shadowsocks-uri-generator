@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.Data;
-using ShadowsocksUriGenerator.Utils;
 using System;
 using System.IO;
 using System.Linq;
@@ -12,7 +11,7 @@ namespace ShadowsocksUriGenerator.Services
 {
     public class DataService(ILogger<DataService> logger) : IDataService, IDisposable
     {
-        private readonly FileSystemWatcher _watcher = new(FileHelper.configDirectory, "*.json");
+        private readonly FileSystemWatcher _watcher = new(".", "*.json");
         private bool disposedValue;
         private bool isStarted;
 

@@ -1,6 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
-using ShadowsocksUriGenerator.Utils;
 using System;
 using System.IO;
 using System.Linq;
@@ -179,7 +178,7 @@ namespace ShadowsocksUriGenerator.Tests
         public async Task Save_Clean_OnlineConfig_ForAllUsers()
         {
             var settings = new Settings();
-            var directory = FileHelper.GetAbsolutePath(settings.OnlineConfigOutputDirectory);
+            var directory = settings.OnlineConfigOutputDirectory;
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
             nodes.AddGroup("MyGroupWithPlugin");
@@ -256,7 +255,7 @@ namespace ShadowsocksUriGenerator.Tests
         public async Task Save_Clean_OnlineConfig_ForSpecifiedUsers(string? expectedResult, params string[] selectedUsernames)
         {
             var settings = new Settings();
-            var directory = FileHelper.GetAbsolutePath(settings.OnlineConfigOutputDirectory);
+            var directory = settings.OnlineConfigOutputDirectory;
             using var nodes = new Nodes();
             var users = new Users();
             users.AddUser("root");
