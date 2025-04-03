@@ -103,10 +103,8 @@ namespace ShadowsocksUriGenerator.Utils
             {
                 // create directory
                 var directoryPath = Path.GetDirectoryName(filename);
-                if (directoryPath is null)
-                    return $"Error: invalid path: {filename}";
-
-                Directory.CreateDirectory(directoryPath);
+                if (!string.IsNullOrEmpty(directoryPath))
+                    Directory.CreateDirectory(directoryPath);
 
                 // save JSON
                 if (alwaysOverwrite || !File.Exists(filename)) // alwaysOverwrite or file doesn't exist. Just write to it.
