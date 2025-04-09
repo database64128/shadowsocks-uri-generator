@@ -97,6 +97,7 @@ internal class Program
         var groupAddUsersCommand = new Command("add-users", "Add users to the group.");
         var groupRemoveUsersCommand = new Command("remove-users", "Remove users from the group.");
         var groupListUsersCommand = new Command("list-users", "List group members and credentials.");
+        var groupListUserPSKsCommand = new Command("list-user-psks", "Print a JSON document with usernames and their uPSKs as key-value pairs.");
         var groupAddCredentialCommand = new Command("add-credential", "Add credential to selected users in the group.");
         var groupGenerateCredentialsCommand = new Command("generate-credentials", "Generate credentials for specified users.");
         var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
@@ -114,6 +115,7 @@ internal class Program
             groupAddUsersCommand,
             groupRemoveUsersCommand,
             groupListUsersCommand,
+            groupListUserPSKsCommand,
             groupAddCredentialCommand,
             groupGenerateCredentialsCommand,
             groupRemoveCredentialsCommand,
@@ -1126,6 +1128,17 @@ internal class Program
         {
             var group = parseResult.GetValue(groupArgument)!;
             return GroupCommand.ListUsers(group, cancellationToken);
+        });
+
+        groupListUserPSKsCommand.Aliases.Add("lpsk");
+        groupListUserPSKsCommand.Aliases.Add("lpsks");
+        groupListUserPSKsCommand.Aliases.Add("lupsk");
+        groupListUserPSKsCommand.Aliases.Add("lupsks");
+        groupListUserPSKsCommand.Arguments.Add(groupArgument);
+        groupListUserPSKsCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var group = parseResult.GetValue(groupArgument)!;
+            return GroupCommand.ListUserPSKs(group, cancellationToken);
         });
 
         groupAddCredentialCommand.Aliases.Add("ac");

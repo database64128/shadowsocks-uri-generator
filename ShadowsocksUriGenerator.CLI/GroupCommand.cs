@@ -5,7 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
+using System.IO;
 using System.Linq;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -488,6 +491,43 @@ namespace ShadowsocksUriGenerator.CLI
 
             ConsoleHelper.PrintTableBorder(usernameFieldWidth, methodFieldWidth, passwordFieldWidth);
 
+            return 0;
+        }
+
+        public static async Task<int> ListUserPSKs(string group, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            JsonWriterOptions options = new()
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                Indented = true,
+                IndentSize = 4,
+            };
+
+            await using (Stream stream = Console.OpenStandardOutput())
+            {
+                await using Utf8JsonWriter writer = new(stream, options);
+
+                writer.WriteStartObject();
+
+                foreach (var user in users.UserDict)
+                {
+                    if (user.Value.Memberships.TryGetValue(group, out var memberinfo) && memberinfo.HasCredential)
+                    {
+                        writer.WriteString(user.Key, memberinfo.Password);
+                    }
+                }
+
+                writer.WriteEndObject();
+            }
+
+            Console.WriteLine();
             return 0;
         }
 
