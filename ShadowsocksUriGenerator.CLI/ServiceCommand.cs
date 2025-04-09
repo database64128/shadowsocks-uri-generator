@@ -1,7 +1,7 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
-using ShadowsocksUriGenerator.Data;
+﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
 using System;
+using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,14 +10,17 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class ServiceCommand
     {
-        public static void ValidateRun(CommandResult commandResult)
+        public static Action<CommandResult> ValidateRun(
+            Option<bool> serviceGenerateOnlineConfigOption,
+            Option<bool> serviceRegenerateOnlineConfigOption) =>
+            commandResult =>
         {
-            if (commandResult.ContainsOptionWithName("--generate-online-config") &&
-                commandResult.ContainsOptionWithName("--regenerate-online-config"))
+            if (commandResult.GetValue(serviceGenerateOnlineConfigOption) &&
+                commandResult.GetValue(serviceRegenerateOnlineConfigOption))
             {
                 commandResult.AddError("You don't need to generate online config twice.");
             }
-        }
+        };
 
         public static async Task<int> Run(
             int interval,

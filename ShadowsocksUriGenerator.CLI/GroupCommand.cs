@@ -3,6 +3,7 @@ using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
@@ -800,18 +801,22 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static void ValidateSetDataLimit(CommandResult commandResult)
+        public static Action<CommandResult> ValidateSetDataLimit(
+            Option<ulong?> globalDataLimitOption,
+            Option<ulong?> perUserDataLimitOption,
+            Option<string[]> usernamesOption) =>
+            commandResult =>
         {
-            var hasGlobal = commandResult.ContainsOptionWithName("--global");
-            var hasPerUser = commandResult.ContainsOptionWithName("--per-user");
-            var hasUsernames = commandResult.ContainsOptionWithName("--usernames");
+            bool hasGlobal = commandResult.GetResult(globalDataLimitOption) is not null;
+            bool hasPerUser = commandResult.GetResult(perUserDataLimitOption) is not null;
+            bool hasUsernames = commandResult.GetResult(usernamesOption) is not null;
 
             if (!hasGlobal && !hasPerUser)
                 commandResult.AddError("Please specify either a global data limit with `--global`, or a per-user data limit with `--per-user`.");
 
             if (!hasPerUser && hasUsernames)
                 commandResult.AddError("Custom user targets must be used with per-user limits.");
-        }
+        };
 
         public static async Task<int> SetDataLimit(
             string[] groups,

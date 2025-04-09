@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -523,6 +524,18 @@ internal class Program
             Description = "Clean and regenerate online config.",
         };
 
+        Action<CommandResult> enforceZeroUsernamesArgumentWhenAll = Validators.EnforceZeroUsernamesArgumentWhenAll(usernamesArgumentZeroOrMore, allUsersOption);
+        Action<CommandResult> enforceZeroNodenamesArgumentWhenAll = Validators.EnforceZeroNodenamesArgumentWhenAll(nodenamesArgumentZeroOrMore, allNodesOption);
+        Action<CommandResult> enforceZeroNodenamesOptionWhenAll = Validators.EnforceZeroNodenamesOptionWhenAll(nodenamesOption, allNodesNoAliasesOption);
+        Action<CommandResult> enforceZeroGroupsArgumentWhenAll = Validators.EnforceZeroGroupsArgumentWhenAll(groupsArgumentZeroOrMore, allGroupsOption);
+        Action<CommandResult> enforceZeroGroupsOptionWhenAll = Validators.EnforceZeroGroupsOptionWhenAll(groupsOption, allGroupsNoAliasesOption);
+        Action<CommandResult> validateUserSetDataLimit = UserCommand.ValidateSetDataLimit(globalDataLimitOption, perUserDataLimitOption, usernamesOption);
+        Action<CommandResult> validateNodePlugin = NodeCommand.ValidateNodePlugin(pluginNameOption, pluginVersionOption, pluginOptionsOption, pluginArgumentsOption, unsetPluginOption);
+        Action<CommandResult> validateOwnerOptions = Validators.ValidateOwnerOptions(ownerOption, unsetOwnerOption);
+        Action<CommandResult> validateGroupSetDataLimit = GroupCommand.ValidateSetDataLimit(globalDataLimitOption, perUserDataLimitOption, usernamesOption);
+        Action<CommandResult> validateOutlineServerRotatePassword = OutlineServerCommand.ValidateRotatePassword(usernamesOption, groupsOption, allGroupsOption);
+        Action<CommandResult> validateServiceRun = ServiceCommand.ValidateRun(serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption);
+
         userCommand.Aliases.Add("u");
         nodeCommand.Aliases.Add("n");
         groupCommand.Aliases.Add("g");
@@ -577,7 +590,7 @@ internal class Program
         userJoinGroupsCommand.Arguments.Add(usernameArgument);
         userJoinGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
         userJoinGroupsCommand.Options.Add(allGroupsOption);
-        userJoinGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+        userJoinGroupsCommand.Validators.Add(enforceZeroGroupsArgumentWhenAll);
         userJoinGroupsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -589,7 +602,7 @@ internal class Program
         userLeaveGroupsCommand.Arguments.Add(usernameArgument);
         userLeaveGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
         userLeaveGroupsCommand.Options.Add(allGroupsOption);
-        userLeaveGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+        userLeaveGroupsCommand.Validators.Add(enforceZeroGroupsArgumentWhenAll);
         userLeaveGroupsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -604,7 +617,7 @@ internal class Program
         userAddCredentialCommand.Arguments.Add(passwordArgument);
         userAddCredentialCommand.Arguments.Add(groupsArgumentZeroOrMore);
         userAddCredentialCommand.Options.Add(allGroupsOption);
-        userAddCredentialCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+        userAddCredentialCommand.Validators.Add(enforceZeroGroupsArgumentWhenAll);
         userAddCredentialCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -619,7 +632,7 @@ internal class Program
         userRemoveCredentialsCommand.Arguments.Add(usernameArgument);
         userRemoveCredentialsCommand.Arguments.Add(groupsArgumentZeroOrMore);
         userRemoveCredentialsCommand.Options.Add(allGroupsOption);
-        userRemoveCredentialsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+        userRemoveCredentialsCommand.Validators.Add(enforceZeroGroupsArgumentWhenAll);
         userRemoveCredentialsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -676,7 +689,7 @@ internal class Program
         userSetDataLimitCommand.Options.Add(globalDataLimitOption);
         userSetDataLimitCommand.Options.Add(perGroupDataLimitOption);
         userSetDataLimitCommand.Options.Add(groupsOption);
-        userSetDataLimitCommand.Validators.Add(UserCommand.ValidateSetDataLimit);
+        userSetDataLimitCommand.Validators.Add(validateUserSetDataLimit);
         userSetDataLimitCommand.SetAction((parseResult, cancellationToken) =>
         {
             var usernames = parseResult.GetValue(usernamesArgumentOneOrMore)!;
@@ -691,7 +704,7 @@ internal class Program
         userOwnGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
         userOwnGroupsCommand.Options.Add(allGroupsOption);
         userOwnGroupsCommand.Options.Add(forceOption);
-        userOwnGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+        userOwnGroupsCommand.Validators.Add(enforceZeroGroupsArgumentWhenAll);
         userOwnGroupsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -705,7 +718,7 @@ internal class Program
         userDisownGroupsCommand.Arguments.Add(usernameArgument);
         userDisownGroupsCommand.Arguments.Add(groupsArgumentZeroOrMore);
         userDisownGroupsCommand.Options.Add(allGroupsOption);
-        userDisownGroupsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
+        userDisownGroupsCommand.Validators.Add(enforceZeroGroupsArgumentWhenAll);
         userDisownGroupsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -721,8 +734,8 @@ internal class Program
         userOwnNodesCommand.Options.Add(nodenamesOption);
         userOwnNodesCommand.Options.Add(allNodesNoAliasesOption);
         userOwnNodesCommand.Options.Add(forceOption);
-        userOwnNodesCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        userOwnNodesCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        userOwnNodesCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        userOwnNodesCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         userOwnNodesCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -740,8 +753,8 @@ internal class Program
         userDisownNodesCommand.Options.Add(allGroupsNoAliasesOption);
         userDisownNodesCommand.Options.Add(nodenamesOption);
         userDisownNodesCommand.Options.Add(allNodesNoAliasesOption);
-        userDisownNodesCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        userDisownNodesCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        userDisownNodesCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        userDisownNodesCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         userDisownNodesCommand.SetAction((parseResult, cancellationToken) =>
         {
             var username = parseResult.GetValue(usernameArgument)!;
@@ -782,7 +795,7 @@ internal class Program
         nodeAddCommand.Options.Add(ownerOption);
         nodeAddCommand.Options.Add(tagsOption);
         nodeAddCommand.Options.Add(iPSKOption);
-        nodeAddCommand.Validators.Add(NodeCommand.ValidateNodePlugin);
+        nodeAddCommand.Validators.Add(validateNodePlugin);
         nodeAddCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -816,8 +829,8 @@ internal class Program
         nodeEditCommand.Options.Add(removeTagsOption);
         nodeEditCommand.Options.Add(iPSKOption);
         nodeEditCommand.Options.Add(clearIPSKOption);
-        nodeEditCommand.Validators.Add(NodeCommand.ValidateNodePlugin);
-        nodeEditCommand.Validators.Add(Validators.ValidateOwnerOptions);
+        nodeEditCommand.Validators.Add(validateNodePlugin);
+        nodeEditCommand.Validators.Add(validateOwnerOptions);
         nodeEditCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -891,7 +904,7 @@ internal class Program
         nodeActivateCommand.Arguments.Add(groupArgument);
         nodeActivateCommand.Arguments.Add(nodenamesArgumentZeroOrMore);
         nodeActivateCommand.Options.Add(allNodesOption);
-        nodeActivateCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeActivateCommand.Validators.Add(enforceZeroNodenamesArgumentWhenAll);
         nodeActivateCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -905,7 +918,7 @@ internal class Program
         nodeDeactivateCommand.Arguments.Add(groupArgument);
         nodeDeactivateCommand.Arguments.Add(nodenamesArgumentZeroOrMore);
         nodeDeactivateCommand.Options.Add(allNodesOption);
-        nodeDeactivateCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeDeactivateCommand.Validators.Add(enforceZeroNodenamesArgumentWhenAll);
         nodeDeactivateCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -920,8 +933,8 @@ internal class Program
         nodeAddTagsCommand.Options.Add(allGroupsNoAliasesOption);
         nodeAddTagsCommand.Options.Add(nodenamesOption);
         nodeAddTagsCommand.Options.Add(allNodesNoAliasesOption);
-        nodeAddTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        nodeAddTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeAddTagsCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        nodeAddTagsCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         nodeAddTagsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var tags = parseResult.GetValue(tagsArgument)!;
@@ -940,8 +953,8 @@ internal class Program
         nodeEditTagsCommand.Options.Add(clearTagsOption);
         nodeEditTagsCommand.Options.Add(addTagsOption);
         nodeEditTagsCommand.Options.Add(removeTagsOption);
-        nodeEditTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        nodeEditTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeEditTagsCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        nodeEditTagsCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         nodeEditTagsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsOption)!;
@@ -960,8 +973,8 @@ internal class Program
         nodeRemoveTagsCommand.Options.Add(allGroupsNoAliasesOption);
         nodeRemoveTagsCommand.Options.Add(nodenamesOption);
         nodeRemoveTagsCommand.Options.Add(allNodesNoAliasesOption);
-        nodeRemoveTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        nodeRemoveTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeRemoveTagsCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        nodeRemoveTagsCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         nodeRemoveTagsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var tags = parseResult.GetValue(tagsArgument)!;
@@ -977,8 +990,8 @@ internal class Program
         nodeClearTagsCommand.Options.Add(allGroupsNoAliasesOption);
         nodeClearTagsCommand.Options.Add(nodenamesOption);
         nodeClearTagsCommand.Options.Add(allNodesNoAliasesOption);
-        nodeClearTagsCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        nodeClearTagsCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeClearTagsCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        nodeClearTagsCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         nodeClearTagsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsOption)!;
@@ -994,8 +1007,8 @@ internal class Program
         nodeSetOwnerCommand.Options.Add(allGroupsNoAliasesOption);
         nodeSetOwnerCommand.Options.Add(nodenamesOption);
         nodeSetOwnerCommand.Options.Add(allNodesNoAliasesOption);
-        nodeSetOwnerCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        nodeSetOwnerCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeSetOwnerCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        nodeSetOwnerCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         nodeSetOwnerCommand.SetAction((parseResult, cancellationToken) =>
         {
             var owner = parseResult.GetValue(ownerArgument)!;
@@ -1011,8 +1024,8 @@ internal class Program
         nodeUnsetOwnerCommand.Options.Add(allGroupsNoAliasesOption);
         nodeUnsetOwnerCommand.Options.Add(nodenamesOption);
         nodeUnsetOwnerCommand.Options.Add(allNodesNoAliasesOption);
-        nodeUnsetOwnerCommand.Validators.Add(Validators.EnforceZeroGroupsWhenAll);
-        nodeUnsetOwnerCommand.Validators.Add(Validators.EnforceZeroNodenamesWhenAll);
+        nodeUnsetOwnerCommand.Validators.Add(enforceZeroGroupsOptionWhenAll);
+        nodeUnsetOwnerCommand.Validators.Add(enforceZeroNodenamesOptionWhenAll);
         nodeUnsetOwnerCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsOption)!;
@@ -1036,7 +1049,7 @@ internal class Program
         groupEditCommand.Arguments.Add(groupsArgumentOneOrMore);
         groupEditCommand.Options.Add(ownerOption);
         groupEditCommand.Options.Add(unsetOwnerOption);
-        groupEditCommand.Validators.Add(Validators.ValidateOwnerOptions);
+        groupEditCommand.Validators.Add(validateOwnerOptions);
         groupEditCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsArgumentOneOrMore)!;
@@ -1079,7 +1092,7 @@ internal class Program
         groupAddUsersCommand.Arguments.Add(groupArgument);
         groupAddUsersCommand.Arguments.Add(usernamesArgumentZeroOrMore);
         groupAddUsersCommand.Options.Add(allUsersOption);
-        groupAddUsersCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
+        groupAddUsersCommand.Validators.Add(enforceZeroUsernamesArgumentWhenAll);
         groupAddUsersCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -1092,7 +1105,7 @@ internal class Program
         groupRemoveUsersCommand.Arguments.Add(groupArgument);
         groupRemoveUsersCommand.Arguments.Add(usernamesArgumentZeroOrMore);
         groupRemoveUsersCommand.Options.Add(allUsersOption);
-        groupRemoveUsersCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
+        groupRemoveUsersCommand.Validators.Add(enforceZeroUsernamesArgumentWhenAll);
         groupRemoveUsersCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -1119,7 +1132,7 @@ internal class Program
         groupAddCredentialCommand.Arguments.Add(passwordArgument);
         groupAddCredentialCommand.Arguments.Add(usernamesArgumentZeroOrMore);
         groupAddCredentialCommand.Options.Add(allUsersOption);
-        groupAddCredentialCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
+        groupAddCredentialCommand.Validators.Add(enforceZeroUsernamesArgumentWhenAll);
         groupAddCredentialCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -1134,7 +1147,7 @@ internal class Program
         groupRemoveCredentialsCommand.Arguments.Add(groupArgument);
         groupRemoveCredentialsCommand.Arguments.Add(usernamesArgumentZeroOrMore);
         groupRemoveCredentialsCommand.Options.Add(allUsersOption);
-        groupRemoveCredentialsCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
+        groupRemoveCredentialsCommand.Validators.Add(enforceZeroUsernamesArgumentWhenAll);
         groupRemoveCredentialsCommand.SetAction((parseResult, cancellationToken) =>
         {
             var group = parseResult.GetValue(groupArgument)!;
@@ -1171,7 +1184,7 @@ internal class Program
         groupSetDataLimitCommand.Options.Add(globalDataLimitOption);
         groupSetDataLimitCommand.Options.Add(perUserDataLimitOption);
         groupSetDataLimitCommand.Options.Add(usernamesOption);
-        groupSetDataLimitCommand.Validators.Add(GroupCommand.ValidateSetDataLimit);
+        groupSetDataLimitCommand.Validators.Add(validateGroupSetDataLimit);
         groupSetDataLimitCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsArgumentOneOrMore)!;
@@ -1208,7 +1221,7 @@ internal class Program
         onlineConfigCleanCommand.Aliases.Add("clear");
         onlineConfigCleanCommand.Arguments.Add(usernamesArgumentZeroOrMore);
         onlineConfigCleanCommand.Options.Add(allUsersOption);
-        onlineConfigCleanCommand.Validators.Add(Validators.EnforceZeroUsernamesWhenAll);
+        onlineConfigCleanCommand.Validators.Add(enforceZeroUsernamesArgumentWhenAll);
         onlineConfigCleanCommand.SetAction((parseResult, cancellationToken) =>
         {
             var usernames = parseResult.GetValue(usernamesArgumentZeroOrMore)!;
@@ -1281,7 +1294,7 @@ internal class Program
         outlineServerRotatePasswordCommand.Options.Add(usernamesOption);
         outlineServerRotatePasswordCommand.Options.Add(groupsOption);
         outlineServerRotatePasswordCommand.Options.Add(allGroupsOption);
-        outlineServerRotatePasswordCommand.Validators.Add(OutlineServerCommand.ValidateRotatePassword);
+        outlineServerRotatePasswordCommand.Validators.Add(validateOutlineServerRotatePassword);
         outlineServerRotatePasswordCommand.SetAction((parseResult, cancellationToken) =>
         {
             var usernames = parseResult.GetValue(usernamesOption)!;
@@ -1371,7 +1384,7 @@ internal class Program
         serviceCommand.Options.Add(serviceDeployOutlineServerOption);
         serviceCommand.Options.Add(serviceGenerateOnlineConfigOption);
         serviceCommand.Options.Add(serviceRegenerateOnlineConfigOption);
-        serviceCommand.Validators.Add(ServiceCommand.ValidateRun);
+        serviceCommand.Validators.Add(validateServiceRun);
         serviceCommand.SetAction((parseResult, cancellationToken) =>
         {
             var interval = parseResult.GetValue(serviceIntervalOption);

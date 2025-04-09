@@ -1,8 +1,8 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
-using ShadowsocksUriGenerator.Data;
+﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
@@ -318,18 +318,22 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static void ValidateRotatePassword(CommandResult commandResult)
+        public static Action<CommandResult> ValidateRotatePassword(
+            Option<string[]> usernamesOption,
+            Option<string[]> groupsOption,
+            Option<bool> allGroupsOption) =>
+            commandResult =>
         {
-            var hasUsernames = commandResult.ContainsOptionWithName("--usernames");
-            var hasGroups = commandResult.ContainsOptionWithName("--groups");
-            var hasAll = commandResult.ContainsOptionWithName("--all");
+            bool hasUsernames = commandResult.GetResult(usernamesOption) is not null;
+            bool hasGroups = commandResult.GetResult(groupsOption) is not null;
+            bool hasAll = commandResult.GetValue(allGroupsOption);
 
             if (hasAll && (hasUsernames || hasGroups))
                 commandResult.AddError("You are already targeting all groups and users with '--all'. Drop '--all' if you want to target specific users or groups.");
 
             if (!hasUsernames && !hasGroups && !hasAll)
                 commandResult.AddError("Target specific users with '--usernames', groups with '--groups'. You can also combine both, or target all groups and users with '--all'.");
-        }
+        };
 
         public static async Task<int> RotatePassword(string[] usernames, string[] groups, bool allGroups, CancellationToken cancellationToken = default)
         {

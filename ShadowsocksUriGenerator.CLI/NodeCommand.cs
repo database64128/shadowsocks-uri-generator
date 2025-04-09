@@ -2,6 +2,7 @@
 using ShadowsocksUriGenerator.Data;
 using System;
 using System.Collections.Generic;
+using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Linq;
 using System.Threading;
@@ -11,20 +12,26 @@ namespace ShadowsocksUriGenerator.CLI
 {
     public static class NodeCommand
     {
-        public static void ValidateNodePlugin(CommandResult commandResult)
+        public static Action<CommandResult> ValidateNodePlugin(
+            Option<string?> pluginNameOption,
+            Option<string?> pluginVersionOption,
+            Option<string?> pluginOptionsOption,
+            Option<string?> pluginArgumentsOption,
+            Option<bool> unsetPluginOption) =>
+            commandResult =>
         {
-            var hasPluginName = commandResult.ContainsOptionWithName("--plugin-name");
-            var hasPluginVersion = commandResult.ContainsOptionWithName("--plugin-version");
-            var hasPluginOptions = commandResult.ContainsOptionWithName("--plugin-options");
-            var hasPluginArguments = commandResult.ContainsOptionWithName("--plugin-arguments");
-            var hasUnsetPlugin = commandResult.ContainsOptionWithName("--unset-plugin");
+            bool hasPluginName = commandResult.GetResult(pluginNameOption) is not null;
+            bool hasPluginVersion = commandResult.GetResult(pluginVersionOption) is not null;
+            bool hasPluginOptions = commandResult.GetResult(pluginOptionsOption) is not null;
+            bool hasPluginArguments = commandResult.GetResult(pluginArgumentsOption) is not null;
+            bool hasUnsetPlugin = commandResult.GetValue(unsetPluginOption);
 
             if (!hasPluginName && (hasPluginVersion || hasPluginOptions || hasPluginArguments))
                 commandResult.AddError("You didn't specify a plugin.");
 
             if (hasPluginName && hasUnsetPlugin)
                 commandResult.AddError("You can't set and unset plugin at the same time.");
-        }
+        };
 
         public static async Task<int> Add(
             string group,

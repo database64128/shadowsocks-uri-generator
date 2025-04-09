@@ -1,4 +1,5 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
+﻿using System;
+using System.CommandLine;
 using System.CommandLine.Parsing;
 
 namespace ShadowsocksUriGenerator.CLI
@@ -9,11 +10,10 @@ namespace ShadowsocksUriGenerator.CLI
     /// </summary>
     public static class Validators
     {
-        public static void EnforceZeroUsernamesWhenAll(CommandResult commandResult)
+        public static Action<CommandResult> EnforceZeroUsernamesArgumentWhenAll(Argument<string[]> usernamesArgumentZeroOrMore, Option<bool> allUsersOption) => commandResult =>
         {
-            var hasUsernames = commandResult.ContainsOptionWithName("--usernames");
-            var hasAllUsers = commandResult.ContainsOptionWithName("--all-users");
-
+            bool hasUsernames = commandResult.GetValue(usernamesArgumentZeroOrMore)?.Length > 0;
+            bool hasAllUsers = commandResult.GetValue(allUsersOption);
             if (!hasUsernames && !hasAllUsers)
             {
                 commandResult.AddError("Please either specify target users, or use `--all-users` to target all users.");
@@ -22,13 +22,24 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 commandResult.AddError("You can't specify target users when targeting all users with `--all-users`.");
             }
-        }
+        };
 
-        public static void EnforceZeroNodenamesWhenAll(CommandResult commandResult)
+        public static Action<CommandResult> EnforceZeroNodenamesArgumentWhenAll(Argument<string[]> nodenamesArgumentZeroOrMore, Option<bool> allNodesOption) => commandResult =>
         {
-            var hasNodenames = commandResult.ContainsOptionWithName("--nodenames");
-            var hasAllNodes = commandResult.ContainsOptionWithName("--all-nodes");
+            bool hasNodenames = commandResult.GetValue(nodenamesArgumentZeroOrMore)?.Length > 0;
+            bool hasAllNodes = commandResult.GetValue(allNodesOption);
+            EnforceZeroNodenamesWhenAll(hasNodenames, hasAllNodes, commandResult);
+        };
 
+        public static Action<CommandResult> EnforceZeroNodenamesOptionWhenAll(Option<string[]> nodenamesOption, Option<bool> allNodesOption) => commandResult =>
+        {
+            bool hasNodenames = commandResult.GetResult(nodenamesOption) is not null;
+            bool hasAllNodes = commandResult.GetValue(allNodesOption);
+            EnforceZeroNodenamesWhenAll(hasNodenames, hasAllNodes, commandResult);
+        };
+
+        private static void EnforceZeroNodenamesWhenAll(bool hasNodenames, bool hasAllNodes, CommandResult commandResult)
+        {
             if (!hasNodenames && !hasAllNodes)
             {
                 commandResult.AddError("Please either specify target nodes, or use `--all-nodes` to target all nodes.");
@@ -39,11 +50,22 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static void EnforceZeroGroupsWhenAll(CommandResult commandResult)
+        public static Action<CommandResult> EnforceZeroGroupsArgumentWhenAll(Argument<string[]> groupsArgumentZeroOrMore, Option<bool> allGroupsOption) => commandResult =>
         {
-            var hasGroups = commandResult.ContainsOptionWithName("--groups");
-            var hasAllGroups = commandResult.ContainsOptionWithName("--all-groups");
+            bool hasGroups = commandResult.GetValue(groupsArgumentZeroOrMore)?.Length > 0;
+            bool hasAllGroups = commandResult.GetValue(allGroupsOption);
+            EnforceZeroGroupsWhenAll(hasGroups, hasAllGroups, commandResult);
+        };
 
+        public static Action<CommandResult> EnforceZeroGroupsOptionWhenAll(Option<string[]> groupsOption, Option<bool> allGroupsOption) => commandResult =>
+        {
+            bool hasGroups = commandResult.GetResult(groupsOption) is not null;
+            bool hasAllGroups = commandResult.GetValue(allGroupsOption);
+            EnforceZeroGroupsWhenAll(hasGroups, hasAllGroups, commandResult);
+        };
+
+        private static void EnforceZeroGroupsWhenAll(bool hasGroups, bool hasAllGroups, CommandResult commandResult)
+        {
             if (!hasGroups && !hasAllGroups)
             {
                 commandResult.AddError("Please either specify target groups, or use `--all-groups` to target all groups.");
@@ -54,15 +76,15 @@ namespace ShadowsocksUriGenerator.CLI
             }
         }
 
-        public static void ValidateOwnerOptions(CommandResult commandResult)
+        public static Action<CommandResult> ValidateOwnerOptions(Option<string?> ownerOption, Option<bool> unsetOwnerOption) => commandResult =>
         {
-            var setOwner = commandResult.ContainsOptionWithName("--owner");
-            var unsetOwner = commandResult.ContainsOptionWithName("--unset-owner");
+            bool setOwner = commandResult.GetResult(ownerOption) is not null;
+            bool unsetOwner = commandResult.GetValue(unsetOwnerOption);
 
             if (setOwner && unsetOwner)
             {
                 commandResult.AddError("You can't set and unset owner at the same time.");
             }
-        }
+        };
     }
 }
