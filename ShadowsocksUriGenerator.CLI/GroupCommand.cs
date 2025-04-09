@@ -583,6 +583,90 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
+        public static async Task<int> GenerateCredentials(
+            string group,
+            string method,
+            string[] usernames,
+            bool allUsers,
+            bool overwriteExisting,
+            CancellationToken cancellationToken = default)
+        {
+            var commandResult = 0;
+
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (!nodes.Groups.ContainsKey(group))
+            {
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                return -2;
+            }
+
+            if (allUsers)
+            {
+                foreach (var userEntry in users.UserDict)
+                {
+                    var result = userEntry.Value.GenerateCredential(group, method, overwriteExisting);
+                    switch (result)
+                    {
+                        case 0:
+                            Console.WriteLine($"Generated group credential for {userEntry.Key}.");
+                            break;
+                        case 2:
+                            Console.WriteLine("The user already has a credential for the group. Remove it first or use `--force` to overwrite it.");
+                            break;
+                        default:
+                            Console.WriteLine($"Unknown error: {result}.");
+                            commandResult += result;
+                            break;
+                    }
+                }
+            }
+
+            foreach (var username in usernames)
+            {
+                var result = users.GenerateCredentialForUser(username, group, method, overwriteExisting);
+                switch (result)
+                {
+                    case 0:
+                        Console.WriteLine($"Generated group credential for {username}.");
+                        break;
+                    case 2:
+                        Console.WriteLine("The user already has a credential for the group. Remove it first or use `--force` to overwrite it.");
+                        break;
+                    case -1:
+                        Console.WriteLine($"Error: user {username} doesn't exist.");
+                        commandResult += result;
+                        break;
+                    default:
+                        Console.WriteLine($"Unknown error: {result}.");
+                        commandResult += result;
+                        break;
+                }
+            }
+
+            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
+            if (saveUsersErrMsg is not null)
+            {
+                Console.WriteLine(saveUsersErrMsg);
+                return 1;
+            }
+
+            return commandResult;
+        }
+
         public static async Task<int> RemoveCredentials(string group, string[] usernames, bool allUsers, CancellationToken cancellationToken = default)
         {
             var commandResult = 0;

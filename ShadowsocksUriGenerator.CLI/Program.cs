@@ -98,6 +98,7 @@ internal class Program
         var groupRemoveUsersCommand = new Command("remove-users", "Remove users from the group.");
         var groupListUsersCommand = new Command("list-users", "List group members and credentials.");
         var groupAddCredentialCommand = new Command("add-credential", "Add credential to selected users in the group.");
+        var groupGenerateCredentialsCommand = new Command("generate-credentials", "Generate credentials for specified users.");
         var groupRemoveCredentialsCommand = new Command("remove-credentials", "Remove credentials from selected users in the group.");
         var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
         var groupGetDataLimitCommand = new Command("get-data-limit", "Get the group's data limit settings.");
@@ -114,6 +115,7 @@ internal class Program
             groupRemoveUsersCommand,
             groupListUsersCommand,
             groupAddCredentialCommand,
+            groupGenerateCredentialsCommand,
             groupRemoveCredentialsCommand,
             groupGetDataUsageCommand,
             groupGetDataLimitCommand,
@@ -1141,6 +1143,23 @@ internal class Program
             var usernames = parseResult.GetValue(usernamesArgumentZeroOrMore)!;
             var allUsers = parseResult.GetValue(allUsersOption);
             return GroupCommand.AddCredential(group, method, password, usernames, allUsers, cancellationToken);
+        });
+
+        groupGenerateCredentialsCommand.Aliases.Add("gc");
+        groupGenerateCredentialsCommand.Arguments.Add(groupArgument);
+        groupGenerateCredentialsCommand.Arguments.Add(methodArgument);
+        groupGenerateCredentialsCommand.Arguments.Add(usernamesArgumentZeroOrMore);
+        groupGenerateCredentialsCommand.Options.Add(allUsersOption);
+        groupGenerateCredentialsCommand.Options.Add(forceOption);
+        groupGenerateCredentialsCommand.Validators.Add(enforceZeroUsernamesArgumentWhenAll);
+        groupGenerateCredentialsCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var group = parseResult.GetValue(groupArgument)!;
+            var method = parseResult.GetValue(methodArgument)!;
+            var usernames = parseResult.GetValue(usernamesArgumentZeroOrMore)!;
+            var allUsers = parseResult.GetValue(allUsersOption);
+            var force = parseResult.GetValue(forceOption);
+            return GroupCommand.GenerateCredentials(group, method, usernames, allUsers, force, cancellationToken);
         });
 
         groupRemoveCredentialsCommand.Aliases.Add("rc");

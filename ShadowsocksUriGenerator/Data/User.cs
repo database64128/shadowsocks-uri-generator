@@ -88,6 +88,39 @@ namespace ShadowsocksUriGenerator.Data
         }
 
         /// <summary>
+        /// Generates a new credential for the user in the specified group.
+        /// </summary>
+        /// <param name="group">Group name.</param>
+        /// <param name="method">Method name.</param>
+        /// <param name="overwriteExisting">Whether to overwrite existing credential.</param>
+        /// <returns>0 for success. 2 for duplicated credential.</returns>
+        public int GenerateCredential(string group, string method, bool overwriteExisting)
+        {
+            if (!Memberships.TryGetValue(group, out MemberInfo? memberInfo)) // not in group, add user to it
+            {
+                memberInfo = new MemberInfo(method);
+                Memberships.Add(group, memberInfo);
+                return 0;
+            }
+            else if (!memberInfo.HasCredential) // already in group without credential, add credential
+            {
+                memberInfo.Method = method;
+                memberInfo.GeneratePassword();
+                return 0;
+            }
+            else if (overwriteExisting) // already in group with credential, overwrite it
+            {
+                memberInfo.Method = method;
+                memberInfo.GeneratePassword();
+                return 0;
+            }
+            else // already in group with credential
+            {
+                return 2;
+            }
+        }
+
+        /// <summary>
         /// Removes the user from the specified group.
         /// </summary>
         /// <param name="group">Name of the group.</param>

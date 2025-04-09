@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator.Data;
@@ -37,6 +39,16 @@ public class MemberInfo : IEquatable<MemberInfo>
         Password = "";
     }
 
+    /// <summary>
+    /// Constructs a member info object with the given method and a generated password.
+    /// </summary>
+    /// <param name="method">Method name.</param>
+    public MemberInfo(string method)
+    {
+        Method = method;
+        GeneratePassword();
+    }
+
     public MemberInfo(string method, string password, ulong dataLimitInBytes = 0UL)
     {
         Method = method;
@@ -49,6 +61,19 @@ public class MemberInfo : IEquatable<MemberInfo>
     public override bool Equals(object? obj) => Equals(obj as MemberInfo);
 
     public override int GetHashCode() => Method.GetHashCode() ^ Password.GetHashCode();
+
+    [MemberNotNull(nameof(Password))]
+    public void GeneratePassword()
+    {
+        int keySize = Method switch
+        {
+            "2022-blake3-aes-128-gcm" => 16,
+            _ => 32,
+        };
+        Span<byte> key = stackalloc byte[keySize];
+        RandomNumberGenerator.Fill(key);
+        Password = Convert.ToBase64String(key);
+    }
 
     /// <summary>
     /// Clears the credential information.

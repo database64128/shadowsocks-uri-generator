@@ -156,6 +156,26 @@ namespace ShadowsocksUriGenerator.Data
         }
 
         /// <summary>
+        /// Generates a credential for the specified user.
+        /// </summary>
+        /// <param name="user">Username.</param>
+        /// <param name="group">Group name.</param>
+        /// <param name="method">Method name.</param>
+        /// <param name="overwriteExisting">Whether to overwrite existing credential.</param>
+        /// <returns>
+        /// 0 for success.
+        /// 2 for duplicated credential.
+        /// -1 for non-existing target user.
+        /// </returns>
+        public int GenerateCredentialForUser(string user, string group, string method, bool overwriteExisting)
+        {
+            if (UserDict.TryGetValue(user, out var targetUser))
+                return targetUser.GenerateCredential(group, method, overwriteExisting);
+            else
+                return -1;
+        }
+
+        /// <summary>
         /// Updates credential entries for all users when group name changes.
         /// </summary>
         /// <param name="oldGroupName">The old group name.</param>
