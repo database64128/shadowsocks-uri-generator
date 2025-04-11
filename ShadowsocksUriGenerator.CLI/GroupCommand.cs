@@ -77,7 +77,13 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task<int> Edit(string[] groups, string? owner, bool unsetOwner, CancellationToken cancellationToken = default)
+        public static async Task<int> Edit(
+            string[] groups,
+            string? owner,
+            Uri? ssmv1BaseUri,
+            bool unsetOwner,
+            bool unsetSSMv1BaseUri,
+            CancellationToken cancellationToken = default)
         {
             var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
             if (loadUsersErrMsg is not null)
@@ -121,10 +127,22 @@ namespace ShadowsocksUriGenerator.CLI
                         Console.WriteLine($"Set user {owner} as owner of group {group}.");
                     }
 
+                    if (ssmv1BaseUri is not null)
+                    {
+                        targetGroup.SSMv1BaseUri = ssmv1BaseUri;
+                        Console.WriteLine($"Set SSMv1 base URI of group {group} to {ssmv1BaseUri.OriginalString}.");
+                    }
+
                     if (unsetOwner)
                     {
                         targetGroup.OwnerUuid = null;
                         Console.WriteLine($"Unset owner of group {group}.");
+                    }
+
+                    if (unsetSSMv1BaseUri)
+                    {
+                        targetGroup.SSMv1BaseUri = null;
+                        Console.WriteLine($"Unset SSMv1 base URI of group {group}.");
                     }
                 }
                 else
@@ -312,6 +330,52 @@ namespace ShadowsocksUriGenerator.CLI
             }
 
             ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
+
+            return 0;
+        }
+
+        public static async Task<int> Get(string group, CancellationToken cancellationToken = default)
+        {
+            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+            if (loadUsersErrMsg is not null)
+            {
+                Console.WriteLine(loadUsersErrMsg);
+                return 1;
+            }
+
+            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+            if (loadNodesErrMsg is not null)
+            {
+                Console.WriteLine(loadNodesErrMsg);
+                return 1;
+            }
+            using var nodes = loadedNodes;
+
+            if (!nodes.Groups.TryGetValue(group, out var targetGroup))
+            {
+                Console.WriteLine($"Error: Group {group} doesn't exist.");
+                return -2;
+            }
+
+            var ownerUuid = targetGroup.OwnerUuid;
+            var owner = ownerUuid is null
+                ? "N/A"
+                : users.TryGetUserById(ownerUuid, out var userEntry)
+                ? userEntry.Key
+                : "N/A";
+            var ssmv1BaseUri = targetGroup.SSMv1BaseUri is null
+                ? "N/A"
+                : targetGroup.SSMv1BaseUri.OriginalString;
+
+            Console.WriteLine($"Group:             {group}");
+            Console.WriteLine($"Owner:             {owner}");
+            Console.WriteLine($"SSMv1 base URI:    {ssmv1BaseUri}");
+
+            if (targetGroup.SSMv1ServerInfo is not null)
+            {
+                Console.WriteLine($"SSMv1 API server:  {targetGroup.SSMv1ServerInfo.Server}");
+                Console.WriteLine($"SSMv1 API version: {targetGroup.SSMv1ServerInfo.ApiVersion}");
+            }
 
             return 0;
         }

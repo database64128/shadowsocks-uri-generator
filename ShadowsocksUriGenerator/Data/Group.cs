@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Outline;
+using ShadowsocksUriGenerator.SSMv1;
 using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
@@ -64,6 +65,16 @@ namespace ShadowsocksUriGenerator.Data
         /// Gets or sets the group's owner.
         /// </summary>
         public string? OwnerUuid { get; set; }
+
+        /// <summary>
+        /// Gets or sets the group's Shadowsocks Server Management API v1 (SSMv1) base URI.
+        /// </summary>
+        public Uri? SSMv1BaseUri { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Shadowsocks Server Management API v1 (SSMv1) server information object.
+        /// </summary>
+        public SSMv1ServerInfo? SSMv1ServerInfo { get; set; }
 
         /// <summary>
         /// Gets or sets the Node Dictionary.

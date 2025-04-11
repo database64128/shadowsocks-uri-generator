@@ -94,6 +94,7 @@ internal class Program
         var groupRenameCommand = new Command("rename", "Renames an existing group with a new name.");
         var groupRemoveCommand = new Command("remove", "Remove groups and its nodes.");
         var groupListCommand = new Command("list", "List all groups.");
+        var groupGetCommand = new Command("get", "Get group information.");
         var groupAddUsersCommand = new Command("add-users", "Add users to the group.");
         var groupRemoveUsersCommand = new Command("remove-users", "Remove users from the group.");
         var groupListUsersCommand = new Command("list-users", "List group members and credentials.");
@@ -112,6 +113,7 @@ internal class Program
             groupRenameCommand,
             groupRemoveCommand,
             groupListCommand,
+            groupGetCommand,
             groupAddUsersCommand,
             groupRemoveUsersCommand,
             groupListUsersCommand,
@@ -321,6 +323,16 @@ internal class Program
         var unsetOwnerOption = new Option<bool>("--unset-owner")
         {
             Description = "Unset the owner.",
+        };
+
+        var ssmv1BaseUriOption = new Option<Uri>("--ssmv1-base-uri")
+        {
+            Description = "Set the Shadowsocks Server Management API v1 (SSMv1) base URI.",
+            CustomParser = Parsers.ParseAbsoluteUri,
+        };
+        var unsetSSMv1BaseUriOption = new Option<bool>("--unset-ssmv1-base-uri")
+        {
+            Description = "Unset the Shadowsocks Server Management API v1 (SSMv1) base URI.",
         };
 
         var forceOption = new Option<bool>("--force", "-f")
@@ -1052,14 +1064,18 @@ internal class Program
         groupEditCommand.Aliases.Add("e");
         groupEditCommand.Arguments.Add(groupsArgumentOneOrMore);
         groupEditCommand.Options.Add(ownerOption);
+        groupEditCommand.Options.Add(ssmv1BaseUriOption);
         groupEditCommand.Options.Add(unsetOwnerOption);
+        groupEditCommand.Options.Add(unsetSSMv1BaseUriOption);
         groupEditCommand.Validators.Add(validateOwnerOptions);
         groupEditCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsArgumentOneOrMore)!;
             var owner = parseResult.GetValue(ownerOption);
+            var ssmv1BaseUri = parseResult.GetValue(ssmv1BaseUriOption);
             var unsetOwner = parseResult.GetValue(unsetOwnerOption);
-            return GroupCommand.Edit(groups, owner, unsetOwner, cancellationToken);
+            var unsetSSMv1BaseUri = parseResult.GetValue(unsetSSMv1BaseUriOption);
+            return GroupCommand.Edit(groups, owner, ssmv1BaseUri, unsetOwner, unsetSSMv1BaseUri, cancellationToken);
         });
 
         groupRenameCommand.Arguments.Add(oldNameArgument);
@@ -1090,6 +1106,13 @@ internal class Program
             var namesOnly = parseResult.GetValue(namesOnlyOption);
             var onePerLine = parseResult.GetValue(onePerLineOption);
             return GroupCommand.List(namesOnly, onePerLine, cancellationToken);
+        });
+
+        groupGetCommand.Arguments.Add(groupArgument);
+        groupGetCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var group = parseResult.GetValue(groupArgument)!;
+            return GroupCommand.Get(group, cancellationToken);
         });
 
         groupAddUsersCommand.Aliases.Add("au");

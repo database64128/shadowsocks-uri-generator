@@ -1,4 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Utils;
+using System;
 using System.CommandLine.Parsing;
 using System.Linq;
 
@@ -87,6 +88,26 @@ namespace ShadowsocksUriGenerator.CLI
             else
             {
                 argumentResult.AddError($"Invalid data string representation: {dataString}");
+                return default;
+            }
+        }
+
+        /// <summary>
+        /// Parses the string representation of an absolute URI
+        /// into a Uri object.
+        /// </summary>
+        /// <param name="argumentResult">The argument result.</param>
+        /// <returns>The Uri object.</returns>
+        public static Uri? ParseAbsoluteUri(ArgumentResult argumentResult)
+        {
+            var uriString = argumentResult.Tokens.Single().Value;
+            if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
+            {
+                return uri;
+            }
+            else
+            {
+                argumentResult.AddError($"Invalid URI: {uriString}");
                 return default;
             }
         }
