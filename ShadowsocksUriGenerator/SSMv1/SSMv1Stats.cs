@@ -34,6 +34,19 @@ public class SSMv1StatsBase
     /// Gets or sets the number of UDP sessions.
     /// </summary>
     public ulong UdpSessions { get; set; }
+
+    /// <summary>
+    /// Resets the stats to zero.
+    /// </summary>
+    public void Clear()
+    {
+        DownlinkPackets = 0UL;
+        DownlinkBytes = 0UL;
+        UplinkPackets = 0UL;
+        UplinkBytes = 0UL;
+        TcpSessions = 0UL;
+        UdpSessions = 0UL;
+    }
 }
 
 /// <summary>

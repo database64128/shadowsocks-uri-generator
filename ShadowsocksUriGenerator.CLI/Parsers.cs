@@ -66,6 +66,24 @@ namespace ShadowsocksUriGenerator.CLI
         }
 
         /// <summary>
+        /// Parses the Shadowsocks 2022 method string.
+        /// </summary>
+        /// <param name="argumentResult">The argument result.</param>
+        /// <returns>The Shadowsocks 2022 method string.</returns>
+        public static string ParseShadowsocks2022Method(ArgumentResult argumentResult)
+        {
+            var method = argumentResult.Tokens.Single().Value;
+            switch (method)
+            {
+                case "2022-blake3-aes-128-gcm" or "2022-blake3-aes-256-gcm" or "2022-blake3-chacha8-poly1305" or "2022-blake3-chacha12-poly1305" or "2022-blake3-chacha20-poly1305":
+                    return method;
+                default:
+                    argumentResult.AddError($"Invalid Shadowsocks 2022 method: {method}");
+                    return string.Empty;
+            }
+        }
+
+        /// <summary>
         /// Parses the string representation of an amount of data
         /// into the number of bytes it represents.
         /// </summary>

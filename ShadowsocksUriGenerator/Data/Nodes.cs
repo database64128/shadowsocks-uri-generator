@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Data
@@ -47,21 +48,41 @@ namespace ShadowsocksUriGenerator.Data
         /// <summary>
         /// Adds a new node group to the group dictionary.
         /// </summary>
-        /// <param name="group">The group to add.</param>
+        /// <param name="groupName">The group to add.</param>
         /// <param name="ownerUuid">Optional. User UUID of the group owner.</param>
+        /// <param name="ssmv1BaseUri">Optional. SSMv1 API base URI.</param>
+        /// <param name="ssmv1ServerMethod">Optional. SSMv1 server method.</param>
         /// <returns>
         /// 0 for success.
         /// 1 when a group with the same name already exists.
         /// </returns>
-        public int AddGroup(string group, string? ownerUuid = null)
+        public int AddGroup(
+            string groupName,
+            string? ownerUuid = null,
+            Uri? ssmv1BaseUri = null,
+            string? ssmv1ServerMethod = null)
         {
-            if (!Groups.ContainsKey(group))
+            if (!Groups.ContainsKey(groupName))
             {
-                Groups.Add(group, new()
+                Group group = new()
                 {
                     OwnerUuid = ownerUuid,
-                });
+                };
 
+                if (ssmv1BaseUri is not null)
+                {
+                    group.SSMv1Server = new()
+                    {
+                        BaseUri = ssmv1BaseUri,
+                    };
+
+                    if (ssmv1ServerMethod is not null)
+                    {
+                        group.SSMv1Server.ServerMethod = ssmv1ServerMethod;
+                    }
+                }
+
+                Groups.Add(groupName, group);
                 return 0;
             }
             else
@@ -92,8 +113,6 @@ namespace ShadowsocksUriGenerator.Data
 
         /// <summary>
         /// Removes the group from storage.
-        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
-        /// after removing the group.
         /// </summary>
         /// <param name="group">The group to be removed.</param>
         /// <returns>
@@ -251,14 +270,15 @@ namespace ShadowsocksUriGenerator.Data
         /// Gets all data usage records of the group.
         /// </summary>
         /// <param name="group">Target group.</param>
+        /// <param name="users"> The <see cref="Users"/> object.</param>
         /// <returns>
         /// A list of data usage records as tuples.
         /// Null if the group doesn't exist.
         /// </returns>
-        public List<(string username, ulong bytesUsed, ulong bytesRemaining)>? GetGroupDataUsage(string group)
+        public List<(string username, ulong bytesUsed, ulong bytesRemaining)>? GetGroupDataUsage(string group, Users users)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.GetDataUsage();
+                return targetGroup.GetDataUsage(group, users);
             else
                 return null;
         }
@@ -285,7 +305,6 @@ namespace ShadowsocksUriGenerator.Data
             if (Groups.TryGetValue(group, out var targetGroup))
             {
                 targetGroup.DataLimitInBytes = dataLimit;
-                targetGroup.UpdateDataRemaining();
                 return 0;
             }
             else
@@ -411,67 +430,17 @@ namespace ShadowsocksUriGenerator.Data
         /// and all saved data related to it from the target group.
         /// </summary>
         /// <param name="group">Target group.</param>
+        /// <param name="users"> The <see cref="Users"/> object.</param>
         /// <returns>0 for success. -1 when target group doesn't exist.</returns>
-        public int RemoveOutlineServerFromGroup(string group)
+        public int RemoveOutlineServerFromGroup(string group, Users users)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
             {
-                targetGroup.RemoveOutlineServer();
+                targetGroup.RemoveOutlineServer(group, users);
                 return 0;
             }
             else
                 return -1;
-        }
-
-        /// <summary>
-        /// Pulls server information, access keys, and data usage
-        /// from every associated Outline server.
-        /// Optionally updates user membership dictionary
-        /// in the local storage.
-        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
-        /// after all pulls are finished.
-        /// </summary>
-        /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalUserMemberships">
-        /// Whether to update local user memberships from the retrieved access keys.
-        /// Defaults to true.
-        /// </param>
-        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>
-        /// An async-enumerable sequence whose elements are error messages.
-        /// </returns>
-        public IAsyncEnumerable<string> PullFromOutlineServerForAllGroups(Users users, bool updateLocalUserMemberships = true, CancellationToken cancellationToken = default)
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-            => Groups.Select(x => x.Value.PullFromOutlineServer(x.Key, users, _httpClient, updateLocalUserMemberships, true, cancellationToken).ToAsyncEnumerable())
-                     .ConcurrentMerge()
-                     .Where(errMsg => errMsg is not null);
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-
-        /// <summary>
-        /// Pulls server information, access keys, and data usage
-        /// from the specified group's associated Outline server.
-        /// Optionally updates user membership dictionary
-        /// in the local storage.
-        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
-        /// after all pulls are finished.
-        /// </summary>
-        /// <param name="group">Target group.</param>
-        /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="updateLocalUserMemberships">
-        /// Whether to update local user memberships from the retrieved access keys.
-        /// Defaults to true.
-        /// </param>
-        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>
-        /// The task that represents the operation.
-        /// An optional error message.
-        /// </returns>
-        public Task<string?> PullFromGroupOutlineServer(string group, Users users, bool updateLocalUserMemberships = true, CancellationToken cancellationToken = default)
-        {
-            if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.PullFromOutlineServer(group, users, _httpClient, updateLocalUserMemberships, false, cancellationToken);
-            else
-                return Task.FromResult<string?>($"Error: Group {group} doesn't exist.");
         }
 
         /// <summary>
@@ -483,12 +452,12 @@ namespace ShadowsocksUriGenerator.Data
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public IAsyncEnumerable<string> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
+        public IAsyncEnumerable<Task> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
         {
             if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.DeployToOutlineServer(group, users, _httpClient, false, cancellationToken);
+                return targetGroup.DeployToOutlineServer(group, users, _httpClient, cancellationToken);
             else
-                return AsyncEnumerableEx.Return($"Error: Group {group} doesn't exist.");
+                return AsyncEnumerableEx.Return(Task.CompletedTask);
         }
 
         /// <summary>
@@ -499,8 +468,8 @@ namespace ShadowsocksUriGenerator.Data
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public IAsyncEnumerable<string> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
-            => Groups.Select(x => x.Value.DeployToOutlineServer(x.Key, users, _httpClient, true, cancellationToken)).ConcurrentMerge();
+        public IAsyncEnumerable<Task> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
+            => Groups.Select(x => x.Value.DeployToOutlineServer(x.Key, users, _httpClient, cancellationToken)).ConcurrentMerge();
 
         /// <summary>
         /// Renames the user and syncs with Outline server in the group.
@@ -550,6 +519,106 @@ namespace ShadowsocksUriGenerator.Data
         /// </returns>
         public IAsyncEnumerable<string> RotatePasswordForAllGroups(Users users, CancellationToken cancellationToken = default, params string[] usernames)
             => Groups.Select(x => x.Value.RotatePassword(x.Key, users, _httpClient, false, cancellationToken, usernames)).ConcurrentMerge();
+
+        /// <summary>
+        /// Pulls server information, user credentials, and statistics,
+        /// from servers of the specified or all groups, via available APIs.
+        /// </summary>
+        /// <param name="groupNames">If not empty, only include servers from these groups.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="settings">The <see cref="Settings"/> object.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        /// <returns>The task that represents the operation.</returns>
+        /// <exception cref="ArgumentException">One or more group names are not found.</exception>
+        public async Task PullGroupsAsync(ReadOnlyMemory<string> groupNames, Users users, Settings settings, CancellationToken cancellationToken = default)
+        {
+            IReadOnlyCollection<KeyValuePair<string, Group>> groups;
+
+            if (groupNames.IsEmpty)
+            {
+                groups = Groups;
+            }
+            else
+            {
+                ReadOnlySpan<string> groupNamesSpan = groupNames.Span;
+                KeyValuePair<string, Group>[] groupArray = new KeyValuePair<string, Group>[groupNamesSpan.Length];
+                for (int i = 0; i < groupNamesSpan.Length; i++)
+                {
+                    string groupName = groupNamesSpan[i];
+                    if (Groups.TryGetValue(groupName, out var group))
+                    {
+                        groupArray[i] = new(groupName, group);
+                    }
+                    else
+                    {
+                        throw new ArgumentException($"Group {groupName} not found", nameof(groupNames));
+                    }
+                }
+                groups = groupArray;
+            }
+
+            int concurrency = int.Min(settings.ApiRequestConcurrency, groups.Count);
+
+            Channel<KeyValuePair<string, Group>> channel = Channel.CreateBounded<KeyValuePair<string, Group>>(new BoundedChannelOptions(concurrency)
+            {
+                SingleWriter = true,
+            });
+
+            Task[] tasks = new Task[concurrency];
+
+            for (int i = 0; i < concurrency; i++)
+            {
+                tasks[i] = DoPullJobAsync(channel.Reader, users, cancellationToken);
+            }
+
+            try
+            {
+                foreach (var groupEntry in groups)
+                {
+                    await channel.Writer.WriteAsync(groupEntry, cancellationToken);
+                }
+            }
+            finally
+            {
+                channel.Writer.Complete();
+            }
+
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task DoPullJobAsync(
+            ChannelReader<KeyValuePair<string, Group>> reader,
+            Users users,
+            CancellationToken cancellationToken = default)
+        {
+            await foreach (KeyValuePair<string, Group> groupEntry in reader.ReadAllAsync(cancellationToken))
+            {
+                await foreach (Task task in PullGroupAsync(groupEntry, users, cancellationToken))
+                {
+                    try
+                    {
+                        await task;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Pulls server information, user credentials, and statistics,
+        /// from the group's server via available APIs.
+        /// </summary>
+        /// <param name="groupEntry">Target group entry.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> for iterating through completed tasks.</returns>
+        public IAsyncEnumerable<Task> PullGroupAsync(KeyValuePair<string, Group> groupEntry, Users users, CancellationToken cancellationToken = default) =>
+            groupEntry.Value.SSMv1Server is not null
+                ? groupEntry.Value.SSMv1Server.PullAsync(_httpClient, groupEntry.Key, groupEntry.Value, users, cancellationToken)
+                : groupEntry.Value.PullFromOutlineServer(groupEntry.Key, users, _httpClient, cancellationToken);
 
         /// <summary>
         /// Loads nodes from Nodes.json.

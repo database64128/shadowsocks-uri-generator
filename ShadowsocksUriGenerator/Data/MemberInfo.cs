@@ -31,6 +31,16 @@ public class MemberInfo : IEquatable<MemberInfo>
     public ulong DataLimitInBytes { get; set; }
 
     /// <summary>
+    /// Gets or sets the data usage in bytes.
+    /// </summary>
+    public ulong BytesUsed { get; set; }
+
+    /// <summary>
+    /// Gets or sets the data remaining to be used in bytes.
+    /// </summary>
+    public ulong BytesRemaining { get; set; }
+
+    /// <summary>
     /// Parameterless constructor for System.Text.Json
     /// </summary>
     public MemberInfo()
@@ -49,11 +59,10 @@ public class MemberInfo : IEquatable<MemberInfo>
         GeneratePassword();
     }
 
-    public MemberInfo(string method, string password, ulong dataLimitInBytes = 0UL)
+    public MemberInfo(string method, string password)
     {
         Method = method;
         Password = password;
-        DataLimitInBytes = dataLimitInBytes;
     }
 
     public bool Equals(MemberInfo? other) => Method == other?.Method && Password == other?.Password;
@@ -101,5 +110,29 @@ public class MemberInfo : IEquatable<MemberInfo>
 
             Password.CopyTo(chars);
         });
+    }
+
+    public void AddBytesUsed(ulong bytesUsed, ulong perUserDataLimitInBytes)
+    {
+        BytesUsed += bytesUsed;
+        UpdateBytesRemaining(perUserDataLimitInBytes);
+    }
+
+    public void SubBytesUsed(ulong bytesUsed, ulong perUserDataLimitInBytes)
+    {
+        BytesUsed = BytesUsed >= bytesUsed ? BytesUsed - bytesUsed : 0UL;
+        UpdateBytesRemaining(perUserDataLimitInBytes);
+    }
+
+    public void ClearBytesUsed(ulong perUserDataLimitInBytes)
+    {
+        BytesUsed = 0UL;
+        UpdateBytesRemaining(perUserDataLimitInBytes);
+    }
+
+    private void UpdateBytesRemaining(ulong perUserDataLimitInBytes)
+    {
+        ulong dataLimitInBytes = DataLimitInBytes > 0UL ? DataLimitInBytes : perUserDataLimitInBytes;
+        BytesRemaining = dataLimitInBytes > BytesUsed ? dataLimitInBytes - BytesUsed : 0UL;
     }
 }

@@ -105,6 +105,7 @@ internal class Program
         var groupGetDataUsageCommand = new Command("get-data-usage", "Get the group's data usage records.");
         var groupGetDataLimitCommand = new Command("get-data-limit", "Get the group's data limit settings.");
         var groupSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
+        var groupPullCommand = new Command("pull", "Pull server information, user credentials, and statistics, from servers of the specified or all groups, via available APIs.");
 
         var groupCommand = new Command("group", "Manage groups.")
         {
@@ -124,6 +125,7 @@ internal class Program
             groupGetDataUsageCommand,
             groupGetDataLimitCommand,
             groupSetDataLimitCommand,
+            groupPullCommand,
         };
 
         var onlineConfigGenerateCommand = new Command("generate", "[Legacy] Generate static SIP008 delivery JSON files for specified or all users.");
@@ -141,7 +143,6 @@ internal class Program
         var outlineServerGetCommand = new Command("get", "Get the associated Outline server's information.");
         var outlineServerSetCommand = new Command("set", "Change settings of the associated Outline server.");
         var outlineServerRemoveCommand = new Command("remove", "Remove the Outline server from the group.");
-        var outlineServerPullCommand = new Command("pull", "Pull server information, access keys, and metrics from Outline servers of specified or all groups.");
         var outlineServerDeployCommand = new Command("deploy", "Deploy local configuration to Outline servers of specified or all groups.");
         var outlineServerRotatePasswordCommand = new Command("rotate-password", "Rotate passwords for the specified users and/or groups.");
 
@@ -151,7 +152,6 @@ internal class Program
             outlineServerGetCommand,
             outlineServerSetCommand,
             outlineServerRemoveCommand,
-            outlineServerPullCommand,
             outlineServerDeployCommand,
             outlineServerRotatePasswordCommand,
         };
@@ -335,6 +335,12 @@ internal class Program
             Description = "Unset the Shadowsocks Server Management API v1 (SSMv1) base URI.",
         };
 
+        var ssmv1ServerMethodOption = new Option<string?>("--ssmv1-server-method")
+        {
+            Description = "The encryption method in use when the server is managed via SSMv1.",
+            CustomParser = Parsers.ParseShadowsocks2022Method,
+        };
+
         var forceOption = new Option<bool>("--force", "-f")
         {
             Description = "Forcibly overwrite existing settings.",
@@ -459,10 +465,6 @@ internal class Program
         {
             Description = "Remove credentials from all associated users.",
         };
-        var noSyncOption = new Option<bool>("--no-sync")
-        {
-            Description = "Do not update local user membership storage from retrieved access key list.",
-        };
 
         var csvOutdirOption = new Option<string?>("--csv-outdir")
         {
@@ -509,6 +511,10 @@ internal class Program
         {
             Description = "The global setting for Outline server's default access key's user.",
         };
+        var settingsApiRequestConcurrencyOption = new Option<int?>("--api-request-concurrency")
+        {
+            Description = "The maximum number of concurrent API requests.",
+        };
         var settingsApiServerBaseUrlOption = new Option<string?>("--api-server-base-url")
         {
             Description = "The base URL of the API server. MUST NOT contain a trailing slash.",
@@ -518,18 +524,18 @@ internal class Program
             Description = "The secret path to the API endpoint. This is required to conceal the presence of the API. The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy. But it's recommended to put non-secret part of the path in the base URL.",
         };
 
-        var serviceIntervalOption = new Option<int>("--interval")
+        var serviceIntervalSecsOption = new Option<int>("--interval-secs")
         {
             Description = "The interval between each scheduled run in seconds.",
             DefaultValueFactory = _ => 3600,
         };
-        var servicePullOutlineServerOption = new Option<bool>("--pull-outline-server")
+        var servicePullServersOption = new Option<bool>("--pull-from-servers")
         {
-            Description = "Pull from Outline servers for updates of server information, access keys, data usage.",
+            Description = "Pull from servers for updates of server information, user credentials, and data usage.",
         };
-        var serviceDeployOutlineServerOption = new Option<bool>("--deploy-outline-server")
+        var serviceDeployToServersOption = new Option<bool>("--deploy-to-servers")
         {
-            Description = "Deploy local configurations to Outline servers.",
+            Description = "Deploy local configurations to servers.",
         };
         var serviceGenerateOnlineConfigOption = new Option<bool>("--generate-online-config")
         {
@@ -550,7 +556,7 @@ internal class Program
         Action<CommandResult> validateOwnerOptions = Validators.ValidateOwnerOptions(ownerOption, unsetOwnerOption);
         Action<CommandResult> validateGroupSetDataLimit = GroupCommand.ValidateSetDataLimit(globalDataLimitOption, perUserDataLimitOption, usernamesOption);
         Action<CommandResult> validateOutlineServerRotatePassword = OutlineServerCommand.ValidateRotatePassword(usernamesOption, groupsOption, allGroupsOption);
-        Action<CommandResult> validateServiceRun = ServiceCommand.ValidateRun(serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption);
+        Action<CommandResult> validateServiceRun = ServiceCommand.ValidateRun(serviceIntervalSecsOption, serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption);
 
         userCommand.Aliases.Add("u");
         nodeCommand.Aliases.Add("n");
@@ -1054,11 +1060,15 @@ internal class Program
         groupAddCommand.Aliases.Add("a");
         groupAddCommand.Arguments.Add(groupsArgumentOneOrMore);
         groupAddCommand.Options.Add(ownerOption);
+        groupAddCommand.Options.Add(ssmv1BaseUriOption);
+        groupAddCommand.Options.Add(ssmv1ServerMethodOption);
         groupAddCommand.SetAction((parseResult, cancellationToken) =>
         {
             var groups = parseResult.GetValue(groupsArgumentOneOrMore)!;
             var owner = parseResult.GetValue(ownerOption);
-            return GroupCommand.Add(groups, owner, cancellationToken);
+            var ssmv1BaseUri = parseResult.GetValue(ssmv1BaseUriOption);
+            var ssmv1ServerMethod = parseResult.GetValue(ssmv1ServerMethodOption);
+            return GroupCommand.Add(groups, owner, ssmv1BaseUri, ssmv1ServerMethod, cancellationToken);
         });
 
         groupEditCommand.Aliases.Add("e");
@@ -1073,9 +1083,10 @@ internal class Program
             var groups = parseResult.GetValue(groupsArgumentOneOrMore)!;
             var owner = parseResult.GetValue(ownerOption);
             var ssmv1BaseUri = parseResult.GetValue(ssmv1BaseUriOption);
+            var ssmv1ServerMethod = parseResult.GetValue(ssmv1ServerMethodOption);
             var unsetOwner = parseResult.GetValue(unsetOwnerOption);
             var unsetSSMv1BaseUri = parseResult.GetValue(unsetSSMv1BaseUriOption);
-            return GroupCommand.Edit(groups, owner, ssmv1BaseUri, unsetOwner, unsetSSMv1BaseUri, cancellationToken);
+            return GroupCommand.Edit(groups, owner, ssmv1BaseUri, ssmv1ServerMethod, unsetOwner, unsetSSMv1BaseUri, cancellationToken);
         });
 
         groupRenameCommand.Arguments.Add(oldNameArgument);
@@ -1249,6 +1260,13 @@ internal class Program
             return GroupCommand.SetDataLimit(groups, global, perUser, usernames, cancellationToken);
         });
 
+        groupPullCommand.Arguments.Add(groupsArgumentZeroOrMore);
+        groupPullCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var groups = parseResult.GetValue(groupsArgumentZeroOrMore)!;
+            return GroupCommand.PullAsync(groups, cancellationToken);
+        });
+
         onlineConfigGenerateCommand.Aliases.Add("g");
         onlineConfigGenerateCommand.Aliases.Add("gen");
         onlineConfigGenerateCommand.Arguments.Add(usernamesArgumentZeroOrMore);
@@ -1328,16 +1346,6 @@ internal class Program
             return OutlineServerCommand.Remove(groups, removeCreds, cancellationToken);
         });
 
-        outlineServerPullCommand.Aliases.Add("update");
-        outlineServerPullCommand.Arguments.Add(groupsArgumentZeroOrMore);
-        outlineServerPullCommand.Options.Add(noSyncOption);
-        outlineServerPullCommand.SetAction((parseResult, cancellationToken) =>
-        {
-            var groups = parseResult.GetValue(groupsArgumentZeroOrMore)!;
-            var noSync = parseResult.GetValue(noSyncOption);
-            return OutlineServerCommand.Pull(groups, noSync, cancellationToken);
-        });
-
         outlineServerDeployCommand.Arguments.Add(groupsArgumentZeroOrMore);
         outlineServerDeployCommand.SetAction((parseResult, cancellationToken) =>
         {
@@ -1381,6 +1389,7 @@ internal class Program
         settingsSetCommand.Options.Add(settingsOutlineServerApplyDefaultUserOnAssociationOption);
         settingsSetCommand.Options.Add(settingsOutlineServerApplyDataLimitOnAssociationOption);
         settingsSetCommand.Options.Add(settingsOutlineServerGlobalDefaultUserOption);
+        settingsSetCommand.Options.Add(settingsApiRequestConcurrencyOption);
         settingsSetCommand.Options.Add(settingsApiServerBaseUrlOption);
         settingsSetCommand.Options.Add(settingsApiServerSecretPathOption);
         settingsSetCommand.SetAction((parseResult, cancellationToken) =>
@@ -1395,6 +1404,7 @@ internal class Program
             var outlineServerApplyDefaultUserOnAssociation = parseResult.GetValue(settingsOutlineServerApplyDefaultUserOnAssociationOption);
             var outlineServerApplyDataLimitOnAssociation = parseResult.GetValue(settingsOutlineServerApplyDataLimitOnAssociationOption);
             var outlineServerGlobalDefaultUser = parseResult.GetValue(settingsOutlineServerGlobalDefaultUserOption);
+            var apiRequestConcurrency = parseResult.GetValue(settingsApiRequestConcurrencyOption);
             var apiServerBaseUrl = parseResult.GetValue(settingsApiServerBaseUrlOption);
             var apiServerSecretPath = parseResult.GetValue(settingsApiServerSecretPathOption);
             return SettingsCommand.Set(
@@ -1408,6 +1418,7 @@ internal class Program
                 outlineServerApplyDefaultUserOnAssociation,
                 outlineServerApplyDataLimitOnAssociation,
                 outlineServerGlobalDefaultUser,
+                apiRequestConcurrency,
                 apiServerBaseUrl,
                 apiServerSecretPath,
                 cancellationToken);
@@ -1434,20 +1445,20 @@ internal class Program
                 }
             });
 
-        serviceCommand.Options.Add(serviceIntervalOption);
-        serviceCommand.Options.Add(servicePullOutlineServerOption);
-        serviceCommand.Options.Add(serviceDeployOutlineServerOption);
+        serviceCommand.Options.Add(serviceIntervalSecsOption);
+        serviceCommand.Options.Add(servicePullServersOption);
+        serviceCommand.Options.Add(serviceDeployToServersOption);
         serviceCommand.Options.Add(serviceGenerateOnlineConfigOption);
         serviceCommand.Options.Add(serviceRegenerateOnlineConfigOption);
         serviceCommand.Validators.Add(validateServiceRun);
         serviceCommand.SetAction((parseResult, cancellationToken) =>
         {
-            var interval = parseResult.GetValue(serviceIntervalOption);
-            var pullOutlineServer = parseResult.GetValue(servicePullOutlineServerOption);
-            var deployOutlineServer = parseResult.GetValue(serviceDeployOutlineServerOption);
+            var intervalSecs = parseResult.GetValue(serviceIntervalSecsOption);
+            var pullFromServers = parseResult.GetValue(servicePullServersOption);
+            var deployToServers = parseResult.GetValue(serviceDeployToServersOption);
             var generateOnlineConfig = parseResult.GetValue(serviceGenerateOnlineConfigOption);
             var regenerateOnlineConfig = parseResult.GetValue(serviceRegenerateOnlineConfigOption);
-            return ServiceCommand.Run(interval, pullOutlineServer, deployOutlineServer, generateOnlineConfig, regenerateOnlineConfig, cancellationToken);
+            return ServiceCommand.Run(intervalSecs, pullFromServers, deployToServers, generateOnlineConfig, regenerateOnlineConfig, cancellationToken);
         });
 
         Console.OutputEncoding = Encoding.UTF8;

@@ -180,7 +180,7 @@ namespace ShadowsocksUriGenerator.Tests
             Assert.False(rootUserMemberships["MyGroupWithPlugin"].HasCredential);
 
             // Remove from all
-            users.RemoveCredentialsFromAllUsers(new string[] { "MyGroup" });
+            users.RemoveCredentialsFromAllUsers(["MyGroup"]);
 
             Assert.False(rootUserMemberships["MyGroup"].HasCredential);
             Assert.False(httpUserMemberships["MyGroup"].HasCredential);

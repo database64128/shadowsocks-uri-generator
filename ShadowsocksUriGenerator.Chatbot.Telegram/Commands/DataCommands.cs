@@ -316,7 +316,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                     foreach (var groupEntry in ownedGroupEntries)
                     {
-                        GetGroupDataUsageCore(replyBuilder, groupEntry);
+                        GetGroupDataUsageCore(replyBuilder, groupEntry, users);
                     }
 
                     replyMarkdownV2 = replyBuilder.ToString();
@@ -326,7 +326,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 {
                     if (nodes.Groups.TryGetValue(argument, out var targetGroup))
                     {
-                        GetGroupDataUsageCore(replyBuilder, new(argument, targetGroup));
+                        GetGroupDataUsageCore(replyBuilder, new(argument, targetGroup), users);
                         replyMarkdownV2 = replyBuilder.ToString();
                         Console.WriteLine(" Response: successful query.");
                     }
@@ -356,9 +356,9 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                 cancellationToken: cancellationToken);
         }
 
-        private static void GetGroupDataUsageCore(StringBuilder replyBuilder, KeyValuePair<string, Group> groupEntry)
+        private static void GetGroupDataUsageCore(StringBuilder replyBuilder, KeyValuePair<string, Group> groupEntry, Users users)
         {
-            var records = groupEntry.Value.GetDataUsage()
+            var records = groupEntry.Value.GetDataUsage(groupEntry.Key, users)
                                           .OrderByDescending(x => x.bytesUsed)
                                           .ToList();
 

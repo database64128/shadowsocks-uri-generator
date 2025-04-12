@@ -77,7 +77,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
 
             // Deduplicate tags.
-            tags = tags.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            tags = [.. tags.Distinct(StringComparer.OrdinalIgnoreCase)];
 
             var result = nodes.AddNodeToGroup(group, nodename, host, port, pluginName, pluginVersion, pluginOptions, pluginArguments, ownerUuid, tags, identityPSKs);
             switch (result)

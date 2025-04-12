@@ -186,8 +186,8 @@ namespace ShadowsocksUriGenerator.Data
             {
                 var memberships = userEntry.Value.Memberships;
 
-                if (memberships.Remove(oldGroupName, out var memberinfo))
-                    memberships.Add(newGroupName, memberinfo);
+                if (memberships.Remove(oldGroupName, out var memberInfo))
+                    memberships.Add(newGroupName, memberInfo);
             }
         }
 
@@ -299,6 +299,28 @@ namespace ShadowsocksUriGenerator.Data
         }
 
         /// <summary>
+        /// Clears the user's data usage in the group.
+        /// </summary>
+        /// <param name="username">Target user.</param>
+        /// <param name="groupName">Target group.</param>
+        /// <param name="perUserDataLimitInBytes">The per-user data limit of the group in bytes.</param>
+        /// <returns>
+        /// <c>true</c> if the user exists, is in the group, and the data usage is cleared.
+        /// Otherwise, <c>false</c>.
+        /// </returns>
+        public bool ClearGroupBytesUsed(string username, string groupName, ulong perUserDataLimitInBytes)
+        {
+            if (UserDict.TryGetValue(username, out User? user))
+            {
+                return user.ClearGroupBytesUsed(groupName, perUserDataLimitInBytes);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Gets Shadowsocks URIs associated with a username.
         /// </summary>
         /// <param name="username">Target username.</param>
@@ -318,15 +340,12 @@ namespace ShadowsocksUriGenerator.Data
 
         /// <summary>
         /// Calculates data usage for all users.
-        /// This method is intended to be called
-        /// on data updates (e.g. Outline server pulls).
         /// </summary>
-        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
-        public void CalculateDataUsageForAllUsers(Nodes nodes)
+        public void CalculateDataUsageForAllUsers()
         {
-            foreach (var userEntry in UserDict)
+            foreach (KeyValuePair<string, User> userEntry in UserDict)
             {
-                userEntry.Value.CalculateTotalDataUsage(userEntry.Key, nodes);
+                userEntry.Value.CalculateTotalDataUsage();
             }
         }
 
@@ -370,7 +389,6 @@ namespace ShadowsocksUriGenerator.Data
             if (UserDict.TryGetValue(username, out var user))
             {
                 user.DataLimitInBytes = dataLimit;
-                user.UpdateDataRemaining();
                 return 0;
             }
             else

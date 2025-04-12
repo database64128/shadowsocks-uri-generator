@@ -36,23 +36,29 @@ namespace ShadowsocksUriGenerator.CLI
                 return 1;
             }
 
-            var errMsg = await nodes.AssociateOutlineServerWithGroup(
-                group,
-                apiKey,
-                users,
-                settings.OutlineServerApplyDefaultUserOnAssociation ? settings.OutlineServerGlobalDefaultUser : null,
-                settings.OutlineServerApplyDataLimitOnAssociation,
-                cancellationToken);
-
-            if (errMsg is not null)
+            try
             {
-                Console.WriteLine(errMsg);
+                var errMsg = await nodes.AssociateOutlineServerWithGroup(
+                    group,
+                    apiKey,
+                    users,
+                    settings.OutlineServerApplyDefaultUserOnAssociation ? settings.OutlineServerGlobalDefaultUser : null,
+                    settings.OutlineServerApplyDataLimitOnAssociation,
+                    cancellationToken);
+
+                if (errMsg is not null)
+                {
+                    Console.WriteLine(errMsg);
+                    return -1;
+                }
+
+                Console.WriteLine($"Successfully associated the Outline server with {group}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
                 return -1;
             }
-
-            Console.WriteLine($"Successfully associated the Outline server with {group}");
-
-            users.CalculateDataUsageForAllUsers(nodes);
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)
@@ -169,7 +175,7 @@ namespace ShadowsocksUriGenerator.CLI
 
             foreach (var group in groups)
             {
-                var result = nodes.RemoveOutlineServerFromGroup(group);
+                var result = nodes.RemoveOutlineServerFromGroup(group, users);
                 switch (result)
                 {
                     case 0:
@@ -186,67 +192,6 @@ namespace ShadowsocksUriGenerator.CLI
 
             if (removeCreds)
                 users.RemoveCredentialsFromAllUsers(groups);
-
-            users.CalculateDataUsageForAllUsers(nodes);
-
-            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
-            if (saveUsersErrMsg is not null)
-            {
-                Console.WriteLine(saveUsersErrMsg);
-                return 1;
-            }
-
-            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
-            if (saveNodesErrMsg is not null)
-            {
-                Console.WriteLine(saveNodesErrMsg);
-                return 1;
-            }
-
-            return commandResult;
-        }
-
-        public static async Task<int> Pull(string[] groups, bool noSync, CancellationToken cancellationToken = default)
-        {
-            var commandResult = 0;
-
-            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
-            if (loadUsersErrMsg is not null)
-            {
-                Console.WriteLine(loadUsersErrMsg);
-                return 1;
-            }
-
-            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
-            if (loadNodesErrMsg is not null)
-            {
-                Console.WriteLine(loadNodesErrMsg);
-                return 1;
-            }
-            using var nodes = loadedNodes;
-
-            IAsyncEnumerable<string> errMsgs;
-
-            if (groups.Length == 0)
-            {
-                errMsgs = nodes.PullFromOutlineServerForAllGroups(users, !noSync, cancellationToken);
-            }
-            else
-            {
-#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
-                errMsgs = groups.Select(group => nodes.PullFromGroupOutlineServer(group, users, !noSync, cancellationToken).ToAsyncEnumerable())
-                                .ConcurrentMerge()
-                                .Where(errMsg => errMsg is not null);
-#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
-            }
-
-            await foreach (var errMsg in errMsgs)
-            {
-                Console.WriteLine(errMsg);
-                commandResult--;
-            }
-
-            users.CalculateDataUsageForAllUsers(nodes);
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)
@@ -284,21 +229,28 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            IAsyncEnumerable<string> errMsgs;
+            IAsyncEnumerable<Task> tasks;
 
             if (groups.Length == 0)
             {
-                errMsgs = nodes.DeployAllOutlineServers(users, cancellationToken);
+                tasks = nodes.DeployAllOutlineServers(users, cancellationToken);
             }
             else
             {
-                errMsgs = groups.Select(group => nodes.DeployGroupOutlineServer(group, users, cancellationToken)).ConcurrentMerge();
+                tasks = groups.Select(group => nodes.DeployGroupOutlineServer(group, users, cancellationToken)).ConcurrentMerge();
             }
 
-            await foreach (var errMsg in errMsgs)
+            await foreach (Task task in tasks)
             {
-                Console.WriteLine(errMsg);
-                commandResult--;
+                try
+                {
+                    await task;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                    commandResult--;
+                }
             }
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
@@ -379,9 +331,17 @@ namespace ShadowsocksUriGenerator.CLI
                 return -3;
             }
 
-            await foreach (var errMsg in errMsgs)
+            try
             {
-                Console.WriteLine(errMsg);
+                await foreach (var errMsg in errMsgs)
+                {
+                    Console.WriteLine(errMsg);
+                    commandResult--;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
                 commandResult--;
             }
 

@@ -9,7 +9,7 @@ namespace ShadowsocksUriGenerator.Manager;
 
 internal class ManagerApiTransport : IManagerApiTransport, IDisposable
 {
-    private readonly object _locker = new();
+    private readonly Lock _locker = new();
     private readonly SemaphoreSlim _semaphoreSlim = new(1);
     private readonly Socket _socket;
     private bool disposedValue;
@@ -36,10 +36,10 @@ internal class ManagerApiTransport : IManagerApiTransport, IDisposable
 
             var buf = ArrayPool<byte>.Shared.Rent(initRecvBufSize);
             var received = 0;
-            var n = 0;
 
             while (true)
             {
+                int n;
                 try
                 {
                     n = _socket.Receive(buf, received, buf.Length - received, SocketFlags.None);

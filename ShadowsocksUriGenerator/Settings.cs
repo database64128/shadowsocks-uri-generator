@@ -89,6 +89,12 @@ namespace ShadowsocksUriGenerator
         public string OutlineServerGlobalDefaultUser { get; set; } = "";
 
         /// <summary>
+        /// Gets or sets the maximum number of concurrent API requests.
+        /// Defaults to 32.
+        /// </summary>
+        public int ApiRequestConcurrency { get; set; } = 32;
+
+        /// <summary>
         /// Gets or sets the base URL of the API server.
         /// MUST NOT contain a trailing slash.
         /// Defaults to an empty string.

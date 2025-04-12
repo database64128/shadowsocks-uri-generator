@@ -11,10 +11,19 @@ namespace ShadowsocksUriGenerator.CLI
     public static class ServiceCommand
     {
         public static Action<CommandResult> ValidateRun(
+            Option<int> serviceIntervalSecsOption,
             Option<bool> serviceGenerateOnlineConfigOption,
             Option<bool> serviceRegenerateOnlineConfigOption) =>
             commandResult =>
         {
+            const int minIntervalSecs = 5;
+            const int maxIntervalSecs = int.MaxValue / 1000;
+            int intervalSecs = commandResult.GetValue(serviceIntervalSecsOption);
+            if (intervalSecs < minIntervalSecs || intervalSecs > maxIntervalSecs)
+            {
+                commandResult.AddError($"Interval can't be shorter than {minIntervalSecs} seconds or longer than {maxIntervalSecs} seconds.");
+            }
+
             if (commandResult.GetValue(serviceGenerateOnlineConfigOption) &&
                 commandResult.GetValue(serviceRegenerateOnlineConfigOption))
             {
@@ -23,19 +32,13 @@ namespace ShadowsocksUriGenerator.CLI
         };
 
         public static async Task<int> Run(
-            int interval,
-            bool pullOutlineServer,
-            bool deployOutlineServer,
+            int intervalSecs,
+            bool pullFromServers,
+            bool deployToServers,
             bool generateOnlineConfig,
             bool regenerateOnlineConfig,
             CancellationToken cancellationToken = default)
         {
-            if (interval < 60 || interval > int.MaxValue / 1000)
-            {
-                Console.WriteLine($"Interval can't be shorter than 60 seconds or longer than {int.MaxValue / 1000} seconds.");
-                return 1;
-            }
-
             try
             {
                 while (true)
@@ -62,20 +65,20 @@ namespace ShadowsocksUriGenerator.CLI
                         return 1;
                     }
 
-                    if (pullOutlineServer)
+                    if (pullFromServers)
                     {
-                        var errMsgs = nodes.PullFromOutlineServerForAllGroups(users, true, cancellationToken);
-
-                        await foreach (var errMsg in errMsgs)
+                        try
                         {
-                            Console.WriteLine(errMsg);
+                            await nodes.PullGroupsAsync(ReadOnlyMemory<string>.Empty, users, settings, cancellationToken);
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
                         }
 
-                        users.CalculateDataUsageForAllUsers(nodes);
-
-                        Console.WriteLine("Pulled from Outline servers.");
+                        Console.WriteLine("Pulled from servers.");
                     }
-                    if (deployOutlineServer)
+                    if (deployToServers)
                     {
                         var errMsgs = nodes.DeployAllOutlineServers(users, cancellationToken);
 
@@ -84,7 +87,7 @@ namespace ShadowsocksUriGenerator.CLI
                             Console.WriteLine(errMsg);
                         }
 
-                        Console.WriteLine("Deployed to Outline servers.");
+                        Console.WriteLine("Deployed to servers.");
                     }
                     if (generateOnlineConfig)
                     {
@@ -121,7 +124,7 @@ namespace ShadowsocksUriGenerator.CLI
                         return 1;
                     }
 
-                    await Task.Delay(interval * 1000, cancellationToken);
+                    await Task.Delay(intervalSecs * 1000, cancellationToken);
                 }
             }
             catch (OperationCanceledException) // Task.Delay() canceled

@@ -1,5 +1,4 @@
 ﻿using ShadowsocksUriGenerator.Outline;
-using ShadowsocksUriGenerator.SSMv1;
 using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
@@ -57,9 +56,10 @@ namespace ShadowsocksUriGenerator.Data
         public ulong BytesUsed { get; set; }
 
         /// <summary>
-        /// Gets or sets the data remaining to be used in bytes.
+        /// Gets the data remaining to be used in bytes.
         /// </summary>
-        public ulong BytesRemaining { get; set; }
+        [JsonIgnore]
+        public ulong BytesRemaining => DataLimitInBytes > BytesUsed ? DataLimitInBytes - BytesUsed : 0UL;
 
         /// <summary>
         /// Gets or sets the group's owner.
@@ -67,14 +67,9 @@ namespace ShadowsocksUriGenerator.Data
         public string? OwnerUuid { get; set; }
 
         /// <summary>
-        /// Gets or sets the group's Shadowsocks Server Management API v1 (SSMv1) base URI.
+        /// Gets or sets the Shadowsocks Server Management API v1 (SSMv1) server object.
         /// </summary>
-        public Uri? SSMv1BaseUri { get; set; }
-
-        /// <summary>
-        /// Gets or sets the Shadowsocks Server Management API v1 (SSMv1) server information object.
-        /// </summary>
-        public SSMv1ServerInfo? SSMv1ServerInfo { get; set; }
+        public SSMv1Server? SSMv1Server { get; set; }
 
         /// <summary>
         /// Gets or sets the Node Dictionary.
@@ -239,43 +234,75 @@ namespace ShadowsocksUriGenerator.Data
         /// Calculates the group's total data usage
         /// with statistics from Outline server.
         /// </summary>
-        public void CalculateTotalDataUsage()
-        {
+        public void CalculateTotalDataUsage() =>
             BytesUsed = OutlineDataUsage?.BytesTransferredByUserId.Values.Aggregate(0UL, (x, y) => x + y) ?? 0UL;
-            UpdateDataRemaining();
-        }
 
-        /// <summary>
-        /// Updates the data remaining counter
-        /// with respect to data limit and data used.
-        /// Call this method when updating data limit and data used.
-        /// </summary>
-        public void UpdateDataRemaining()
-        {
-            BytesRemaining = DataLimitInBytes > 0UL ? DataLimitInBytes - BytesUsed : 0UL;
-        }
+        public void AddBytesUsed(ulong bytesUsed) => BytesUsed += bytesUsed;
+
+        public void SubBytesUsed(ulong bytesUsed) => BytesUsed = BytesUsed >= bytesUsed ? BytesUsed - bytesUsed : 0UL;
 
         /// <summary>
         /// Gets all data usage records of the group.
         /// </summary>
         /// <returns>A list of data usage records as tuples.</returns>
-        public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage()
+        public List<(string username, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage(string groupName, Users users)
         {
             List<(string username, ulong bytesUsed, ulong bytesRemaining)> result = [];
 
-            if (OutlineAccessKeys is null || OutlineDataUsage is null)
+            if (AddOutlineDataUsage(result))
                 return result;
 
-            foreach (var dataUsage in OutlineDataUsage.BytesTransferredByUserId)
+            foreach (KeyValuePair<string, User> userEntry in users.UserDict)
             {
-                var usernames = OutlineAccessKeys.Where(x => x.Id == dataUsage.Key.ToString()).Select(x => x.Name);
-                var username = usernames.Any() ? usernames.First() : "";
-                var bytesUsed = dataUsage.Value;
-                var bytesRemaining = PerUserDataLimitInBytes == 0 ? 0 : PerUserDataLimitInBytes - bytesUsed;
-                result.Add((username, bytesUsed, bytesRemaining));
+                if (userEntry.Value.Memberships.TryGetValue(groupName, out MemberInfo? memberInfo))
+                {
+                    result.Add((userEntry.Key, memberInfo.BytesUsed, memberInfo.BytesRemaining));
+                }
             }
 
             return result;
+        }
+
+        private bool AddOutlineDataUsage(List<(string username, ulong bytesUsed, ulong bytesRemaining)> result)
+        {
+            if (OutlineAccessKeys is null || OutlineDataUsage is null)
+                return false;
+
+            foreach (AccessKey accessKey in OutlineAccessKeys)
+            {
+                if (int.TryParse(accessKey.Id, out int keyId) &&
+                    OutlineDataUsage.BytesTransferredByUserId.TryGetValue(keyId, out ulong bytesUsed))
+                {
+                    ulong dataLimitInBytes = accessKey.DataLimit?.Bytes ?? PerUserDataLimitInBytes;
+                    ulong bytesRemaining = dataLimitInBytes > bytesUsed ? dataLimitInBytes - bytesUsed : 0UL;
+                    result.Add((accessKey.Name, bytesUsed, bytesRemaining));
+                }
+            }
+
+            return true;
+        }
+
+        public bool AddUserOutlineDataUsage(
+            List<(string group, ulong bytesUsed, ulong bytesRemaining)> result,
+            string username,
+            string groupName)
+        {
+            if (OutlineAccessKeys is null || OutlineDataUsage is null)
+                return false;
+
+            foreach (AccessKey accessKey in OutlineAccessKeys)
+            {
+                if (accessKey.Name == username &&
+                    int.TryParse(accessKey.Id, out int keyId) &&
+                    OutlineDataUsage.BytesTransferredByUserId.TryGetValue(keyId, out ulong bytesUsed))
+                {
+                    ulong dataLimitInBytes = accessKey.DataLimit?.Bytes ?? PerUserDataLimitInBytes;
+                    ulong bytesRemaining = dataLimitInBytes > bytesUsed ? dataLimitInBytes - bytesUsed : 0UL;
+                    result.Add((groupName, bytesUsed, bytesRemaining));
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -333,9 +360,10 @@ namespace ShadowsocksUriGenerator.Data
             _apiClient = new(OutlineApiKey, httpClient);
 
             // Pull from Outline server without syncing with local user db
-            var errMsg = await PullFromOutlineServer(group, users, httpClient, false, false, cancellationToken);
-            if (errMsg is not null)
-                return errMsg;
+            await foreach (Task task in PullFromOutlineServer(group, users, httpClient, cancellationToken))
+            {
+                await task;
+            }
 
             // Apply default username
             if (!string.IsNullOrEmpty(globalDefaultUser))
@@ -492,14 +520,25 @@ namespace ShadowsocksUriGenerator.Data
         /// Removes the association of the Outline server
         /// and all saved data related to it.
         /// </summary>
-        public void RemoveOutlineServer()
+        public void RemoveOutlineServer(string group, Users users)
         {
-            OutlineApiKey = null;
-            OutlineServerInfo = null;
-            OutlineAccessKeys = null;
-            OutlineDataUsage = null;
+            if (OutlineApiKey is not null)
+            {
+                if (OutlineAccessKeys is not null && OutlineDataUsage is not null)
+                {
+                    foreach (AccessKey accessKey in OutlineAccessKeys)
+                    {
+                        _ = users.ClearGroupBytesUsed(accessKey.Name, group, PerUserDataLimitInBytes);
+                    }
+                }
 
-            CalculateTotalDataUsage();
+                BytesUsed = 0;
+
+                OutlineApiKey = null;
+                OutlineServerInfo = null;
+                OutlineAccessKeys = null;
+                OutlineDataUsage = null;
+            }
         }
 
         /// <summary>
@@ -507,69 +546,72 @@ namespace ShadowsocksUriGenerator.Data
         /// from the associated Outline server.
         /// Optionally updates user membership dictionary
         /// in the local storage.
-        /// Remember to call <see cref="Users.CalculateDataUsageForAllUsers(Nodes)"/>
-        /// after all pulls are finished.
         /// </summary>
         /// <param name="group">Group name.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
-        /// <param name="updateLocalUserMemberships">
-        /// Whether to update local user memberships from the retrieved access keys.
-        /// Defaults to true.
-        /// </param>
-        /// <param name="silentlySkipNonOutline">
-        /// Set to true to silently return without emitting an error
-        /// if this server is not linked to any Outline server.
-        /// Defaults to false.
-        /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// The task that represents the operation.
         /// An optional error message.
         /// </returns>
-        public async Task<string?> PullFromOutlineServer(string group, Users users, HttpClient httpClient, bool updateLocalUserMemberships = true, bool silentlySkipNonOutline = false, CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<Task> PullFromOutlineServer(string group, Users users, HttpClient httpClient, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
-            {
-                if (silentlySkipNonOutline)
-                    return null;
-                else
-                    return $"Error: Group {group} is not linked to any Outline server.";
-            }
+                yield break;
 
             _apiClient ??= new(OutlineApiKey, httpClient);
 
+            await foreach (Task task in Task.WhenEach(
+                PullServerInfoAsync(_apiClient, group, cancellationToken),
+                PullAccessKeysAsync(_apiClient, group, cancellationToken),
+                PullDataUsageAsync(_apiClient, group, cancellationToken)))
+            {
+                yield return task;
+            }
+
+            UpdateLocalUserMemberships(group, users);
+            CalculateTotalDataUsage();
+        }
+
+        private async Task PullServerInfoAsync(ApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
+        {
             try
             {
-                var serverInfoTask = _apiClient.GetServerInfoAsync(cancellationToken);
-                var accessKeysTask = _apiClient.GetAccessKeysAsync(cancellationToken);
-                var dataUsageTask = _apiClient.GetDataUsageAsync(cancellationToken);
+                OutlineServerInfo = await apiClient.GetServerInfoAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                throw new GroupApiRequestException(groupName, "Failed to pull server information", ex);
+            }
+        }
 
-                await foreach (var finishedTask in Task.WhenEach(serverInfoTask, accessKeysTask, dataUsageTask))
+        private async Task PullAccessKeysAsync(ApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                AccessKeysResponse? accessKeysResponse = await apiClient.GetAccessKeysAsync(cancellationToken);
+                if (accessKeysResponse is not null)
                 {
-                    if (finishedTask == serverInfoTask)
-                        OutlineServerInfo = await serverInfoTask;
-                    else if (finishedTask == accessKeysTask)
-                        OutlineAccessKeys = (await accessKeysTask)?.AccessKeys;
-                    else if (finishedTask == dataUsageTask)
-                        OutlineDataUsage = await dataUsageTask;
+                    OutlineAccessKeys = accessKeysResponse.AccessKeys;
                 }
-
-                if (updateLocalUserMemberships)
-                    UpdateLocalUserMemberships(group, users);
-
-                CalculateTotalDataUsage();
             }
-            catch (OperationCanceledException ex) when (ex.InnerException is not TimeoutException) // canceled
+            catch (Exception ex)
             {
-                return ex.Message;
+                throw new GroupApiRequestException(groupName, "Failed to pull access keys", ex);
             }
-            catch (Exception ex) // timeout and other errors
-            {
-                return $"Error when pulling from group {group}'s Outline server: {ex.Message}";
-            }
+        }
 
-            return null;
+        private async Task PullDataUsageAsync(ApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                OutlineDataUsage = await apiClient.GetDataUsageAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                throw new GroupApiRequestException(groupName, "Failed to pull data usage", ex);
+            }
         }
 
         /// <summary>
@@ -582,32 +624,54 @@ namespace ShadowsocksUriGenerator.Data
         /// <param name="users">The <see cref="Users"/> object.</param>
         private void UpdateLocalUserMemberships(string group, Users users)
         {
-            if (OutlineAccessKeys is null)
+            if (OutlineAccessKeys is null || OutlineDataUsage is null)
                 return;
 
-            foreach (var userEntry in users.UserDict)
-            {
-                var filteredUserAccessKeys = OutlineAccessKeys.Where(x => x.Name == userEntry.Key);
-                var userInGroup = userEntry.Value.Memberships.TryGetValue(group, out var memberInfo);
+            // Previously, this method would remove local credentials without
+            // a matching access key. We now feel like this is probably not
+            // what users want.
 
-                if (filteredUserAccessKeys.Any()) // user has Outline access key
+            foreach (AccessKey accessKey in OutlineAccessKeys)
+            {
+                if (users.UserDict.TryGetValue(accessKey.Name, out User? user))
                 {
-                    var userAccessKey = filteredUserAccessKeys.First();
-                    if (userInGroup) // user is in group, update credential
+                    if (user.Memberships.TryGetValue(group, out MemberInfo? memberInfo))
                     {
-                        memberInfo!.Method = userAccessKey.Method;
-                        memberInfo.Password = userAccessKey.Password;
-                        if (userAccessKey.DataLimit is DataLimit dataLimit)
+                        memberInfo.Method = accessKey.Method;
+                        memberInfo.Password = accessKey.Password;
+                        if (accessKey.DataLimit is DataLimit dataLimit)
+                        {
                             memberInfo.DataLimitInBytes = dataLimit.Bytes;
+                        }
                     }
-                    else // not in group, add to group
+                    else
                     {
-                        userEntry.Value.Memberships[group] = new(userAccessKey.Method, userAccessKey.Password, userAccessKey.DataLimit?.Bytes ?? 0UL);
+                        memberInfo = new(accessKey.Method, accessKey.Password);
+                        if (accessKey.DataLimit is DataLimit dataLimit)
+                        {
+                            memberInfo.DataLimitInBytes = dataLimit.Bytes;
+                        }
+                        user.Memberships.Add(group, memberInfo);
                     }
-                }
-                else // user has no access key, clear local credential
-                {
-                    memberInfo?.ClearCredential();
+
+                    if (int.TryParse(accessKey.Id, out int keyId) &&
+                        OutlineDataUsage.BytesTransferredByUserId.TryGetValue(keyId, out ulong bytesUsed))
+                    {
+                        long oldBytesUsed = (long)memberInfo.BytesUsed;
+                        long diff = (long)bytesUsed - oldBytesUsed;
+                        if (diff > 0)
+                        {
+                            ulong n = (ulong)diff;
+                            user.AddBytesUsed(n);
+                            memberInfo.AddBytesUsed(n, PerUserDataLimitInBytes);
+                        }
+                        else if (diff < 0)
+                        {
+                            ulong n = (ulong)-diff;
+                            user.SubBytesUsed(n);
+                            memberInfo.SubBytesUsed(n, PerUserDataLimitInBytes);
+                        }
+                    }
                 }
             }
         }
@@ -618,32 +682,22 @@ namespace ShadowsocksUriGenerator.Data
         /// <param name="group">Target group.</param>
         /// <param name="users">The <see cref="Users"/> object.</param>
         /// <param name="httpClient">An instance of generic HTTP client to use when creating Outline API client.</param>
-        /// <param name="silentlySkipNonOutline">
-        /// Set to true to silently return without emitting an error
-        /// if this server is not linked to any Outline server.
-        /// Defaults to false.
-        /// </param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// An async-enumerable sequence whose elements are error messages.
         /// </returns>
-        public async IAsyncEnumerable<string> DeployToOutlineServer(string group, Users users, HttpClient httpClient, bool silentlySkipNonOutline = false, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        public async IAsyncEnumerable<Task> DeployToOutlineServer(string group, Users users, HttpClient httpClient, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
             {
-                if (!silentlySkipNonOutline)
-                    yield return $"Error: Group {group} is not linked to any Outline server.";
-
                 yield break;
             }
 
             if (OutlineAccessKeys is null)
             {
-                var errMsg = await PullFromOutlineServer(group, users, httpClient, true, false, cancellationToken);
-                if (errMsg is not null)
+                await foreach (Task task in PullFromOutlineServer(group, users, httpClient, cancellationToken))
                 {
-                    yield return errMsg;
-                    yield break;
+                    yield return task;
                 }
             }
 
@@ -688,11 +742,7 @@ namespace ShadowsocksUriGenerator.Data
 
             await foreach (var finishedTask in Task.WhenEach(tasks))
             {
-                var errMsg = await finishedTask;
-                if (errMsg is not null)
-                {
-                    yield return errMsg;
-                }
+                yield return finishedTask;
             }
         }
 
@@ -772,11 +822,9 @@ namespace ShadowsocksUriGenerator.Data
 
             if (OutlineAccessKeys is null)
             {
-                var errMsg = await PullFromOutlineServer(group, users, httpClient, true, false, cancellationToken);
-                if (errMsg is not null)
+                await foreach (Task task in PullFromOutlineServer(group, users, httpClient, cancellationToken))
                 {
-                    yield return errMsg;
-                    yield break;
+                    await task;
                 }
             }
 
@@ -788,9 +836,9 @@ namespace ShadowsocksUriGenerator.Data
             // The result has to be freezed by calling .ToArray().
             // Otherwise the query result will change after removal.
             var accessKeysLinkedToUser = OutlineAccessKeys.Where(x => users.UserDict.ContainsKey(x.Name));
-            var targetAccessKeys = usernames.Length > 0
-                ? accessKeysLinkedToUser.Where(x => usernames.Contains(x.Name)).ToArray()
-                : accessKeysLinkedToUser.ToArray();
+            if (usernames.Length > 0)
+                accessKeysLinkedToUser = accessKeysLinkedToUser.Where(x => usernames.Contains(x.Name));
+            AccessKey[] targetAccessKeys = [.. accessKeysLinkedToUser];
 
             // Remove
             var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken));
@@ -1076,6 +1124,21 @@ namespace ShadowsocksUriGenerator.Data
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Removes the association of the SSMv1 server
+        /// and all saved data related to it.
+        /// </summary>
+        /// <param name="groupName">The group name.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        public void RemoveSSMv1Server(string groupName, Users users)
+        {
+            if (SSMv1Server is not null)
+            {
+                SSMv1Server.ClearServerStats(groupName, this, users);
+                SSMv1Server = null;
+            }
         }
 
         protected virtual void Dispose(bool disposing)

@@ -121,8 +121,8 @@ namespace ShadowsocksUriGenerator.Rescue
 
                     // save user info and creds
                     username ??= userCred.Username;
-                    user.BytesUsed += userCred.BytesUsed ?? 0UL;
-                    user.BytesRemaining += userCred.BytesRemaining ?? 0UL;
+                    if (userCred.BytesUsed is ulong bytesUsed)
+                        user.AddBytesUsed(bytesUsed);
                     var credSource = userCred.Servers.Any() ? userCred.Servers.First() : null;
                     if (credSource is not null)
                         _ = user.AddCredential(groupName, credSource.Method, credSource.Password);
@@ -170,7 +170,6 @@ namespace ShadowsocksUriGenerator.Rescue
                 {
                     Uuid = userCreds.Id ?? Guid.NewGuid().ToString(),
                     BytesUsed = userCreds.BytesUsed ?? 0UL,
-                    BytesRemaining = userCreds.BytesRemaining ?? 0UL,
                 };
 
                 // group servers by credential

@@ -25,11 +25,11 @@ public class SSMv1ApiClient
     public SSMv1ApiClient(HttpClient httpClient, Uri baseUri)
     {
         _httpClient = httpClient;
+        _baseUri = baseUri; // no trailing slash
 
         if (!baseUri.AbsolutePath.EndsWith('/'))
             baseUri = new(baseUri.AbsoluteUri + "/");
 
-        _baseUri = baseUri;
         _usersUri = new(baseUri, "users");
         _statsUri = new(baseUri, "stats");
         _statsClearUri = new(baseUri, "stats?clear=true");

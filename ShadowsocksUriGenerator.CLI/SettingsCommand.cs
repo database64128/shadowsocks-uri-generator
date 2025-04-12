@@ -31,6 +31,7 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"OutlineServerApplyDefaultUserOnAssociation",-42}|{settings.OutlineServerApplyDefaultUserOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerApplyDataLimitOnAssociationn",-42}|{settings.OutlineServerApplyDataLimitOnAssociation,40}|");
             Console.WriteLine($"|{"OutlineServerGlobalDefaultUser",-42}|{settings.OutlineServerGlobalDefaultUser,40}|");
+            Console.WriteLine($"|{"ApiRequestConcurrency",-42}|{settings.ApiRequestConcurrency,40}|");
             Console.WriteLine($"|{"ApiServerBaseUrl",-42}|{settings.ApiServerBaseUrl,40}|");
             Console.WriteLine($"|{"ApiServerSecretPath",-42}|{settings.ApiServerSecretPath,40}|");
 
@@ -50,6 +51,7 @@ namespace ShadowsocksUriGenerator.CLI
             bool? outlineServerApplyDefaultUserOnAssociation,
             bool? outlineServerApplyDataLimitOnAssociation,
             string? outlineServerGlobalDefaultUser,
+            int? apiRequestConcurrency,
             string? apiServerBaseUrl,
             string? apiServerSecretPath,
             CancellationToken cancellationToken = default)
@@ -83,6 +85,9 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.OutlineServerApplyDataLimitOnAssociation = applyDataLimitOnAssociation;
             if (!string.IsNullOrEmpty(outlineServerGlobalDefaultUser))
                 settings.OutlineServerGlobalDefaultUser = outlineServerGlobalDefaultUser;
+
+            if (apiRequestConcurrency is int concurrency)
+                settings.ApiRequestConcurrency = concurrency;
 
             if (!string.IsNullOrEmpty(apiServerBaseUrl))
                 settings.ApiServerBaseUrl = apiServerBaseUrl;

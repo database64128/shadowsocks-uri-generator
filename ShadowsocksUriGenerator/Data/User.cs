@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace ShadowsocksUriGenerator.Data
 {
@@ -10,6 +12,8 @@ namespace ShadowsocksUriGenerator.Data
     /// </summary>
     public class User
     {
+        private ulong _bytesUsed;
+
         /// <summary>
         /// Gets or sets the UUID of the user.
         /// </summary>
@@ -29,14 +33,19 @@ namespace ShadowsocksUriGenerator.Data
         /// Gets or sets the data usage of the user in bytes.
         /// The value equals the sum of all node groups.
         /// </summary>
-        public ulong BytesUsed { get; set; }
+        public ulong BytesUsed
+        {
+            get => Interlocked.Read(in _bytesUsed);
+            init => _bytesUsed = value;
+        }
 
         /// <summary>
-        /// Gets or sets the data remaining to be used in bytes.
+        /// Gets the data remaining to be used in bytes.
         /// If any node group has a zero value, the value will be zero.
         /// Otherwise, the value equals the sum of all node groups.
         /// </summary>
-        public ulong BytesRemaining { get; set; }
+        [JsonIgnore]
+        public ulong BytesRemaining => DataLimitInBytes > BytesUsed ? DataLimitInBytes - BytesUsed : 0UL;
 
         /// <summary>
         /// Gets or sets the membership dictionary of the user.
@@ -55,8 +64,8 @@ namespace ShadowsocksUriGenerator.Data
         /// </summary>
         /// <param name="group">Name of the group.</param>
         /// <returns>
-        /// True if the user was successfully added to the group.
-        /// Otherwise, false.
+        /// <c>true</c> if the user was successfully added to the group.
+        /// Otherwise, <c>false</c>.
         /// </returns>
         public bool AddToGroup(string group) => Memberships.TryAdd(group, new());
 
@@ -125,10 +134,18 @@ namespace ShadowsocksUriGenerator.Data
         /// </summary>
         /// <param name="group">Name of the group.</param>
         /// <returns>
-        /// True if the user successfully left the group.
-        /// Otherwise false, including already not in the group.
+        /// <c>true</c> if the user successfully left the group.
+        /// Otherwise <c>false</c>, including already not in the group.
         /// </returns>
-        public bool RemoveFromGroup(string group) => Memberships.Remove(group);
+        public bool RemoveFromGroup(string group)
+        {
+            if (Memberships.Remove(group, out MemberInfo? memberInfo))
+            {
+                SubBytesUsed(memberInfo.BytesUsed);
+                return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// Removes the credential associated with the group.
@@ -165,6 +182,29 @@ namespace ShadowsocksUriGenerator.Data
             foreach (var membership in Memberships)
             {
                 membership.Value.ClearCredential();
+            }
+        }
+
+        /// <summary>
+        /// Clears the data usage of the user in the specified group.
+        /// </summary>
+        /// <param name="groupName">The group name.</param>
+        /// <param name="perUserDataLimitInBytes">The per-user data limit of the group in bytes.</param>
+        /// <returns>
+        /// <c>true</c> if the user is in the group and the data usage is cleared.
+        /// Otherwise, <c>false</c>.
+        /// </returns>
+        public bool ClearGroupBytesUsed(string groupName, ulong perUserDataLimitInBytes)
+        {
+            if (Memberships.TryGetValue(groupName, out MemberInfo? memberInfo))
+            {
+                SubBytesUsed(memberInfo.BytesUsed);
+                memberInfo.ClearBytesUsed(perUserDataLimitInBytes);
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -237,44 +277,23 @@ namespace ShadowsocksUriGenerator.Data
             .Select(x => x.ToUri());
 
         /// <summary>
-        /// Gathers user's data usage metrics from all groups
-        /// and calculates the total data usage of the user.
+        /// Calculates the total data usage of the user.
         /// </summary>
-        /// <param name="username">Target user.</param>
-        /// <param name="nodes">The <see cref="Nodes"/> object.</param>
-        public void CalculateTotalDataUsage(string username, Nodes nodes)
-        {
-            BytesUsed = 0UL;
-            var bytesUsedInGroup = 0UL; // make compiler happy
+        public void CalculateTotalDataUsage() =>
+            _bytesUsed = Memberships.Aggregate(0UL, (x, y) => x + y.Value.BytesUsed);
 
-            foreach (var groupEntry in nodes.Groups)
+        public void AddBytesUsed(ulong bytesUsed) => Interlocked.Add(ref _bytesUsed, bytesUsed);
+
+        public void SubBytesUsed(ulong bytesUsed)
+        {
+            while (true)
             {
-                // Filter out access key ids that belongs to the user.
-                var filteredAccessKeys = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username);
-                if (filteredAccessKeys is not null)
-                {
-                    foreach (var accessKey in filteredAccessKeys)
-                    {
-                        if (int.TryParse(accessKey.Id, out var keyId)
-                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) == true)
-                        {
-                            BytesUsed += bytesUsedInGroup;
-                        }
-                    }
-                }
+                ulong currentBytesUsed = BytesUsed;
+                if (currentBytesUsed < bytesUsed)
+                    break;
+                if (Interlocked.CompareExchange(ref _bytesUsed, currentBytesUsed - bytesUsed, currentBytesUsed) == currentBytesUsed)
+                    break;
             }
-
-            UpdateDataRemaining();
-        }
-
-        /// <summary>
-        /// Updates the data remaining counter
-        /// with respect to data limit and data used.
-        /// Call this method when updating data limit and data used.
-        /// </summary>
-        public void UpdateDataRemaining()
-        {
-            BytesRemaining = DataLimitInBytes > 0UL ? DataLimitInBytes - BytesUsed : 0UL;
         }
 
         /// <summary>
@@ -286,26 +305,22 @@ namespace ShadowsocksUriGenerator.Data
         public List<(string group, ulong bytesUsed, ulong bytesRemaining)> GetDataUsage(string username, Nodes nodes)
         {
             List<(string group, ulong bytesUsed, ulong bytesRemaining)> results = [];
-            var bytesUsedInGroup = 0UL; // make compiler happy
+            HashSet<string> outlineGroupNameSet = [];
 
-            foreach (var groupEntry in nodes.Groups)
+            foreach (KeyValuePair<string, Group> groupEntry in nodes.Groups)
             {
-                // Filter out access key ids that belongs to the user.
-                var filteredAccessKeys = groupEntry.Value.OutlineAccessKeys?.Where(x => x.Name == username);
-                if (filteredAccessKeys is not null)
+                if (groupEntry.Value.AddUserOutlineDataUsage(results, username, groupEntry.Key))
                 {
-                    foreach (var accessKey in filteredAccessKeys)
-                    {
-                        if (int.TryParse(accessKey.Id, out var keyId)
-                            && groupEntry.Value.OutlineDataUsage?.BytesTransferredByUserId.TryGetValue(keyId, out bytesUsedInGroup) == true)
-                        {
-                            var dataLimitInBytes = accessKey.DataLimit?.Bytes ?? groupEntry.Value.DataLimitInBytes;
-                            var bytesRemaining = DataLimitInBytes > 0UL ? DataLimitInBytes - bytesUsedInGroup : 0UL;
-
-                            results.Add((groupEntry.Key, bytesUsedInGroup, bytesRemaining));
-                        }
-                    }
+                    outlineGroupNameSet.Add(groupEntry.Key);
                 }
+            }
+
+            foreach (KeyValuePair<string, MemberInfo> membership in Memberships)
+            {
+                if (outlineGroupNameSet.Contains(membership.Key))
+                    continue;
+
+                results.Add((membership.Key, membership.Value.BytesUsed, membership.Value.BytesRemaining));
             }
 
             return results;
