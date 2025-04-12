@@ -668,7 +668,7 @@ namespace ShadowsocksUriGenerator.CLI
                             Console.WriteLine($"Added group credential to {userEntry.Key}.");
                             break;
                         case 2:
-                            Console.WriteLine("The user already has a credential for the group.");
+                            Console.WriteLine($"User {userEntry.Key} already has a credential for the group.");
                             break;
                         case -2:
                             Console.WriteLine("Error: The provided credential is invalid.");
@@ -691,7 +691,7 @@ namespace ShadowsocksUriGenerator.CLI
                         Console.WriteLine($"Added group credential to {username}.");
                         break;
                     case 2:
-                        Console.WriteLine("The user already has a credential for the group.");
+                        Console.WriteLine($"User {username} already has a credential for the group.");
                         break;
                     case -1:
                         Console.WriteLine($"Error: user {username} doesn't exist.");
@@ -760,7 +760,7 @@ namespace ShadowsocksUriGenerator.CLI
                             Console.WriteLine($"Generated group credential for {userEntry.Key}.");
                             break;
                         case 2:
-                            Console.WriteLine("The user already has a credential for the group. Remove it first or use `--force` to overwrite it.");
+                            Console.WriteLine($"User {userEntry.Key} already has a credential for the group. Remove it first or use `--force` to overwrite it.");
                             break;
                         default:
                             Console.WriteLine($"Unknown error: {result}.");
@@ -779,7 +779,7 @@ namespace ShadowsocksUriGenerator.CLI
                         Console.WriteLine($"Generated group credential for {username}.");
                         break;
                     case 2:
-                        Console.WriteLine("The user already has a credential for the group. Remove it first or use `--force` to overwrite it.");
+                        Console.WriteLine($"User {username} already has a credential for the group. Remove it first or use `--force` to overwrite it.");
                         break;
                     case -1:
                         Console.WriteLine($"Error: user {username} doesn't exist.");
