@@ -362,18 +362,18 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
                                           .OrderByDescending(x => x.bytesUsed)
                                           .ToList();
 
-            if (records.Count == 0)
-                return;
-
-            var maxNameLength = records.Max(x => x.username.Length);
-            var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
-
             replyBuilder.AppendLine($"Group: *{ChatHelper.EscapeMarkdownV2Plaintext(groupEntry.Key)}*");
             replyBuilder.AppendLine($"Data used: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(groupEntry.Value.BytesUsed))}*");
             if (groupEntry.Value.BytesRemaining != 0UL)
                 replyBuilder.AppendLine($"Data remaining: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(groupEntry.Value.BytesRemaining))}*");
             if (groupEntry.Value.DataLimitInBytes != 0UL)
                 replyBuilder.AppendLine($"Data limit: *{ChatHelper.EscapeMarkdownV2Plaintext(InteractionHelper.HumanReadableDataString1024(groupEntry.Value.DataLimitInBytes))}*");
+
+            if (records.Count == 0)
+                return;
+
+            var maxNameLength = records.Max(x => x.username.Length);
+            var nameFieldWidth = maxNameLength > 4 ? maxNameLength + 2 : 6;
 
             replyBuilder.AppendLine("```");
 
