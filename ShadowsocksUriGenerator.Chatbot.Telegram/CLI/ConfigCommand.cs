@@ -61,7 +61,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.CLI
             var saveBotConfigErrMsg = await BotConfig.SaveBotConfigAsync(botConfig, cancellationToken);
             if (saveBotConfigErrMsg is not null)
             {
-                Console.WriteLine(loadBotConfigErrMsg);
+                Console.WriteLine(saveBotConfigErrMsg);
                 return 1;
             }
 
