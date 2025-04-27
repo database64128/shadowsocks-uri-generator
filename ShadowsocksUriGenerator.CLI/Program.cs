@@ -1075,6 +1075,7 @@ internal class Program
         groupEditCommand.Arguments.Add(groupsArgumentOneOrMore);
         groupEditCommand.Options.Add(ownerOption);
         groupEditCommand.Options.Add(ssmv1BaseUriOption);
+        groupEditCommand.Options.Add(ssmv1ServerMethodOption);
         groupEditCommand.Options.Add(unsetOwnerOption);
         groupEditCommand.Options.Add(unsetSSMv1BaseUriOption);
         groupEditCommand.Validators.Add(validateOwnerOptions);
