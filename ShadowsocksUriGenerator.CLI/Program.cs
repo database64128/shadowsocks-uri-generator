@@ -169,7 +169,7 @@ internal class Program
 
         var interactiveCommand = new Command("interactive", "Enter interactive mode (REPL). Exit with 'exit' or 'quit'.");
 
-        var serviceCommand = new Command("service", "Run as a service to execute scheduled tasks.");
+        var serviceCommand = new Command("service", "Run as a service to execute scheduled tasks. Configure the service in settings.");
 
         var rootCommand = new RootCommand("A light-weight command line automation tool for managing federated Shadowsocks servers. Automate deployments of Outline servers. Deliver configurations to users with Open Online Config (OOC).")
         {
@@ -523,27 +523,25 @@ internal class Program
         {
             Description = "The secret path to the API endpoint. This is required to conceal the presence of the API. The secret MAY contain zero or more forward slashes (/) to allow flexible path hierarchy. But it's recommended to put non-secret part of the path in the base URL.",
         };
-
-        var serviceIntervalSecsOption = new Option<int>("--interval-secs")
+        var settingsServiceRunIntervalSecsOption = new Option<int?>("--service-run-interval-secs")
         {
-            Description = "The interval between each scheduled run in seconds.",
-            DefaultValueFactory = _ => 3600,
+            Description = "The interval in seconds between each scheduled run of the service.",
         };
-        var servicePullServersOption = new Option<bool>("--pull-from-servers")
+        var settingsServicePullFromServersOption = new Option<bool?>("--service-pull-from-servers")
         {
-            Description = "Pull from servers for updates of server information, user credentials, and data usage.",
+            Description = "Whether the service should pull from servers for updates of server information, user credentials, and data usage.",
         };
-        var serviceDeployToServersOption = new Option<bool>("--deploy-to-servers")
+        var settingsServiceDeployToServersOption = new Option<bool?>("--service-deploy-to-servers")
         {
-            Description = "Deploy local configurations to servers.",
+            Description = "Whether the service should deploy local configurations to servers.",
         };
-        var serviceGenerateOnlineConfigOption = new Option<bool>("--generate-online-config")
+        var settingsServiceGenerateOnlineConfigOption = new Option<bool?>("--service-generate-online-config")
         {
-            Description = "Generate online config.",
+            Description = "Whether the service should generate online config static files.",
         };
-        var serviceRegenerateOnlineConfigOption = new Option<bool>("--regenerate-online-config")
+        var settingsServiceRegenerateOnlineConfigOption = new Option<bool?>("--service-regenerate-online-config")
         {
-            Description = "Clean and regenerate online config.",
+            Description = "Whether the service should clean and regenerate online config static files.",
         };
 
         Action<CommandResult> enforceZeroUsernamesArgumentWhenAll = Validators.EnforceZeroUsernamesArgumentWhenAll(usernamesArgumentZeroOrMore, allUsersOption);
@@ -556,7 +554,6 @@ internal class Program
         Action<CommandResult> validateOwnerOptions = Validators.ValidateOwnerOptions(ownerOption, unsetOwnerOption);
         Action<CommandResult> validateGroupSetDataLimit = GroupCommand.ValidateSetDataLimit(globalDataLimitOption, perUserDataLimitOption, usernamesOption);
         Action<CommandResult> validateOutlineServerRotatePassword = OutlineServerCommand.ValidateRotatePassword(usernamesOption, groupsOption, allGroupsOption);
-        Action<CommandResult> validateServiceRun = ServiceCommand.ValidateRun(serviceIntervalSecsOption, serviceGenerateOnlineConfigOption, serviceRegenerateOnlineConfigOption);
 
         userCommand.Aliases.Add("u");
         nodeCommand.Aliases.Add("n");
@@ -1393,6 +1390,11 @@ internal class Program
         settingsSetCommand.Options.Add(settingsApiRequestConcurrencyOption);
         settingsSetCommand.Options.Add(settingsApiServerBaseUrlOption);
         settingsSetCommand.Options.Add(settingsApiServerSecretPathOption);
+        settingsSetCommand.Options.Add(settingsServiceRunIntervalSecsOption);
+        settingsSetCommand.Options.Add(settingsServicePullFromServersOption);
+        settingsSetCommand.Options.Add(settingsServiceDeployToServersOption);
+        settingsSetCommand.Options.Add(settingsServiceGenerateOnlineConfigOption);
+        settingsSetCommand.Options.Add(settingsServiceRegenerateOnlineConfigOption);
         settingsSetCommand.SetAction((parseResult, cancellationToken) =>
         {
             var userDataUsageDefaultSortBy = parseResult.GetValue(settingsUserDataUsageDefaultSortByOption);
@@ -1408,6 +1410,11 @@ internal class Program
             var apiRequestConcurrency = parseResult.GetValue(settingsApiRequestConcurrencyOption);
             var apiServerBaseUrl = parseResult.GetValue(settingsApiServerBaseUrlOption);
             var apiServerSecretPath = parseResult.GetValue(settingsApiServerSecretPathOption);
+            var serviceRunIntervalSecs = parseResult.GetValue(settingsServiceRunIntervalSecsOption);
+            var servicePullFromServers = parseResult.GetValue(settingsServicePullFromServersOption);
+            var serviceDeployToServers = parseResult.GetValue(settingsServiceDeployToServersOption);
+            var serviceGenerateOnlineConfig = parseResult.GetValue(settingsServiceGenerateOnlineConfigOption);
+            var serviceRegenerateOnlineConfig = parseResult.GetValue(settingsServiceRegenerateOnlineConfigOption);
             return SettingsCommand.Set(
                 userDataUsageDefaultSortBy,
                 groupDataUsageDefaultSortBy,
@@ -1422,6 +1429,11 @@ internal class Program
                 apiRequestConcurrency,
                 apiServerBaseUrl,
                 apiServerSecretPath,
+                serviceRunIntervalSecs,
+                servicePullFromServers,
+                serviceDeployToServers,
+                serviceGenerateOnlineConfig,
+                serviceRegenerateOnlineConfig,
                 cancellationToken);
         });
 
@@ -1446,20 +1458,9 @@ internal class Program
                 }
             });
 
-        serviceCommand.Options.Add(serviceIntervalSecsOption);
-        serviceCommand.Options.Add(servicePullServersOption);
-        serviceCommand.Options.Add(serviceDeployToServersOption);
-        serviceCommand.Options.Add(serviceGenerateOnlineConfigOption);
-        serviceCommand.Options.Add(serviceRegenerateOnlineConfigOption);
-        serviceCommand.Validators.Add(validateServiceRun);
-        serviceCommand.SetAction((parseResult, cancellationToken) =>
+        serviceCommand.SetAction((_, cancellationToken) =>
         {
-            var intervalSecs = parseResult.GetValue(serviceIntervalSecsOption);
-            var pullFromServers = parseResult.GetValue(servicePullServersOption);
-            var deployToServers = parseResult.GetValue(serviceDeployToServersOption);
-            var generateOnlineConfig = parseResult.GetValue(serviceGenerateOnlineConfigOption);
-            var regenerateOnlineConfig = parseResult.GetValue(serviceRegenerateOnlineConfigOption);
-            return ServiceCommand.Run(intervalSecs, pullFromServers, deployToServers, generateOnlineConfig, regenerateOnlineConfig, cancellationToken);
+            return ServiceCommand.Run(cancellationToken);
         });
 
         Console.OutputEncoding = Encoding.UTF8;

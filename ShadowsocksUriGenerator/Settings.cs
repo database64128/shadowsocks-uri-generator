@@ -111,6 +111,37 @@ namespace ShadowsocksUriGenerator
         public string ApiServerSecretPath { get; set; } = "";
 
         /// <summary>
+        /// Gets or sets the interval in seconds between each scheduled run of the service.
+        /// Defaults to 900 seconds (15 minutes).
+        /// </summary>
+        public int ServiceRunIntervalSecs { get; set; } = 900;
+
+        /// <summary>
+        /// Gets or sets whether the service should pull from servers for updates of
+        /// server information, user credentials, and data usage.
+        /// Defaults to <c>true</c>.
+        /// </summary>
+        public bool ServicePullFromServers { get; set; } = true;
+
+        /// <summary>
+        /// Gets or sets whether the service should deploy local configurations to servers.
+        /// Defaults to <c>false</c>.
+        /// </summary>
+        public bool ServiceDeployToServers { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the service should generate online config static files.
+        /// Defaults to <c>false</c>.
+        /// </summary>
+        public bool ServiceGenerateOnlineConfig { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the service should clean and regenerate online config static files.
+        /// Defaults to <c>false</c>.
+        /// </summary>
+        public bool ServiceRegenerateOnlineConfig { get; set; }
+
+        /// <summary>
         /// Loads settings from Settings.json.
         /// </summary>
         /// <param name="cancellationToken">A token that may be used to cancel the read operation.</param>

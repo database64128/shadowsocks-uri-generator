@@ -5,7 +5,7 @@ After=network-online.target
 
 [Service]
 WorkingDirectory=%E/shadowsocks-uri-generator
-ExecStart=/usr/bin/ss-uri-gen service --interval-secs 900 --pull-from-servers
+ExecStart=/usr/bin/ss-uri-gen service
 
 [Install]
 WantedBy=default.target

@@ -34,6 +34,11 @@ namespace ShadowsocksUriGenerator.CLI
             Console.WriteLine($"|{"ApiRequestConcurrency",-42}|{settings.ApiRequestConcurrency,40}|");
             Console.WriteLine($"|{"ApiServerBaseUrl",-42}|{settings.ApiServerBaseUrl,40}|");
             Console.WriteLine($"|{"ApiServerSecretPath",-42}|{settings.ApiServerSecretPath,40}|");
+            Console.WriteLine($"|{"ServiceRunIntervalSecs",-42}|{settings.ServiceRunIntervalSecs,40}|");
+            Console.WriteLine($"|{"ServicePullFromServers",-42}|{settings.ServicePullFromServers,40}|");
+            Console.WriteLine($"|{"ServiceDeployToServers",-42}|{settings.ServiceDeployToServers,40}|");
+            Console.WriteLine($"|{"ServiceGenerateOnlineConfig",-42}|{settings.ServiceGenerateOnlineConfig,40}|");
+            Console.WriteLine($"|{"ServiceRegenerateOnlineConfig",-42}|{settings.ServiceRegenerateOnlineConfig,40}|");
 
             ConsoleHelper.PrintTableBorder(42, 40);
 
@@ -54,6 +59,11 @@ namespace ShadowsocksUriGenerator.CLI
             int? apiRequestConcurrency,
             string? apiServerBaseUrl,
             string? apiServerSecretPath,
+            int? serviceRunIntervalSecs,
+            bool? servicePullFromServers,
+            bool? serviceDeployToServers,
+            bool? serviceGenerateOnlineConfig,
+            bool? serviceRegenerateOnlineConfig,
             CancellationToken cancellationToken = default)
         {
             var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
@@ -93,6 +103,17 @@ namespace ShadowsocksUriGenerator.CLI
                 settings.ApiServerBaseUrl = apiServerBaseUrl;
             if (!string.IsNullOrEmpty(apiServerSecretPath))
                 settings.ApiServerSecretPath = apiServerSecretPath;
+
+            if (serviceRunIntervalSecs is int intervalSecs)
+                settings.ServiceRunIntervalSecs = intervalSecs;
+            if (servicePullFromServers is bool pullFromServers)
+                settings.ServicePullFromServers = pullFromServers;
+            if (serviceDeployToServers is bool deployToServers)
+                settings.ServiceDeployToServers = deployToServers;
+            if (serviceGenerateOnlineConfig is bool generateOnlineConfig)
+                settings.ServiceGenerateOnlineConfig = generateOnlineConfig;
+            if (serviceRegenerateOnlineConfig is bool regenerateOnlineConfig)
+                settings.ServiceRegenerateOnlineConfig = regenerateOnlineConfig;
 
             var saveSettingsErrMsg = await Settings.SaveSettingsAsync(settings, cancellationToken);
             if (saveSettingsErrMsg is not null)
