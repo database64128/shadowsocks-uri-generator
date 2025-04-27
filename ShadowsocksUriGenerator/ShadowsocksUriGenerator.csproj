@@ -32,8 +32,6 @@
 
   <ItemGroup>
     <PackageReference Include="OpenOnlineConfig" Version="1.2.0" />
-    <PackageReference Include="System.Interactive.Async" Version="6.0.1" />
-    <PackageReference Include="System.Linq.Async" Version="6.0.1" />
   </ItemGroup>
 
 </Project>
