@@ -43,10 +43,7 @@ namespace ShadowsocksUriGenerator.Outline
                 {
                     SslOptions = sslClientAuthenticationOptions,
                 };
-                _httpClient = new(socketsHttpHandler)
-                {
-                    Timeout = TimeSpan.FromSeconds(30),
-                };
+                _httpClient = new(socketsHttpHandler);
                 _disposeHttpClient = true;
             }
         }
