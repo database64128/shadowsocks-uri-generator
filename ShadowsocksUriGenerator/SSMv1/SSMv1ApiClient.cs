@@ -61,7 +61,7 @@ public class SSMv1ApiClient
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task AddUserAsync(SSMv1UserInfo user, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync(_usersUri, user, SSMv1JsonSerializerContext.Default.SSMv1UserInfo, cancellationToken);
+        using HttpResponseMessage response = await _httpClient.PostAsJsonAsync(_usersUri, user, SSMv1JsonSerializerContext.Default.SSMv1UserInfo, cancellationToken);
         await ThrowIfNotSuccessAsync(response, cancellationToken);
     }
 
@@ -71,8 +71,13 @@ public class SSMv1ApiClient
     /// <param name="username">The username.</param>
     /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
     /// <returns>Detailed user information.</returns>
-    public Task<SSMv1UserDetails?> GetUserDetailsAsync(string username, CancellationToken cancellationToken = default) =>
-        _httpClient.GetFromJsonAsync(GetUserUri(username), SSMv1JsonSerializerContext.Default.SSMv1UserDetails, cancellationToken);
+    public async Task<SSMv1UserDetails?> GetUserDetailsAsync(string username, CancellationToken cancellationToken = default)
+    {
+        Uri uri = GetUserUri(username);
+        using HttpResponseMessage response = await _httpClient.GetAsync(uri, cancellationToken);
+        await ThrowIfNotSuccessAsync(response, cancellationToken);
+        return await response.Content.ReadFromJsonAsync(SSMv1JsonSerializerContext.Default.SSMv1UserDetails, cancellationToken);
+    }
 
     /// <summary>
     /// Updates the user's PSK.
@@ -88,7 +93,7 @@ public class SSMv1ApiClient
         {
             UserPSK = uPSK,
         };
-        HttpResponseMessage response = await _httpClient.PatchAsJsonAsync(uri, userCred, SSMv1JsonSerializerContext.Default.SSMv1UserCred, cancellationToken);
+        using HttpResponseMessage response = await _httpClient.PatchAsJsonAsync(uri, userCred, SSMv1JsonSerializerContext.Default.SSMv1UserCred, cancellationToken);
         await ThrowIfNotSuccessAsync(response, cancellationToken);
     }
 
@@ -100,7 +105,8 @@ public class SSMv1ApiClient
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     public async Task DeleteUserAsync(string username, CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await _httpClient.DeleteAsync(GetUserUri(username), cancellationToken);
+        Uri uri = GetUserUri(username);
+        using HttpResponseMessage response = await _httpClient.DeleteAsync(uri, cancellationToken);
         await ThrowIfNotSuccessAsync(response, cancellationToken);
     }
 
