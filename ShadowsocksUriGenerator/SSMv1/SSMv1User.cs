@@ -11,7 +11,7 @@ public class SSMv1UserCred
     /// Gets or sets the user's PSK.
     /// </summary>
     [JsonPropertyName("uPSK")]
-    public string UserPSK { get; set; } = "";
+    public required string UserPSK { get; set; }
 }
 
 /// <summary>
@@ -22,13 +22,13 @@ public class SSMv1UserInfo
     /// <summary>
     /// Gets or sets the username.
     /// </summary>
-    public string Username { get; set; } = "";
+    public required string Username { get; set; }
 
     /// <summary>
     /// Gets or sets the user's PSK.
     /// </summary>
     [JsonPropertyName("uPSK")]
-    public string UserPSK { get; set; } = "";
+    public required string UserPSK { get; set; }
 }
 
 /// <summary>
@@ -39,7 +39,7 @@ public class SSMv1UserInfoList
     /// <summary>
     /// Gets or sets the list of users.
     /// </summary>
-    public SSMv1UserInfo[] Users { get; set; } = [];
+    public required SSMv1UserInfo[] Users { get; set; }
 }
 
 /// <summary>
@@ -50,7 +50,7 @@ public class SSMv1UserStats : SSMv1StatsBase
     /// <summary>
     /// Gets or sets the username.
     /// </summary>
-    public string Username { get; set; } = "";
+    public required string Username { get; set; }
 }
 
 /// <summary>
@@ -61,11 +61,11 @@ public class SSMv1UserDetails : SSMv1StatsBase
     /// <summary>
     /// Gets or sets the username.
     /// </summary>
-    public string Username { get; set; } = "";
+    public required string Username { get; set; }
 
     /// <summary>
     /// Gets or sets the user's PSK.
     /// </summary>
     [JsonPropertyName("uPSK")]
-    public string UserPSK { get; set; } = "";
+    public required string UserPSK { get; set; }
 }
