@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -259,6 +260,160 @@ public sealed class SSMv1Server
             s1.UplinkBytes += s2.UplinkBytes;
             s1.TcpSessions += s2.TcpSessions;
             s1.UdpSessions += s2.UdpSessions;
+        }
+    }
+
+    /// <summary>
+    /// Deploys local user configurations to the server.
+    /// </summary>
+    /// <param name="httpClient">An instance of <see cref="HttpClient"/>.</param>
+    /// <param name="groupName">The group name.</param>
+    /// <param name="users">The <see cref="Users"/> object.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>An <see cref="IAsyncEnumerable{T}"/> for iterating through completed tasks.</returns>
+    /// <exception cref="GroupApiRequestException">The API request failed.</exception>
+    public async IAsyncEnumerable<Task> DeployAsync(HttpClient httpClient, string groupName, Users users, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        _apiClient ??= new(httpClient, BaseUri);
+
+        // Query server users.
+        SSMv1UserInfoList? serverUserList;
+        try
+        {
+            serverUserList = await _apiClient.ListUsersAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new GroupApiRequestException(groupName, "Failed to pull user credentials", ex);
+        }
+
+        // Query local group members.
+        // Generate passwords for those without one.
+        Dictionary<string, MemberInfo> memberInfoByUsername = [];
+        foreach (KeyValuePair<string, User> userEntry in users.UserDict)
+        {
+            if (userEntry.Value.Memberships.TryGetValue(groupName, out MemberInfo? memberInfo))
+            {
+                memberInfoByUsername.Add(userEntry.Key, memberInfo);
+
+                if (string.IsNullOrEmpty(memberInfo.Method))
+                {
+                    memberInfo.Method = ServerMethod;
+                }
+                if (string.IsNullOrEmpty(memberInfo.Password))
+                {
+                    memberInfo.GeneratePassword();
+                }
+            }
+        }
+
+        List<Task> tasks = [];
+
+        // Add tasks to delete server users that are not in the local group.
+        // While here, create a dictionary of server users for later use.
+        ReadOnlySpan<SSMv1UserInfo> serverUsers = serverUserList is not null ? serverUserList.Users : [];
+        Dictionary<string, string> serverUserPSKByUsername = new(serverUsers.Length);
+        foreach (SSMv1UserInfo serverUser in serverUsers)
+        {
+            if (memberInfoByUsername.ContainsKey(serverUser.Username))
+            {
+                serverUserPSKByUsername.Add(serverUser.Username, serverUser.UserPSK);
+            }
+            else
+            {
+                tasks.Add(DeleteServerUserAsync(_apiClient, groupName, serverUser.Username, cancellationToken));
+            }
+        }
+
+        // Add tasks to add or update server users.
+        foreach (KeyValuePair<string, MemberInfo> userEntry in memberInfoByUsername)
+        {
+            if (serverUserPSKByUsername.TryGetValue(userEntry.Key, out string? serverUserPSK))
+            {
+                if (userEntry.Value.Password != serverUserPSK)
+                {
+                    tasks.Add(UpdateServerUserAsync(_apiClient, groupName, userEntry.Key, userEntry.Value.Password, cancellationToken));
+                }
+            }
+            else
+            {
+                tasks.Add(AddServerUserAsync(_apiClient, groupName, userEntry.Key, userEntry.Value.Password, cancellationToken));
+            }
+        }
+
+        await foreach (Task task in Task.WhenEach(tasks))
+        {
+            yield return task;
+        }
+    }
+
+    /// <summary>
+    /// Deletes a server user.
+    /// </summary>
+    /// <param name="apiClient">The SSMv1 API client.</param>
+    /// <param name="groupName">The group name.</param>
+    /// <param name="username">The username.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>The task that represents the operation.</returns>
+    /// <exception cref="GroupApiRequestException">The API request failed.</exception>
+    private static async Task DeleteServerUserAsync(SSMv1ApiClient apiClient, string groupName, string username, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await apiClient.DeleteUserAsync(username, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new GroupApiRequestException(groupName, $"Failed to delete user {username}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Updates a server user.
+    /// </summary>
+    /// <param name="apiClient">The SSMv1 API client.</param>
+    /// <param name="groupName">The group name.</param>
+    /// <param name="username">The username.</param>
+    /// <param name="password">The new password.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>The task that represents the operation.</returns>
+    /// <exception cref="GroupApiRequestException">The API request failed.</exception>
+    private static async Task UpdateServerUserAsync(SSMv1ApiClient apiClient, string groupName, string username, string password, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            await apiClient.UpdateUserAsync(username, password, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new GroupApiRequestException(groupName, $"Failed to update user {username}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Adds a server user.
+    /// </summary>
+    /// <param name="apiClient">The SSMv1 API client.</param>
+    /// <param name="groupName">The group name.</param>
+    /// <param name="username">The username.</param>
+    /// <param name="password">The password.</param>
+    /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+    /// <returns>The task that represents the operation.</returns>
+    /// <exception cref="GroupApiRequestException">The API request failed.</exception>
+    private static async Task AddServerUserAsync(SSMv1ApiClient apiClient, string groupName, string username, string password, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            SSMv1UserInfo user = new()
+            {
+                Username = username,
+                UserPSK = password,
+            };
+            await apiClient.AddUserAsync(user, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            throw new GroupApiRequestException(groupName, $"Failed to add user {username}", ex);
         }
     }
 

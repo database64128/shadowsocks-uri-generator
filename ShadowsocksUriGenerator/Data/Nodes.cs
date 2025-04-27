@@ -441,34 +441,6 @@ namespace ShadowsocksUriGenerator.Data
         }
 
         /// <summary>
-        /// Deploys the group's Outline server.
-        /// </summary>
-        /// <param name="group">Target group.</param>
-        /// <param name="users">The object which contains all users' information.</param>
-        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>
-        /// An async-enumerable sequence whose elements are error messages.
-        /// </returns>
-        public IAsyncEnumerable<Task> DeployGroupOutlineServer(string group, Users users, CancellationToken cancellationToken = default)
-        {
-            if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.DeployToOutlineServer(group, users, _httpClient, cancellationToken);
-            else
-                return AsyncEnumerableEx.Return(Task.CompletedTask);
-        }
-
-        /// <summary>
-        /// Deploy to every associated Outline server.
-        /// </summary>
-        /// <param name="users">The object which contains all users' information.</param>
-        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>
-        /// An async-enumerable sequence whose elements are error messages.
-        /// </returns>
-        public IAsyncEnumerable<Task> DeployAllOutlineServers(Users users, CancellationToken cancellationToken = default)
-            => Groups.Select(x => x.Value.DeployToOutlineServer(x.Key, users, _httpClient, cancellationToken)).ConcurrentMerge();
-
-        /// <summary>
         /// Renames the user and syncs with Outline server in the group.
         /// </summary>
         /// <param name="group">Group name.</param>
@@ -490,32 +462,14 @@ namespace ShadowsocksUriGenerator.Data
         /// <summary>
         /// Rotates the specified group's user password.
         /// </summary>
-        /// <param name="group">Target group.</param>
+        /// <param name="groupName">Target group.</param>
+        /// <param name="group">The <see cref="Group"/> object.</param>
         /// <param name="users">The object which contains all users' information.</param>
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <param name="usernames">Optional. Only target these members in group if specified.</param>
-        /// <returns>
-        /// An async-enumerable sequence whose elements are error messages.
-        /// </returns>
-        public IAsyncEnumerable<string> RotateGroupPassword(string group, Users users, CancellationToken cancellationToken = default, params string[] usernames)
-        {
-            if (Groups.TryGetValue(group, out var targetGroup))
-                return targetGroup.RotatePassword(group, users, _httpClient, false, cancellationToken, usernames);
-            else
-                return AsyncEnumerableEx.Return($"Error: Group {group} doesn't exist.");
-        }
-
-        /// <summary>
-        /// Rotates password in all supported groups for the specified or all users.
-        /// </summary>
-        /// <param name="users">The <see cref="Users"/> object.</param>
-        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <param name="usernames">Optional. Only target these members in group if specified.</param>
-        /// <returns>
-        /// An async-enumerable sequence whose elements are error messages.
-        /// </returns>
-        public IAsyncEnumerable<string> RotatePasswordForAllGroups(Users users, CancellationToken cancellationToken = default, params string[] usernames)
-            => Groups.Select(x => x.Value.RotatePassword(x.Key, users, _httpClient, false, cancellationToken, usernames)).ConcurrentMerge();
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> for iterating through completed tasks.</returns>
+        public IAsyncEnumerable<Task> RotateGroupPassword(string groupName, Group group, Users users, CancellationToken cancellationToken = default, params string[] usernames) =>
+            group.RotatePassword(groupName, users, _httpClient, false, cancellationToken, usernames);
 
         /// <summary>
         /// Pulls server information, user credentials, and statistics,
@@ -527,7 +481,46 @@ namespace ShadowsocksUriGenerator.Data
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>The task that represents the operation.</returns>
         /// <exception cref="ArgumentException">One or more group names are not found.</exception>
-        public async Task PullGroupsAsync(ReadOnlyMemory<string> groupNames, Users users, Settings settings, CancellationToken cancellationToken = default)
+        public Task PullGroupsAsync(
+            ReadOnlyMemory<string> groupNames,
+            Users users,
+            Settings settings,
+            CancellationToken cancellationToken = default) =>
+            PullDeployGroupsCoreAsync(
+                groupNames,
+                PullGroupAsync,
+                users,
+                settings,
+                cancellationToken);
+
+        /// <summary>
+        /// Deploys local user configurations to servers
+        /// of the specified or all groups via available APIs.
+        /// </summary>
+        /// <param name="groupNames">If not empty, only include servers from these groups.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="settings">The <see cref="Settings"/> object.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        /// <returns>The task that represents the operation.</returns>
+        /// <exception cref="ArgumentException">One or more group names are not found.</exception>
+        public Task DeployGroupsAsync(
+            ReadOnlyMemory<string> groupNames,
+            Users users,
+            Settings settings,
+            CancellationToken cancellationToken = default) =>
+            PullDeployGroupsCoreAsync(
+                groupNames,
+                DeployGroupAsync,
+                users,
+                settings,
+                cancellationToken);
+
+        private async Task PullDeployGroupsCoreAsync(
+            ReadOnlyMemory<string> groupNames,
+            Func<KeyValuePair<string, Group>, Users, CancellationToken, IAsyncEnumerable<Task>> pullDeployGroupAsync,
+            Users users,
+            Settings settings,
+            CancellationToken cancellationToken = default)
         {
             IReadOnlyCollection<KeyValuePair<string, Group>> groups;
 
@@ -554,7 +547,7 @@ namespace ShadowsocksUriGenerator.Data
                 groups = groupArray;
             }
 
-            int concurrency = int.Min(settings.ApiRequestConcurrency, groups.Count);
+            int concurrency = Math.Min(settings.ApiRequestConcurrency, groups.Count);
 
             Channel<KeyValuePair<string, Group>> channel = Channel.CreateBounded<KeyValuePair<string, Group>>(new BoundedChannelOptions(concurrency)
             {
@@ -565,7 +558,7 @@ namespace ShadowsocksUriGenerator.Data
 
             for (int i = 0; i < concurrency; i++)
             {
-                tasks[i] = DoPullJobAsync(channel.Reader, users, cancellationToken);
+                tasks[i] = DoPullDeployJobAsync(channel.Reader, pullDeployGroupAsync, users, cancellationToken);
             }
 
             try
@@ -583,23 +576,31 @@ namespace ShadowsocksUriGenerator.Data
             await Task.WhenAll(tasks);
         }
 
-        private async Task DoPullJobAsync(
+        private static async Task DoPullDeployJobAsync(
             ChannelReader<KeyValuePair<string, Group>> reader,
+            Func<KeyValuePair<string, Group>, Users, CancellationToken, IAsyncEnumerable<Task>> pullDeployGroupAsync,
             Users users,
             CancellationToken cancellationToken = default)
         {
             await foreach (KeyValuePair<string, Group> groupEntry in reader.ReadAllAsync(cancellationToken))
             {
-                await foreach (Task task in PullGroupAsync(groupEntry, users, cancellationToken))
+                try
                 {
-                    try
+                    await foreach (Task task in pullDeployGroupAsync(groupEntry, users, cancellationToken))
                     {
-                        await task;
+                        try
+                        {
+                            await task;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
             }
         }
@@ -616,6 +617,20 @@ namespace ShadowsocksUriGenerator.Data
             groupEntry.Value.SSMv1Server is not null
                 ? groupEntry.Value.SSMv1Server.PullAsync(_httpClient, groupEntry.Key, groupEntry.Value, users, cancellationToken)
                 : groupEntry.Value.PullFromOutlineServer(groupEntry.Key, users, _httpClient, cancellationToken);
+
+        /// <summary>
+        /// Deploys the group's local user configurations
+        /// to the group's server via available APIs.
+        /// </summary>
+        /// <param name="groupEntry">Target group entry.</param>
+        /// <param name="users">The <see cref="Users"/> object.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        /// <returns>An <see cref="IAsyncEnumerable{T}"/> for iterating through completed tasks.</returns>
+        /// <exception cref="GroupApiRequestException">The API request failed.</exception>
+        public IAsyncEnumerable<Task> DeployGroupAsync(KeyValuePair<string, Group> groupEntry, Users users, CancellationToken cancellationToken = default) =>
+            groupEntry.Value.SSMv1Server is not null
+                ? groupEntry.Value.SSMv1Server.DeployAsync(_httpClient, groupEntry.Key, users, cancellationToken)
+                : groupEntry.Value.DeployToOutlineServer(groupEntry.Key, users, _httpClient, cancellationToken);
 
         /// <summary>
         /// Loads nodes from Nodes.json.

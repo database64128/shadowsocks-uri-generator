@@ -49,11 +49,13 @@ public static class ServiceCommand
             }
             if (settings.ServiceDeployToServers)
             {
-                var errMsgs = nodes.DeployAllOutlineServers(users, cancellationToken);
-
-                await foreach (var errMsg in errMsgs)
+                try
                 {
-                    Console.WriteLine(errMsg);
+                    await nodes.DeployGroupsAsync(ReadOnlyMemory<string>.Empty, users, settings, cancellationToken);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
 
                 Console.WriteLine("Deployed to servers.");

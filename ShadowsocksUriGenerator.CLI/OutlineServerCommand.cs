@@ -1,5 +1,4 @@
 ﻿using ShadowsocksUriGenerator.Data;
-using ShadowsocksUriGenerator.Utils;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -210,66 +209,6 @@ namespace ShadowsocksUriGenerator.CLI
             return commandResult;
         }
 
-        public static async Task<int> Deploy(string[] groups, CancellationToken cancellationToken = default)
-        {
-            var commandResult = 0;
-
-            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
-            if (loadUsersErrMsg is not null)
-            {
-                Console.WriteLine(loadUsersErrMsg);
-                return 1;
-            }
-
-            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
-            if (loadNodesErrMsg is not null)
-            {
-                Console.WriteLine(loadNodesErrMsg);
-                return 1;
-            }
-            using var nodes = loadedNodes;
-
-            IAsyncEnumerable<Task> tasks;
-
-            if (groups.Length == 0)
-            {
-                tasks = nodes.DeployAllOutlineServers(users, cancellationToken);
-            }
-            else
-            {
-                tasks = groups.Select(group => nodes.DeployGroupOutlineServer(group, users, cancellationToken)).ConcurrentMerge();
-            }
-
-            await foreach (Task task in tasks)
-            {
-                try
-                {
-                    await task;
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(ex);
-                    commandResult--;
-                }
-            }
-
-            var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
-            if (saveUsersErrMsg is not null)
-            {
-                Console.WriteLine(saveUsersErrMsg);
-                return 1;
-            }
-
-            var saveNodesErrMsg = await Nodes.SaveNodesAsync(nodes, cancellationToken);
-            if (saveNodesErrMsg is not null)
-            {
-                Console.WriteLine(saveNodesErrMsg);
-                return 1;
-            }
-
-            return commandResult;
-        }
-
         public static Action<CommandResult> ValidateRotatePassword(
             Option<string[]> usernamesOption,
             Option<string[]> groupsOption,
@@ -306,24 +245,58 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            IAsyncEnumerable<string> errMsgs;
+            int capacity = allGroups ? nodes.Groups.Count : groups.Length;
+            List<IAsyncEnumerable<Task>> tasks = new(capacity);
 
             if (allGroups)
             {
-                errMsgs = nodes.RotatePasswordForAllGroups(users, cancellationToken);
+                foreach (KeyValuePair<string, Group> groupEntry in nodes.Groups)
+                {
+                    tasks.Add(nodes.RotateGroupPassword(groupEntry.Key, groupEntry.Value, users, cancellationToken, usernames));
+                }
             }
             else if (groups.Length > 0)
             {
                 // Rotate for specified or all users in these groups.
-                errMsgs = groups.Select(x => nodes.RotateGroupPassword(x, users, cancellationToken, usernames)).ConcurrentMerge();
+                foreach (string groupName in groups)
+                {
+                    if (nodes.Groups.TryGetValue(groupName, out Group? group))
+                    {
+                        tasks.Add(nodes.RotateGroupPassword(groupName, group, users, cancellationToken, usernames));
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Group {groupName} not found.");
+                        commandResult--;
+                    }
+                }
             }
             else if (usernames.Length > 0)
             {
                 // Find the groups these users are in and rotate for them in these groups.
-                var targetGroups = usernames.Where(x => users.UserDict.ContainsKey(x))
-                                            .SelectMany(x => users.UserDict[x].Memberships.Keys)
-                                            .Distinct();
-                errMsgs = targetGroups.Select(x => nodes.RotateGroupPassword(x, users, cancellationToken, usernames)).ConcurrentMerge();
+                foreach (string username in usernames)
+                {
+                    if (users.UserDict.TryGetValue(username, out User? user))
+                    {
+                        foreach (string groupName in user.Memberships.Keys)
+                        {
+                            if (nodes.Groups.TryGetValue(groupName, out var group))
+                            {
+                                tasks.Add(nodes.RotateGroupPassword(groupName, group, users, cancellationToken, usernames));
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Group {groupName} not found.");
+                                commandResult--;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"User {username} not found.");
+                        commandResult--;
+                    }
+                }
             }
             else
             {
@@ -331,19 +304,29 @@ namespace ShadowsocksUriGenerator.CLI
                 return -3;
             }
 
-            try
+            await Task.WhenAll(tasks.Select(async tasks =>
             {
-                await foreach (var errMsg in errMsgs)
+                try
                 {
-                    Console.WriteLine(errMsg);
+                    await foreach (Task task in tasks)
+                    {
+                        try
+                        {
+                            await task;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
+                            commandResult--;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                     commandResult--;
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                commandResult--;
-            }
+            }));
 
             var saveUsersErrMsg = await Users.SaveUsersAsync(users, cancellationToken);
             if (saveUsersErrMsg is not null)

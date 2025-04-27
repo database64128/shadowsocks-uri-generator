@@ -106,6 +106,7 @@ internal class Program
         var groupGetDataLimitCommand = new Command("get-data-limit", "Get the group's data limit settings.");
         var groupSetDataLimitCommand = new Command("set-data-limit", "Set a global or per-user data limit in the specified groups on all or the specified users.");
         var groupPullCommand = new Command("pull", "Pull server information, user credentials, and statistics, from servers of the specified or all groups, via available APIs.");
+        var groupDeployCommand = new Command("deploy", "Deploy local configuration to servers of the specified or all groups, via available APIs.");
 
         var groupCommand = new Command("group", "Manage groups.")
         {
@@ -126,6 +127,7 @@ internal class Program
             groupGetDataLimitCommand,
             groupSetDataLimitCommand,
             groupPullCommand,
+            groupDeployCommand,
         };
 
         var onlineConfigGenerateCommand = new Command("generate", "[Legacy] Generate static SIP008 delivery JSON files for specified or all users.");
@@ -143,7 +145,6 @@ internal class Program
         var outlineServerGetCommand = new Command("get", "Get the associated Outline server's information.");
         var outlineServerSetCommand = new Command("set", "Change settings of the associated Outline server.");
         var outlineServerRemoveCommand = new Command("remove", "Remove the Outline server from the group.");
-        var outlineServerDeployCommand = new Command("deploy", "Deploy local configuration to Outline servers of specified or all groups.");
         var outlineServerRotatePasswordCommand = new Command("rotate-password", "Rotate passwords for the specified users and/or groups.");
 
         var outlineServerCommand = new Command("outline-server", "Manage Outline servers.")
@@ -152,7 +153,6 @@ internal class Program
             outlineServerGetCommand,
             outlineServerSetCommand,
             outlineServerRemoveCommand,
-            outlineServerDeployCommand,
             outlineServerRotatePasswordCommand,
         };
 
@@ -1265,6 +1265,13 @@ internal class Program
             return GroupCommand.PullAsync(groups, cancellationToken);
         });
 
+        groupDeployCommand.Arguments.Add(groupsArgumentZeroOrMore);
+        groupDeployCommand.SetAction((parseResult, cancellationToken) =>
+        {
+            var groups = parseResult.GetValue(groupsArgumentZeroOrMore)!;
+            return GroupCommand.DeployAsync(groups, cancellationToken);
+        });
+
         onlineConfigGenerateCommand.Aliases.Add("g");
         onlineConfigGenerateCommand.Aliases.Add("gen");
         onlineConfigGenerateCommand.Arguments.Add(usernamesArgumentZeroOrMore);
@@ -1342,13 +1349,6 @@ internal class Program
             var groups = parseResult.GetValue(groupsArgumentOneOrMore)!;
             var removeCreds = parseResult.GetValue(removeCredsOption);
             return OutlineServerCommand.Remove(groups, removeCreds, cancellationToken);
-        });
-
-        outlineServerDeployCommand.Arguments.Add(groupsArgumentZeroOrMore);
-        outlineServerDeployCommand.SetAction((parseResult, cancellationToken) =>
-        {
-            var groups = parseResult.GetValue(groupsArgumentZeroOrMore)!;
-            return OutlineServerCommand.Deploy(groups, cancellationToken);
         });
 
         outlineServerRotatePasswordCommand.Aliases.Add("rotate");
