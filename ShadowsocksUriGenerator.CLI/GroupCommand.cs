@@ -309,7 +309,7 @@ namespace ShadowsocksUriGenerator.CLI
             }
             using var nodes = loadedNodes;
 
-            List<(string group, int nodesCount, string owner, string outlineServerName)> groups = [];
+            List<(string group, int nodesCount, string owner, string ssmv1Status, string outlineServerStatus)> groups = [];
 
             foreach (var groupEntry in nodes.Groups)
             {
@@ -321,9 +321,10 @@ namespace ShadowsocksUriGenerator.CLI
                     : users.TryGetUserById(ownerUuid, out var userEntry)
                     ? userEntry.Key
                     : "N/A";
-                var outlineServerName = groupEntry.Value.OutlineServerInfo?.Name ?? "N/A";
+                var ssmv1Status = groupEntry.Value.SSMv1Server is not null ? "Yes" : "No";
+                var outlineServerStatus = groupEntry.Value.OutlineApiKey is not null ? "Yes" : "No";
 
-                groups.Add((group, nodesCount, owner, outlineServerName));
+                groups.Add((group, nodesCount, owner, ssmv1Status, outlineServerStatus));
             }
 
             Console.WriteLine($"Groups: {groups.Count}");
@@ -342,22 +343,28 @@ namespace ShadowsocksUriGenerator.CLI
 
             var maxGroupNameLength = groups.Max(x => x.group.Length);
             var maxOwnerNameLength = groups.Max(x => x.owner?.Length ?? 0);
-            var maxOutlineServerNameLength = groups.Max(x => x.outlineServerName?.Length ?? 0);
 
-            var groupNameFieldWidth = maxGroupNameLength > 5 ? maxGroupNameLength + 2 : 7;
-            var ownerNameFieldWidth = maxOwnerNameLength > 5 ? maxOwnerNameLength + 2 : 7;
-            var outlineServerNameFieldWidth = maxOutlineServerNameLength > 14 ? maxOutlineServerNameLength + 2 : 16;
+            const string groupNameColumnHeading = "Group";
+            const string nrNodesColumnHeading = "Number of Nodes";
+            const string ownerNameColumnHeading = "Owner";
+            const string ssmv1ColumnHeading = "SSMv1";
+            const string outlineServerColumnHeading = "Outline Server";
+            int groupNameFieldWidth = maxGroupNameLength > groupNameColumnHeading.Length ? maxGroupNameLength + 1 : groupNameColumnHeading.Length + 1;
+            int nrNodesColumnWidth = 1 + nrNodesColumnHeading.Length;
+            int ownerNameFieldWidth = maxOwnerNameLength > ownerNameColumnHeading.Length ? 1 + maxOwnerNameLength : 1 + ownerNameColumnHeading.Length;
+            int ssmv1ColumnWidth = 1 + ssmv1ColumnHeading.Length;
+            int outlineServerColumnWidth = 1 + outlineServerColumnHeading.Length;
 
-            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
-            Console.WriteLine($"|{"Group".PadRight(groupNameFieldWidth)}|{"Number of Nodes",16}|{"Owner".PadLeft(ownerNameFieldWidth)}|{"Outline Server".PadLeft(outlineServerNameFieldWidth)}|");
-            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, nrNodesColumnWidth, ownerNameFieldWidth, ssmv1ColumnWidth, outlineServerColumnWidth);
+            Console.WriteLine($"|{groupNameColumnHeading.PadRight(groupNameFieldWidth)}|{nrNodesColumnHeading.PadLeft(nrNodesColumnWidth)}|{ownerNameColumnHeading.PadLeft(ownerNameFieldWidth)}|{ssmv1ColumnHeading.PadLeft(ssmv1ColumnWidth)}|{outlineServerColumnHeading.PadLeft(outlineServerColumnWidth)}|");
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, nrNodesColumnWidth, ownerNameFieldWidth, ssmv1ColumnWidth, outlineServerColumnWidth);
 
-            foreach (var (group, nodesCount, owner, outlineServerName) in groups)
+            foreach (var (group, nodesCount, owner, ssmv1Status, outlineServerStatus) in groups)
             {
-                Console.WriteLine($"|{group.PadRight(groupNameFieldWidth)}|{nodesCount,16}|{owner.PadLeft(ownerNameFieldWidth)}|{outlineServerName.PadLeft(outlineServerNameFieldWidth)}|");
+                Console.WriteLine($"|{group.PadRight(groupNameFieldWidth)}|{nodesCount.ToString().PadLeft(nrNodesColumnWidth)}|{owner.PadLeft(ownerNameFieldWidth)}|{ssmv1Status.PadLeft(ssmv1ColumnWidth)}|{outlineServerStatus.PadLeft(outlineServerColumnWidth)}|");
             }
 
-            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, 16, ownerNameFieldWidth, outlineServerNameFieldWidth);
+            ConsoleHelper.PrintTableBorder(groupNameFieldWidth, nrNodesColumnWidth, ownerNameFieldWidth, ssmv1ColumnWidth, outlineServerColumnWidth);
 
             return 0;
         }
