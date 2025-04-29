@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
-using ShadowsocksUriGenerator.Utils;
-using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
@@ -83,6 +79,6 @@ public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dat
             Servers = servers.Select(x => new SIP008Server(x)),
         };
 
-        return new JsonResult(resp, FileHelper.APISnakeCaseJsonSerializerOptions);
+        return new JsonResult(resp, JsonHelper.APISnakeCaseJsonSerializerOptions);
     }
 }

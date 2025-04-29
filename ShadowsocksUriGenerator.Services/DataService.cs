@@ -1,11 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.Data;
-using System;
-using System.IO;
-using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Services
 {

@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
     <Version>5.2.0</Version>
     <Authors>database64128</Authors>
     <Product>Shadowsocks URI Generator Library</Product>

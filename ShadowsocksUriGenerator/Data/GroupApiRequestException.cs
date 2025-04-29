@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ShadowsocksUriGenerator.Data;
+﻿namespace ShadowsocksUriGenerator.Data;
 
 public class GroupApiRequestException : Exception
 {

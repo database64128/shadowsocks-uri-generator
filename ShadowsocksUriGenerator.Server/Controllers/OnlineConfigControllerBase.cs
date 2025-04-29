@@ -3,7 +3,6 @@ using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 

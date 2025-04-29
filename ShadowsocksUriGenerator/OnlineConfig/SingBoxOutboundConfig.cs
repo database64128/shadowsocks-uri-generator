@@ -1,5 +1,4 @@
 ﻿using ShadowsocksUriGenerator.Protocols.Shadowsocks;
-using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.OnlineConfig;
 

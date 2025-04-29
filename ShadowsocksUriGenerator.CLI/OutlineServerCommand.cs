@@ -1,11 +1,6 @@
 ﻿using ShadowsocksUriGenerator.Data;
-using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Parsing;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI
 {

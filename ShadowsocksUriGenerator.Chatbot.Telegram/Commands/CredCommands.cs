@@ -2,13 +2,8 @@
 using ShadowsocksUriGenerator.CLI.Utils;
 using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;

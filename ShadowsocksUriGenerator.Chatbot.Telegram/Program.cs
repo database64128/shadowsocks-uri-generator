@@ -1,8 +1,6 @@
 ﻿using ShadowsocksUriGenerator.Chatbot.Telegram.CLI;
-using System;
 using System.CommandLine;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram;
 

@@ -1,7 +1,4 @@
 ﻿using ShadowsocksUriGenerator.Utils;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator
 {
@@ -150,7 +147,7 @@ namespace ShadowsocksUriGenerator
         /// </returns>
         public static async Task<(Settings settings, string? errMsg)> LoadSettingsAsync(CancellationToken cancellationToken = default)
         {
-            var (settings, errMsg) = await FileHelper.LoadJsonAsync<Settings>("Settings.json", FileHelper.ConfigJsonSerializerOptions, cancellationToken);
+            var (settings, errMsg) = await FileHelper.LoadJsonAsync("Settings.json", SettingsJsonSerializerContext.Default.Settings, cancellationToken);
             if (errMsg is null && settings.Version != DefaultVersion)
             {
                 settings.UpdateSettings();
@@ -169,7 +166,7 @@ namespace ShadowsocksUriGenerator
         /// Null if no errors occurred.
         /// </returns>
         public static Task<string?> SaveSettingsAsync(Settings settings, CancellationToken cancellationToken = default)
-            => FileHelper.SaveJsonAsync("Settings.json", settings, FileHelper.ConfigJsonSerializerOptions, false, false, cancellationToken);
+            => FileHelper.SaveJsonAsync("Settings.json", settings, SettingsJsonSerializerContext.Default.Settings, false, false, cancellationToken);
 
         /// <summary>
         /// Updates the current object to the latest version.

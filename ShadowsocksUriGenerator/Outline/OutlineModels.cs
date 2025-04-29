@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ShadowsocksUriGenerator.Outline;
+﻿namespace ShadowsocksUriGenerator.Outline;
 
 public record OutlineApiKey(Uri ApiUrl, string? CertSha256);
 public record OutlineServerName(string Name);

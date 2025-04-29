@@ -1,5 +1,4 @@
 ﻿using ShadowsocksUriGenerator.OnlineConfig;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace ShadowsocksUriGenerator.Manager;

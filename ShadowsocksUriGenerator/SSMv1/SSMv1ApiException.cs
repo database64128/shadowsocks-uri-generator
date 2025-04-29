@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ShadowsocksUriGenerator.SSMv1;
+﻿namespace ShadowsocksUriGenerator.SSMv1;
 
 public class SSMv1ApiException : Exception
 {

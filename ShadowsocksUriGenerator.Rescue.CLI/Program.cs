@@ -1,8 +1,5 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Rescue.CLI;
 

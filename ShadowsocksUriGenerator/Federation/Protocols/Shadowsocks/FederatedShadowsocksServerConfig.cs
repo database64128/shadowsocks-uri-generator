@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
+﻿namespace ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
 
 public class FederatedShadowsocksServerConfig
 {

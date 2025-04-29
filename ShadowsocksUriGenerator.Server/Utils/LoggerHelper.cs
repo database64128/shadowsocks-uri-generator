@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System.Net;
+﻿using System.Net;
 
 namespace ShadowsocksUriGenerator.Server.Utils;
 

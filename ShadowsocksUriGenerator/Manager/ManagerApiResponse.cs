@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace ShadowsocksUriGenerator.Manager;
+﻿namespace ShadowsocksUriGenerator.Manager;
 
 public record ManagerApiResponse(string Content)
 {

@@ -1,8 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Data;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
 {

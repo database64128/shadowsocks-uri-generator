@@ -1,11 +1,6 @@
 ﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Utils;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.OnlineConfig
 {
@@ -182,7 +177,7 @@ namespace ShadowsocksUriGenerator.OnlineConfig
                 var errMsg = await FileHelper.SaveJsonAsync(
                     $"{settings.OnlineConfigOutputDirectory}/{x.Key}.json",
                     x.Value,
-                    FileHelper.APISnakeCaseJsonSerializerOptions,
+                    OnlineConfigSnakeCaseJsonSerializerContext.Default.SIP008Config,
                     false,
                     true,
                     cancellationToken);

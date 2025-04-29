@@ -1,12 +1,6 @@
 ﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
-using ShadowsocksUriGenerator.Utils;
-using System;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Rescue
 {
@@ -92,7 +86,7 @@ namespace ShadowsocksUriGenerator.Rescue
 
                     // retrieve group credential
                     using var userCredJsonFS = userCredJson.OpenRead();
-                    var userCred = await JsonSerializer.DeserializeAsync<SIP008Config>(userCredJsonFS, FileHelper.APISnakeCaseJsonSerializerOptions, cancellationToken);
+                    var userCred = await JsonSerializer.DeserializeAsync(userCredJsonFS, OnlineConfigSnakeCaseJsonSerializerContext.Default.SIP008Config, cancellationToken);
                     if (userCred is null)
                         continue;
 
@@ -160,7 +154,7 @@ namespace ShadowsocksUriGenerator.Rescue
 
                 // retrieve user credentials
                 using var userJsonFS = userJson.OpenRead();
-                var userCreds = await JsonSerializer.DeserializeAsync<SIP008Config>(userJsonFS, FileHelper.APISnakeCaseJsonSerializerOptions, cancellationToken);
+                var userCreds = await JsonSerializer.DeserializeAsync(userJsonFS, OnlineConfigSnakeCaseJsonSerializerContext.Default.SIP008Config, cancellationToken);
                 if (userCreds is null)
                     continue;
 

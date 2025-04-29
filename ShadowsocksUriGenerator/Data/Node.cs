@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace ShadowsocksUriGenerator.Data
+﻿namespace ShadowsocksUriGenerator.Data
 {
     /// <summary>
     /// Stores node's host and port.

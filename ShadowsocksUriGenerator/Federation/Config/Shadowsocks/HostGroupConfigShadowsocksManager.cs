@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ShadowsocksUriGenerator.Federation.Config.Shadowsocks;
+﻿namespace ShadowsocksUriGenerator.Federation.Config.Shadowsocks;
 
 public class HostGroupConfigShadowsocksManager : HostGroupConfigShadowsocks
 {

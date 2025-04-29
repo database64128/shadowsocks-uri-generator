@@ -1,9 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Chatbot.Telegram.Commands;
 using ShadowsocksUriGenerator.Chatbot.Telegram.Utils;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;

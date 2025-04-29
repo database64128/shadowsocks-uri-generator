@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace ShadowsocksUriGenerator.OnlineConfig;
+﻿namespace ShadowsocksUriGenerator.OnlineConfig;
 
 public class SingBoxConfig
 {

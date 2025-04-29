@@ -1,8 +1,6 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.CommandLine.Parsing;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.CLI;
 

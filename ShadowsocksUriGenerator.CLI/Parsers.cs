@@ -1,7 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Utils;
-using System;
 using System.CommandLine.Parsing;
-using System.Linq;
 
 namespace ShadowsocksUriGenerator.CLI
 {

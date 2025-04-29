@@ -1,10 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
-using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 

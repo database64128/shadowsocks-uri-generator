@@ -4,6 +4,8 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
     <AssemblyName>ss-uri-gen-rescue</AssemblyName>
     <ApplicationIcon>ss-uri-gen-rescue.ico</ApplicationIcon>
     <PackageId>ShadowsocksUriGenerator.Rescue.CLI</PackageId>

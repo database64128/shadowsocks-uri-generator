@@ -1,5 +1,4 @@
 ﻿using ShadowsocksUriGenerator.Federation.Data.Shadowsocks;
-using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.Federation.Data;
 

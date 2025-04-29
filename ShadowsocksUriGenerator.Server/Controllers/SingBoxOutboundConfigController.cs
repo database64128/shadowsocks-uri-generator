@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Mvc;
 using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
-using ShadowsocksUriGenerator.Utils;
-using System.Linq;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
@@ -132,6 +128,6 @@ public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigContro
             Outbounds = outbounds,
         };
 
-        return new JsonResult(resp, FileHelper.APISnakeCaseJsonSerializerOptions);
+        return new JsonResult(resp, JsonHelper.APISnakeCaseJsonSerializerOptions);
     }
 }

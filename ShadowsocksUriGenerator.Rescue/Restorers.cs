@@ -1,8 +1,5 @@
 ﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Utils;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ShadowsocksUriGenerator.Rescue
 {
@@ -29,13 +26,13 @@ namespace ShadowsocksUriGenerator.Rescue
 
             var usersErrMsg = await FileHelper.SaveJsonAsync($"{configDir}Users.json",
                                                             users,
-                                                            FileHelper.DataJsonSerializerOptions,
+                                                            DataJsonSerializerContext.Default.Users,
                                                             false,
                                                             false,
                                                             cancellationToken);
             var nodesErrMsg = await FileHelper.SaveJsonAsync($"{configDir}Nodes.json",
                                                             nodes,
-                                                            FileHelper.DataJsonSerializerOptions,
+                                                            DataJsonSerializerContext.Default.Nodes,
                                                             false,
                                                             false,
                                                             cancellationToken);

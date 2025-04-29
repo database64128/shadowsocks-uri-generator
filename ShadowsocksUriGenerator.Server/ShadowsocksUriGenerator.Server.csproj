@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>ss-uri-gen-server</AssemblyName>
     <PackageId>ShadowsocksUriGenerator.Server</PackageId>
     <Version>5.2.0</Version>

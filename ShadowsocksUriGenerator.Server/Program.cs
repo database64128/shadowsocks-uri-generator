@@ -1,11 +1,7 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
 using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Services;
-using System;
-using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 
