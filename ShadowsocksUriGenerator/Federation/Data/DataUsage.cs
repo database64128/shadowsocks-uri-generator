@@ -1,4 +1,4 @@
-﻿namespace ShadowsocksUriGenerator.Stats;
+﻿namespace ShadowsocksUriGenerator.Federation.Data;
 
 public class DataUsage
 {

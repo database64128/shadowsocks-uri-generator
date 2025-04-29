@@ -1,6 +1,4 @@
-﻿using ShadowsocksUriGenerator.Stats;
-
-namespace ShadowsocksUriGenerator.Federation.Data;
+﻿namespace ShadowsocksUriGenerator.Federation.Data;
 
 public class HostUserData
 {

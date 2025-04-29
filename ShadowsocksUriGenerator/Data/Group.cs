@@ -23,22 +23,22 @@ namespace ShadowsocksUriGenerator.Data
         /// <summary>
         /// Gets or sets the Outline Access Keys Management API key object.
         /// </summary>
-        public ApiKey? OutlineApiKey { get; set; }
+        public OutlineApiKey? OutlineApiKey { get; set; }
 
         /// <summary>
         /// Gets or sets the Outline server information object.
         /// </summary>
-        public ServerInfo? OutlineServerInfo { get; set; }
+        public OutlineServerInfo? OutlineServerInfo { get; set; }
 
         /// <summary>
         /// Gets or sets the list of Outline server access keys.
         /// </summary>
-        public List<AccessKey>? OutlineAccessKeys { get; set; }
+        public List<OutlineAccessKey>? OutlineAccessKeys { get; set; }
 
         /// <summary>
         /// Gets or sets the Outline server data usage object.
         /// </summary>
-        public DataUsage? OutlineDataUsage { get; set; }
+        public OutlineDataUsage? OutlineDataUsage { get; set; }
 
         /// <summary>
         /// Gets or sets the global data limit of the group in bytes.
@@ -88,7 +88,7 @@ namespace ShadowsocksUriGenerator.Data
         /// <summary>
         /// The Outline API client instance.
         /// </summary>
-        private ApiClient? _apiClient;
+        private OutlineApiClient? _apiClient;
         private bool disposedValue;
 
         /// <summary>
@@ -268,7 +268,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineAccessKeys is null || OutlineDataUsage is null)
                 return false;
 
-            foreach (AccessKey accessKey in OutlineAccessKeys)
+            foreach (OutlineAccessKey accessKey in OutlineAccessKeys)
             {
                 if (int.TryParse(accessKey.Id, out int keyId) &&
                     OutlineDataUsage.BytesTransferredByUserId.TryGetValue(keyId, out ulong bytesUsed))
@@ -290,7 +290,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineAccessKeys is null || OutlineDataUsage is null)
                 return false;
 
-            foreach (AccessKey accessKey in OutlineAccessKeys)
+            foreach (OutlineAccessKey accessKey in OutlineAccessKeys)
             {
                 if (accessKey.Name == username &&
                     int.TryParse(accessKey.Id, out int keyId) &&
@@ -326,7 +326,7 @@ namespace ShadowsocksUriGenerator.Data
         {
             try
             {
-                OutlineApiKey = JsonSerializer.Deserialize<ApiKey>(apiKey, Utilities.apiKeyJsonSerializerOptions);
+                OutlineApiKey = JsonSerializer.Deserialize(apiKey, OutlineJsonSerializerContext.Default.OutlineApiKey);
             }
             catch (JsonException)
             {
@@ -336,28 +336,13 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineApiKey is null)
                 return "Error: Invalid API key: deserialization returned null.";
 
-            // Validate ApiUrl
-            if (Uri.TryCreate(OutlineApiKey.ApiUrl, UriKind.Absolute, out var apiUri))
-            {
-                if (apiUri.Scheme != "https")
-                    return "Error: The API URL must use HTTPS.";
-
-                // Remove trailing '/'
-                if (OutlineApiKey.ApiUrl.EndsWith('/'))
-                    OutlineApiKey = OutlineApiKey with { ApiUrl = OutlineApiKey.ApiUrl[..^1] };
-            }
-            else
-            {
-                return "Error: The API URL is not a valid URI.";
-            }
-
             // Validate CertSha256
             if (!string.IsNullOrEmpty(OutlineApiKey.CertSha256) && OutlineApiKey.CertSha256.Length != 64)
                 return "Error: Malformed CertSha256: length is not 64.";
 
             // Clean up potential leftover API client
             _apiClient?.Dispose();
-            _apiClient = new(OutlineApiKey, httpClient);
+            _apiClient = new(httpClient, OutlineApiKey);
 
             // Pull from Outline server without syncing with local user db
             await foreach (Task task in PullFromOutlineServer(group, users, httpClient, cancellationToken))
@@ -421,7 +406,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             try
             {
@@ -462,7 +447,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineApiKey is null)
                 return $"Error: Group {group} is not linked to any Outline server.";
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             var tasks = new List<Task<HttpResponseMessage>>();
             var errMsgSB = new StringBuilder();
@@ -524,7 +509,7 @@ namespace ShadowsocksUriGenerator.Data
             {
                 if (OutlineAccessKeys is not null && OutlineDataUsage is not null)
                 {
-                    foreach (AccessKey accessKey in OutlineAccessKeys)
+                    foreach (OutlineAccessKey accessKey in OutlineAccessKeys)
                     {
                         _ = users.ClearGroupBytesUsed(accessKey.Name, group, PerUserDataLimitInBytes);
                     }
@@ -558,7 +543,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineApiKey is null)
                 yield break;
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             await foreach (Task task in Task.WhenEach(
                 PullServerInfoAsync(_apiClient, group, cancellationToken),
@@ -572,7 +557,7 @@ namespace ShadowsocksUriGenerator.Data
             CalculateTotalDataUsage();
         }
 
-        private async Task PullServerInfoAsync(ApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
+        private async Task PullServerInfoAsync(OutlineApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -584,11 +569,11 @@ namespace ShadowsocksUriGenerator.Data
             }
         }
 
-        private async Task PullAccessKeysAsync(ApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
+        private async Task PullAccessKeysAsync(OutlineApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
         {
             try
             {
-                AccessKeysResponse? accessKeysResponse = await apiClient.GetAccessKeysAsync(cancellationToken);
+                OutlineAccessKeysResponse? accessKeysResponse = await apiClient.GetAccessKeysAsync(cancellationToken);
                 if (accessKeysResponse is not null)
                 {
                     OutlineAccessKeys = accessKeysResponse.AccessKeys;
@@ -600,7 +585,7 @@ namespace ShadowsocksUriGenerator.Data
             }
         }
 
-        private async Task PullDataUsageAsync(ApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
+        private async Task PullDataUsageAsync(OutlineApiClient apiClient, string groupName, CancellationToken cancellationToken = default)
         {
             try
             {
@@ -629,7 +614,7 @@ namespace ShadowsocksUriGenerator.Data
             // a matching access key. We now feel like this is probably not
             // what users want.
 
-            foreach (AccessKey accessKey in OutlineAccessKeys)
+            foreach (OutlineAccessKey accessKey in OutlineAccessKeys)
             {
                 if (users.UserDict.TryGetValue(accessKey.Name, out User? user))
                 {
@@ -637,7 +622,7 @@ namespace ShadowsocksUriGenerator.Data
                     {
                         memberInfo.Method = accessKey.Method;
                         memberInfo.Password = accessKey.Password;
-                        if (accessKey.DataLimit is DataLimit dataLimit)
+                        if (accessKey.DataLimit is OutlineDataLimit dataLimit)
                         {
                             memberInfo.DataLimitInBytes = dataLimit.Bytes;
                         }
@@ -645,7 +630,7 @@ namespace ShadowsocksUriGenerator.Data
                     else
                     {
                         memberInfo = new(accessKey.Method, accessKey.Password);
-                        if (accessKey.DataLimit is DataLimit dataLimit)
+                        if (accessKey.DataLimit is OutlineDataLimit dataLimit)
                         {
                             memberInfo.DataLimitInBytes = dataLimit.Bytes;
                         }
@@ -700,7 +685,7 @@ namespace ShadowsocksUriGenerator.Data
             }
 
             OutlineAccessKeys ??= [];
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             // Filter out
             // a list of users to create
@@ -760,7 +745,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineApiKey is null || OutlineAccessKeys is null)
                 return null;
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             // Find access key
             var filteredAccessKeys = OutlineAccessKeys.Where(x => x.Name == oldName);
@@ -827,7 +812,7 @@ namespace ShadowsocksUriGenerator.Data
             }
 
             OutlineAccessKeys ??= [];
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             // Filter out access keys that are linked to a user.
             // This is important because later we need to access UserDict with key names.
@@ -836,7 +821,7 @@ namespace ShadowsocksUriGenerator.Data
             var accessKeysLinkedToUser = OutlineAccessKeys.Where(x => users.UserDict.ContainsKey(x.Name));
             if (usernames.Length > 0)
                 accessKeysLinkedToUser = accessKeysLinkedToUser.Where(x => usernames.Contains(x.Name));
-            AccessKey[] targetAccessKeys = [.. accessKeysLinkedToUser];
+            OutlineAccessKey[] targetAccessKeys = [.. accessKeysLinkedToUser];
 
             // Remove
             var removalTasks = targetAccessKeys.Select(accessKey => RemoveUserFromOutlineServer(accessKey, users, group, httpClient, cancellationToken));
@@ -872,7 +857,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
             OutlineAccessKeys ??= [];
 
             // Create
@@ -884,7 +869,7 @@ namespace ShadowsocksUriGenerator.Data
             }
 
             // Deserialize access key
-            AccessKey accessKey = await response.Content.ReadFromJsonAsync<AccessKey>(Utilities.commonJsonDeserializerOptions, cancellationToken)
+            OutlineAccessKey accessKey = await response.Content.ReadFromJsonAsync(OutlineJsonSerializerContext.Default.OutlineAccessKey, cancellationToken)
                 ?? throw new GroupApiRequestException(group, $"Deserialized access key for user {username} is null", null);
 
             // Set username
@@ -941,12 +926,12 @@ namespace ShadowsocksUriGenerator.Data
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task RemoveUserFromOutlineServer(AccessKey accessKey, Users users, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
+        private async Task RemoveUserFromOutlineServer(OutlineAccessKey accessKey, Users users, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null || OutlineAccessKeys is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             // Remove
             var response = await _apiClient.DeleteAccessKeyAsync(accessKey.Id, cancellationToken);
@@ -983,7 +968,7 @@ namespace ShadowsocksUriGenerator.Data
             if (OutlineServerInfo is null)
                 throw new InvalidOperationException("Outline server information is not found.");
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             if (PerUserDataLimitInBytes == 0UL)
             {
@@ -1002,7 +987,7 @@ namespace ShadowsocksUriGenerator.Data
             }
             else
             {
-                if (OutlineServerInfo.AccessKeyDataLimit is DataLimit dataLimit && dataLimit.Bytes != PerUserDataLimitInBytes)
+                if (OutlineServerInfo.AccessKeyDataLimit is OutlineDataLimit dataLimit && dataLimit.Bytes != PerUserDataLimitInBytes)
                 {
                     // update server data limit
                     var responseMessage = await _apiClient.SetDataLimitAsync(PerUserDataLimitInBytes, cancellationToken);
@@ -1032,12 +1017,12 @@ namespace ShadowsocksUriGenerator.Data
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task SetAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, ulong dataLimitInBytes, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
+        private async Task SetAccessKeyDataLimitOnOutlineServer(OutlineAccessKey accessKey, ulong dataLimitInBytes, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             var responseMessage = await _apiClient.SetAccessKeyDataLimitAsync(accessKey.Id, dataLimitInBytes, cancellationToken);
             if (!responseMessage.IsSuccessStatusCode)
@@ -1063,12 +1048,12 @@ namespace ShadowsocksUriGenerator.Data
         /// At any stage of the operation, if an error occurs, the function immediately returns an error message.
         /// Null if no errors had ever occurred.
         /// </returns>
-        private async Task DeleteAccessKeyDataLimitOnOutlineServer(AccessKey accessKey, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
+        private async Task DeleteAccessKeyDataLimitOnOutlineServer(OutlineAccessKey accessKey, string group, HttpClient httpClient, CancellationToken cancellationToken = default)
         {
             if (OutlineApiKey is null)
                 throw new InvalidOperationException("Outline API key is not found.");
 
-            _apiClient ??= new(OutlineApiKey, httpClient);
+            _apiClient ??= new(httpClient, OutlineApiKey);
 
             var responseMessage = await _apiClient.DeleteAccessKeyDataLimitAsync(accessKey.Id, cancellationToken);
             if (!responseMessage.IsSuccessStatusCode)

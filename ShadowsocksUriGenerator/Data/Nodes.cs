@@ -361,7 +361,7 @@ namespace ShadowsocksUriGenerator.Data
         /// The Outline API key object.
         /// Null if the group doesn't exist or has no associated API key.
         /// </returns>
-        public ApiKey? GetOutlineApiKeyFromGroup(string group)
+        public OutlineApiKey? GetOutlineApiKeyFromGroup(string group)
             => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.OutlineApiKey : null;
 
         /// <summary>
@@ -375,7 +375,7 @@ namespace ShadowsocksUriGenerator.Data
         /// Null if the group doesn't exist or has no associated API key.
         /// </returns>
         public string? GetOutlineApiKeyStringFromGroup(string group)
-            => GetOutlineApiKeyFromGroup(group) is ApiKey apiKey ? JsonSerializer.Serialize(apiKey, Utilities.apiKeyJsonSerializerOptions) : null;
+            => GetOutlineApiKeyFromGroup(group) is OutlineApiKey apiKey ? JsonSerializer.Serialize(apiKey, OutlineJsonSerializerContext.Default.OutlineApiKey) : null;
 
         /// <summary>
         /// Gets the Outline server information object.
@@ -385,7 +385,7 @@ namespace ShadowsocksUriGenerator.Data
         /// The Outline server information object.
         /// Null if the group doesn't exist or has no associated information.
         /// </returns>
-        public ServerInfo? GetOutlineServerInfoFromGroup(string group)
+        public OutlineServerInfo? GetOutlineServerInfoFromGroup(string group)
             => Groups.TryGetValue(group, out var targetGroup) ? targetGroup.OutlineServerInfo : null;
 
         /// <summary>

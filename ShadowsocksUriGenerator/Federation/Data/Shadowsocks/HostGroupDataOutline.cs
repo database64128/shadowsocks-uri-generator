@@ -8,7 +8,7 @@ public class HostGroupDataOutline : HostGroupDataShadowsocks
     /// <summary>
     /// Gets or sets the Outline server information object.
     /// </summary>
-    public ServerInfo OutlineServerInfo { get; set; } = new();
+    public OutlineServerInfo OutlineServerInfo { get; set; } = new();
 
     /// <summary>
     /// Gets or sets the dictionary

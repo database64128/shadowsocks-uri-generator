@@ -7,5 +7,5 @@ public class HostGroupConfigOutline : HostGroupConfigShadowsocks
     /// <summary>
     /// Gets or sets the Outline API key record.
     /// </summary>
-    public ApiKey OutlineApiKey { get; set; } = new("", null);
+    public required OutlineApiKey OutlineApiKey { get; set; }
 }

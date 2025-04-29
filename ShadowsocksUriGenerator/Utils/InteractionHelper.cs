@@ -4,7 +4,6 @@ namespace ShadowsocksUriGenerator.Utils;
 
 public static class InteractionHelper
 {
-
     /// <summary>
     /// Tries to parse a data limit string.
     /// </summary>

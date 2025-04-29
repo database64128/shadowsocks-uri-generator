@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator.Outline
     /// The mutable record type that stores information about an Outline server.
     /// It's mutable so it can be atomically updated.
     /// </summary>
-    public record ServerInfo
+    public record OutlineServerInfo
     {
         public string Name { get; set; } = "";
         public string ServerId { get; set; } = Guid.NewGuid().ToString();
@@ -15,7 +15,7 @@ namespace ShadowsocksUriGenerator.Outline
         [JsonConverter(typeof(DateTimeOffsetUnixTimeMillisecondsConverter))]
         public DateTimeOffset CreatedTimestampMs { get; set; } = DateTimeOffset.UtcNow;
         public string Version { get; set; } = "";
-        public DataLimit? AccessKeyDataLimit { get; set; }
+        public OutlineDataLimit? AccessKeyDataLimit { get; set; }
         public int PortForNewAccessKeys { get; set; }
         public string HostnameForAccessKeys { get; set; } = "";
     }

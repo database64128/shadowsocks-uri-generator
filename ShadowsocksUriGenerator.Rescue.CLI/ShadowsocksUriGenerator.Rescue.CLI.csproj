@@ -25,7 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ShadowsocksUriGenerator.CLI.Utils\ShadowsocksUriGenerator.CLI.Utils.csproj" />
     <ProjectReference Include="..\ShadowsocksUriGenerator.Rescue\ShadowsocksUriGenerator.Rescue.csproj" />
   </ItemGroup>
 
