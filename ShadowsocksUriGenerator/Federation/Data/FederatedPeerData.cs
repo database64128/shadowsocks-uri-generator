@@ -1,5 +1,5 @@
-﻿using OpenOnlineConfig.v1;
-using ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
+﻿using ShadowsocksUriGenerator.Federation.Protocols.Shadowsocks;
+using ShadowsocksUriGenerator.OnlineConfig;
 using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.Federation.Data;

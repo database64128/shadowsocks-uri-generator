@@ -2,6 +2,7 @@
 
 namespace ShadowsocksUriGenerator.OnlineConfig;
 
+[JsonSerializable(typeof(OOCv1ApiToken))]
 [JsonSerializable(typeof(OOCv1ShadowsocksConfig))]
 [JsonSerializable(typeof(ShadowsocksGoConfig))]
 [JsonSourceGenerationOptions(

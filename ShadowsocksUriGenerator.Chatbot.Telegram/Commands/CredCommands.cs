@@ -1,6 +1,7 @@
 ﻿using ShadowsocksUriGenerator.Chatbot.Telegram.Utils;
 using ShadowsocksUriGenerator.CLI.Utils;
 using ShadowsocksUriGenerator.Data;
+using ShadowsocksUriGenerator.OnlineConfig;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -132,8 +133,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Commands
 
                 if (printApiLinks)
                 {
-                    var oocv1ApiToken = new OpenOnlineConfig.v1.OOCv1ApiToken(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
-                    var oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OpenOnlineConfig.Utils.JsonHelper.camelCaseMinifiedJsonSerializerOptions);
+                    OOCv1ApiToken oocv1ApiToken = new(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
+                    string oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OnlineConfigCamelCaseJsonSerializerContext.Default.OOCv1ApiToken);
 
                     replyBuilder.AppendLine($"OOCv1 API Token: `{ChatHelper.EscapeMarkdownV2CodeBlock(oocv1ApiTokenString)}`");
                     replyBuilder.AppendLine(ChatHelper.EscapeMarkdownV2Plaintext($"OOCv1 API URL: {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}"));

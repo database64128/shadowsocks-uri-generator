@@ -1,4 +1,4 @@
-﻿using OpenOnlineConfig.v1;
+﻿using ShadowsocksUriGenerator.OnlineConfig;
 
 namespace ShadowsocksUriGenerator.Federation.Config;
 

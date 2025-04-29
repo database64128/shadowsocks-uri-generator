@@ -1,5 +1,4 @@
-﻿using OpenOnlineConfig.v1;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ShadowsocksUriGenerator.OnlineConfig;
 

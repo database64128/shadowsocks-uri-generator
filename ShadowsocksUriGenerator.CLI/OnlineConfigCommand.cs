@@ -150,8 +150,8 @@ namespace ShadowsocksUriGenerator.CLI
             {
                 Console.WriteLine($"User:                             {username}");
 
-                var oocv1ApiToken = new OpenOnlineConfig.v1.OOCv1ApiToken(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
-                var oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OpenOnlineConfig.Utils.JsonHelper.camelCaseMinifiedJsonSerializerOptions);
+                OOCv1ApiToken oocv1ApiToken = new(1, settings.ApiServerBaseUrl, settings.ApiServerSecretPath, user.Uuid, null);
+                string oocv1ApiTokenString = JsonSerializer.Serialize(oocv1ApiToken, OnlineConfigCamelCaseJsonSerializerContext.Default.OOCv1ApiToken);
 
                 Console.WriteLine($"OOCv1 API Token:                  {oocv1ApiTokenString}");
                 Console.WriteLine($"OOCv1 API URL:                    {settings.ApiServerBaseUrl}/{settings.ApiServerSecretPath}/ooc/v1/{user.Uuid}");
