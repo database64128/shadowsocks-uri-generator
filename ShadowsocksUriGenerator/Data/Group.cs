@@ -12,7 +12,7 @@ namespace ShadowsocksUriGenerator.Data
     /// Nodes in a group share the same credential for a user.
     /// They may provide different credentials for different users.
     /// </summary>
-    public class Group : IDisposable
+    public sealed class Group : IDisposable
     {
         /// <summary>
         /// Gets or sets the Outline Access Keys Management API key object.
@@ -83,7 +83,6 @@ namespace ShadowsocksUriGenerator.Data
         /// The Outline API client instance.
         /// </summary>
         private OutlineApiClient? _apiClient;
-        private bool disposedValue;
 
         /// <summary>
         /// Adds a node to <see cref="NodeDict"/>.
@@ -1074,22 +1073,6 @@ namespace ShadowsocksUriGenerator.Data
             }
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    _apiClient?.Dispose();
-                }
-                disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
-        }
+        public void Dispose() => _apiClient?.Dispose();
     }
 }

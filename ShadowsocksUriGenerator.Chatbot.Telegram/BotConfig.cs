@@ -2,7 +2,7 @@
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram
 {
-    public class BotConfig
+    public sealed class BotConfig
     {
         /// Gets the default bot config version
         /// used by this version of the app.

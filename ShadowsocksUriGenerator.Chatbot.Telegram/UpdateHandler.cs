@@ -7,7 +7,7 @@ using Telegram.Bot.Types.Enums;
 
 namespace ShadowsocksUriGenerator.Chatbot.Telegram
 {
-    public class UpdateHandler(string botUsername, BotConfig botConfig)
+    public sealed class UpdateHandler(string botUsername, BotConfig botConfig)
     {
         /// <summary>
         /// Gets public bot commands that are available to all types of chats.

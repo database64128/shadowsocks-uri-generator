@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator.Data;
 /// <summary>
 /// Stores a user's credential and data limit in a group.
 /// </summary>
-public class MemberInfo : IEquatable<MemberInfo>
+public sealed class MemberInfo : IEquatable<MemberInfo>
 {
     public string Method { get; set; }
 

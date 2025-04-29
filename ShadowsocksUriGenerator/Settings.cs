@@ -2,7 +2,7 @@
 
 namespace ShadowsocksUriGenerator
 {
-    public class Settings
+    public sealed class Settings
     {
         /// <summary>
         /// Gets the default configuration version

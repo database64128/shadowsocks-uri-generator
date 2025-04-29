@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator.Data
     /// <summary>
     /// The class for storing user information in Users.json.
     /// </summary>
-    public class Users
+    public sealed class Users
     {
         /// <summary>
         /// Gets the default configuration version

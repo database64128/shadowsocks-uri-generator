@@ -5,7 +5,7 @@ namespace ShadowsocksUriGenerator.SSMv1;
 /// <summary>
 /// API client of Shadowsocks Server Management API v1 (SSMv1).
 /// </summary>
-public class SSMv1ApiClient
+public sealed class SSMv1ApiClient
 {
     private readonly HttpClient _httpClient;
     private readonly Uri _baseUri;

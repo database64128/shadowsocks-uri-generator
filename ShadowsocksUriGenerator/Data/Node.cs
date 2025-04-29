@@ -3,7 +3,7 @@
     /// <summary>
     /// Stores node's host and port.
     /// </summary>
-    public class Node
+    public sealed class Node
     {
         /// <summary>
         /// Gets or sets the UUID of the node.

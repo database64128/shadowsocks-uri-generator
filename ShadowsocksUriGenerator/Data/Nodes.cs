@@ -8,9 +8,8 @@ namespace ShadowsocksUriGenerator.Data
     /// <summary>
     /// The class for storing node information in Nodes.json
     /// </summary>
-    public class Nodes : IDisposable
+    public sealed class Nodes : IDisposable
     {
-        private bool disposedValue;
         private readonly HttpClient _httpClient = new();
 
         /// <summary>
@@ -684,23 +683,12 @@ namespace ShadowsocksUriGenerator.Data
             }
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-            {
-                if (disposing)
-                {
-                    foreach (var group in Groups.Values)
-                        group.Dispose();
-                }
-                disposedValue = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            foreach (Group group in Groups.Values)
+            {
+                group.Dispose();
+            }
         }
     }
 }

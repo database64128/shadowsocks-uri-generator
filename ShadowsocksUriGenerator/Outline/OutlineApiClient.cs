@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 
 namespace ShadowsocksUriGenerator.Outline;
 
-public class OutlineApiClient : IDisposable
+public sealed class OutlineApiClient : IDisposable
 {
     private readonly HttpClient _httpClient;
     private readonly Uri _serverInfoUri;
@@ -17,7 +17,6 @@ public class OutlineApiClient : IDisposable
     private readonly Uri _dataUsageUri;
     private readonly Uri _dataLimitUri;
     private readonly bool _disposeHttpClient;
-    private bool _disposedValue;
 
     /// <summary>
     /// Creates an Outline API client for the specified API key.
@@ -71,22 +70,12 @@ public class OutlineApiClient : IDisposable
         set => _httpClient.Timeout = value;
     }
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (_disposeHttpClient && !_disposedValue)
-        {
-            if (disposing)
-            {
-                _httpClient.Dispose();
-            }
-            _disposedValue = true;
-        }
-    }
-
     public void Dispose()
     {
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
+        if (_disposeHttpClient)
+        {
+            _httpClient.Dispose();
+        }
     }
 
     public Task<OutlineServerInfo?> GetServerInfoAsync(CancellationToken cancellationToken = default)

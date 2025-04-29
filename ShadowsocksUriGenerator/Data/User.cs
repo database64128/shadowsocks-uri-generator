@@ -6,7 +6,7 @@ namespace ShadowsocksUriGenerator.Data
     /// <summary>
     /// Each user has a unique name and a list of credentials.
     /// </summary>
-    public class User
+    public sealed class User
     {
         private ulong _bytesUsed;
 
