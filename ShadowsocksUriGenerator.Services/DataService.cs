@@ -1,187 +1,182 @@
 ﻿using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.Data;
-using System.Reactive.Linq;
+using System.Threading.Channels;
 
-namespace ShadowsocksUriGenerator.Services
+namespace ShadowsocksUriGenerator.Services;
+
+public sealed class DataService(ILogger<DataService> logger) : IDataService, IDisposable
 {
-    public class DataService(ILogger<DataService> logger) : IDataService, IDisposable
+    private FileSystemWatcher? _watcher;
+    private CancellationTokenSource? _cts;
+    private Task? _updateTask;
+
+    public Users UsersData { get; private set; } = new();
+
+    public Nodes NodesData { get; private set; } = new();
+
+    public Settings SettingsData { get; private set; } = new();
+
+    public async Task StartAsync(CancellationToken cancellationToken = default)
     {
-        private readonly FileSystemWatcher _watcher = new(".", "*.json");
-        private bool disposedValue;
-        private bool isStarted;
+        Channel<FileSystemEventArgs> usersChannel = CreateChannel();
+        Channel<FileSystemEventArgs> nodesChannel = CreateChannel();
+        Channel<FileSystemEventArgs> settingsChannel = CreateChannel();
 
-        public Users UsersData { get; private set; } = new();
+        _watcher = new(".", "*.json");
 
-        public Nodes NodesData { get; private set; } = new();
+        _watcher.Changed += OnEvent;
+        _watcher.Created += OnEvent;
+        _watcher.Deleted += OnEvent;
+        _watcher.Renamed += OnEvent;
 
-        public Settings SettingsData { get; private set; } = new();
-
-        public async Task StartAsync(CancellationToken cancellationToken = default)
+        void OnEvent(object? sender, FileSystemEventArgs e)
         {
-            if (isStarted)
-                return;
-
-            StartFileWatcher();
-
-            var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
-            if (loadUsersErrMsg is not null)
-            {
-                logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
-            }
-            else
-            {
-                UsersData = users;
-                logger.LogInformation("Loaded Users.json");
-            }
-
-            var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
-            if (loadNodesErrMsg is not null)
-            {
-                logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
-            }
-            else
-            {
-                NodesData = loadedNodes;
-                logger.LogInformation("Loaded Nodes.json");
-            }
-
-            var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
-            if (loadSettingsErrMsg is not null)
-            {
-                logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
-            }
-            else
-            {
-                SettingsData = settings;
-                logger.LogInformation("Loaded Settings.json");
-            }
-
-            isStarted = true;
-
-            logger.LogInformation("Started data service asynchronously");
-        }
-
-        private void StartFileWatcher()
-        {
-            var changed = Observable.FromEventPattern<FileSystemEventArgs>(_watcher, "Changed");
-            var created = Observable.FromEventPattern<FileSystemEventArgs>(_watcher, "Created");
-            var deleted = Observable.FromEventPattern<FileSystemEventArgs>(_watcher, "Deleted");
-            var renamed = Observable.FromEventPattern<FileSystemEventArgs>(_watcher, "Renamed");
-
-            var observables = Observable.Merge(changed, created, deleted, renamed);
-
-            observables.Where(x => x.EventArgs.Name is "Users.json")
-                       .Throttle(TimeSpan.FromSeconds(5.0))
-                       .Select(x => x.EventArgs)
-                       .Subscribe(UpdateDataAsync);
-
-            observables.Where(x => x.EventArgs.Name is "Nodes.json")
-                       .Throttle(TimeSpan.FromSeconds(5.0))
-                       .Select(x => x.EventArgs)
-                       .Subscribe(UpdateDataAsync);
-
-            observables.Where(x => x.EventArgs.Name is "Settings.json")
-                       .Throttle(TimeSpan.FromSeconds(5.0))
-                       .Select(x => x.EventArgs)
-                       .Subscribe(UpdateDataAsync);
-
-            _watcher.EnableRaisingEvents = true;
-
-            logger.LogInformation("Started file watcher watching Users.json, Nodes.json, Settings.json");
-        }
-
-        private async void UpdateDataAsync(FileSystemEventArgs e)
-        {
-            if (e.Name is null)
-                return;
-
-            if (e.ChangeType == WatcherChangeTypes.Deleted)
-            {
-                logger.LogWarning("File {Name} was deleted!", e.Name);
-                return;
-            }
-
-            logger.LogInformation("Acting on {ChangeType} event on file {Name}", e.ChangeType, e.Name);
+            Channel<FileSystemEventArgs> channel;
 
             switch (e.Name)
             {
                 case "Users.json":
-                    {
-                        var (users, loadUsersErrMsg) = await Users.LoadUsersAsync();
-                        if (loadUsersErrMsg is not null)
-                        {
-                            logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
-                        }
-                        else
-                        {
-                            UsersData = users;
-                            logger.LogInformation("Reloaded Users.json");
-                        }
-
-                        break;
-                    }
-
+                    channel = usersChannel;
+                    break;
                 case "Nodes.json":
-                    {
-                        var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync();
-                        if (loadNodesErrMsg is not null)
-                        {
-                            logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
-                        }
-                        else
-                        {
-                            NodesData = loadedNodes;
-                            logger.LogInformation("Reloaded Nodes.json");
-                        }
-
-                        break;
-                    }
-
+                    channel = nodesChannel;
+                    break;
                 case "Settings.json":
-                    {
-                        var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync();
-                        if (loadSettingsErrMsg is not null)
-                        {
-                            logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
-                        }
-                        else
-                        {
-                            SettingsData = settings;
-                            logger.LogInformation("Reloaded Settings.json");
-                        }
-
-                        break;
-                    }
-
+                    channel = settingsChannel;
+                    break;
                 default:
-                    throw new Exception($"Event on file {e.Name} is not properly handled!");
+                    logger.LogTrace("Event raised for unknown file {Name}", e.Name);
+                    return;
             }
-        }
 
-        public Task StopAsync(CancellationToken cancellationToken = default)
-        {
-            _watcher.EnableRaisingEvents = false;
-            logger.LogInformation("Stopped file watcher");
-            return Task.CompletedTask;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
+            if (!channel.Writer.TryWrite(e))
             {
-                if (disposing)
-                {
-                    _watcher.Dispose();
-                    NodesData.Dispose();
-                }
-                disposedValue = true;
+                logger.LogError("Failed to write event of file {Name} to channel", e.Name);
             }
         }
 
-        public void Dispose()
+        _watcher.EnableRaisingEvents = true;
+
+        logger.LogInformation("Started file watcher watching Users.json, Nodes.json, Settings.json");
+
+        await LoadUsersAsync(cancellationToken);
+        await LoadNodesAsync(cancellationToken);
+        await LoadSettingsAsync(cancellationToken);
+
+        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        _updateTask = Task.WhenAll(
+            UpdateDataAsync(usersChannel.Reader, LoadUsersAsync, _cts.Token),
+            UpdateDataAsync(nodesChannel.Reader, LoadNodesAsync, _cts.Token),
+            UpdateDataAsync(settingsChannel.Reader, LoadSettingsAsync, _cts.Token));
+    }
+
+    public async Task StopAsync(CancellationToken cancellationToken = default)
+    {
+        if (_watcher is null || _cts is null || _updateTask is null)
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            return;
         }
+
+        _watcher.EnableRaisingEvents = false;
+
+        logger.LogInformation("Stopped file watcher");
+
+        try
+        {
+            _cts.Cancel();
+        }
+        finally
+        {
+            await _updateTask.WaitAsync(cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+        }
+    }
+
+    private static Channel<FileSystemEventArgs> CreateChannel() => Channel.CreateBounded<FileSystemEventArgs>(new BoundedChannelOptions(1)
+    {
+        SingleReader = true,
+        AllowSynchronousContinuations = true,
+        FullMode = BoundedChannelFullMode.DropOldest,
+    });
+
+    private static readonly TimeSpan s_debounceInterval = TimeSpan.FromSeconds(5);
+
+    private async Task UpdateDataAsync(
+        ChannelReader<FileSystemEventArgs> reader,
+        Func<CancellationToken, Task> loadAsync,
+        CancellationToken cancellationToken = default)
+    {
+        while (true)
+        {
+            FileSystemEventArgs e = await reader.ReadAsync(cancellationToken);
+
+            // Debounce for 5 seconds.
+            while (true)
+            {
+                try
+                {
+                    e = await reader.ReadAsync(cancellationToken)
+                        .AsTask()
+                        .WaitAsync(s_debounceInterval, cancellationToken);
+                }
+                catch (TimeoutException)
+                {
+                    break;
+                }
+            }
+
+            if (e.Name is null)
+                continue;
+
+            if (e.ChangeType == WatcherChangeTypes.Deleted)
+            {
+                logger.LogWarning("File {Name} was deleted!", e.Name);
+                continue;
+            }
+
+            await loadAsync(cancellationToken);
+
+            logger.LogInformation("Reloaded {Name} on {ChangeType} event", e.Name, e.ChangeType);
+        }
+    }
+
+    private async Task LoadUsersAsync(CancellationToken cancellationToken = default)
+    {
+        var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
+        if (loadUsersErrMsg is not null)
+        {
+            logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
+            return;
+        }
+        UsersData = users;
+    }
+
+    private async Task LoadNodesAsync(CancellationToken cancellationToken = default)
+    {
+        var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
+        if (loadNodesErrMsg is not null)
+        {
+            logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
+            return;
+        }
+        NodesData.Dispose();
+        NodesData = loadedNodes;
+    }
+
+    private async Task LoadSettingsAsync(CancellationToken cancellationToken = default)
+    {
+        var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
+        if (loadSettingsErrMsg is not null)
+        {
+            logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
+            return;
+        }
+        SettingsData = settings;
+    }
+
+    public void Dispose()
+    {
+        _watcher?.Dispose();
+        _cts?.Dispose();
+        NodesData.Dispose();
     }
 }
