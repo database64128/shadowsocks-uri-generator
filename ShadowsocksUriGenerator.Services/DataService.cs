@@ -110,19 +110,29 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
             FileSystemEventArgs e = await reader.ReadAsync(cancellationToken);
 
             // Debounce for 5 seconds.
+            CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
             while (true)
             {
+                cts.CancelAfter(s_debounceInterval);
+
                 try
                 {
-                    e = await reader.ReadAsync(cancellationToken)
-                        .AsTask()
-                        .WaitAsync(s_debounceInterval, cancellationToken);
+                    e = await reader.ReadAsync(cts.Token);
+
+                    if (!cts.TryReset())
+                    {
+                        cts.Dispose();
+                        cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    }
                 }
-                catch (TimeoutException)
+                catch (OperationCanceledException)
                 {
                     break;
                 }
             }
+
+            cts.Dispose();
 
             if (e.Name is null)
                 continue;
