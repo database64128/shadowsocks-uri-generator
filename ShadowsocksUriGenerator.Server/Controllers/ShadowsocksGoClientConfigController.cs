@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShadowsocksUriGenerator.OnlineConfig;
-using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
@@ -8,7 +7,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("shadowsocks-go/clients")]
-public class ShadowsocksGoClientConfigController(ILogger<ShadowsocksGoClientConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
+public class ShadowsocksGoClientConfigController(ILogger<ShadowsocksGoClientConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>
@@ -88,8 +87,6 @@ public class ShadowsocksGoClientConfigController(ILogger<ShadowsocksGoClientConf
 
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
-
-        LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         var clients = servers.Select(x => new ShadowsocksGoClientConfig(x, paddingPolicy, disableTCP, disableTFO, disableUDP, dialerFwmark, dialerTrafficClass, mtu));
 

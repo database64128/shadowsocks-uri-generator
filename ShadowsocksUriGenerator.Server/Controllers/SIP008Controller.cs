@@ -8,7 +8,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("sip008")]
-public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
+public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>
@@ -67,8 +67,6 @@ public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dat
 
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
-
-        LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         var resp = new SIP008Config()
         {

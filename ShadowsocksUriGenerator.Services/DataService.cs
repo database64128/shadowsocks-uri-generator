@@ -4,7 +4,7 @@ using System.Threading.Channels;
 
 namespace ShadowsocksUriGenerator.Services;
 
-public sealed class DataService(ILogger<DataService> logger) : IDataService, IDisposable
+public sealed partial class DataService(ILogger<DataService> logger) : IDataService, IDisposable
 {
     private FileSystemWatcher? _watcher;
     private CancellationTokenSource? _cts;
@@ -45,19 +45,19 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
                     channel = settingsChannel;
                     break;
                 default:
-                    logger.LogTrace("Event raised for unknown file {Name}", e.Name);
+                    LogUnknownFileEvent(e.Name);
                     return;
             }
 
             if (!channel.Writer.TryWrite(e))
             {
-                logger.LogError("Failed to write event of file {Name} to channel", e.Name);
+                LogFailedChannelWrite(e.Name);
             }
         }
 
         _watcher.EnableRaisingEvents = true;
 
-        logger.LogInformation("Started file watcher watching Users.json, Nodes.json, Settings.json");
+        LogStartedFileWatcher();
 
         await LoadUsersAsync(cancellationToken);
         await LoadNodesAsync(cancellationToken);
@@ -79,7 +79,7 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
 
         _watcher.EnableRaisingEvents = false;
 
-        logger.LogInformation("Stopped file watcher");
+        LogStoppedFileWatcher();
 
         try
         {
@@ -139,13 +139,13 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
 
             if (e.ChangeType == WatcherChangeTypes.Deleted)
             {
-                logger.LogWarning("File {Name} was deleted!", e.Name);
+                LogFileDeletedEvent(e.Name);
                 continue;
             }
 
             await loadAsync(cancellationToken);
 
-            logger.LogInformation("Reloaded {Name} on {ChangeType} event", e.Name, e.ChangeType);
+            LogReloadedFileOnEvent(e.Name, e.ChangeType);
         }
     }
 
@@ -154,7 +154,7 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
         var (users, loadUsersErrMsg) = await Users.LoadUsersAsync(cancellationToken);
         if (loadUsersErrMsg is not null)
         {
-            logger.LogError("Failed to load user data: {Error}", loadUsersErrMsg);
+            LogFailedToLoadFile("Users.json", loadUsersErrMsg);
             return;
         }
         UsersData = users;
@@ -165,7 +165,7 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
         var (loadedNodes, loadNodesErrMsg) = await Nodes.LoadNodesAsync(cancellationToken);
         if (loadNodesErrMsg is not null)
         {
-            logger.LogError("Failed to load node data: {Error}", loadNodesErrMsg);
+            LogFailedToLoadFile("Nodes.json", loadNodesErrMsg);
             return;
         }
         NodesData.Dispose();
@@ -177,7 +177,7 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
         var (settings, loadSettingsErrMsg) = await Settings.LoadSettingsAsync(cancellationToken);
         if (loadSettingsErrMsg is not null)
         {
-            logger.LogError("Failed to load settings: {Error}", loadSettingsErrMsg);
+            LogFailedToLoadFile("Settings.json", loadSettingsErrMsg);
             return;
         }
         SettingsData = settings;
@@ -189,4 +189,25 @@ public sealed class DataService(ILogger<DataService> logger) : IDataService, IDi
         _cts?.Dispose();
         NodesData.Dispose();
     }
+
+    [LoggerMessage(Level = LogLevel.Trace, Message = "Event raised for unknown file {Name}")]
+    private partial void LogUnknownFileEvent(string? name);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to write event of file {Name} to channel")]
+    private partial void LogFailedChannelWrite(string? name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Started file watcher watching Users.json, Nodes.json, Settings.json")]
+    private partial void LogStartedFileWatcher();
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Stopped file watcher")]
+    private partial void LogStoppedFileWatcher();
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "File {Name} was deleted!")]
+    private partial void LogFileDeletedEvent(string? name);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Reloaded {Name} on {ChangeType} event")]
+    private partial void LogReloadedFileOnEvent(string? name, WatcherChangeTypes changeType);
+
+    [LoggerMessage(Level = LogLevel.Error, Message = "Failed to load {Name}: {Error}")]
+    private partial void LogFailedToLoadFile(string name, string error);
 }

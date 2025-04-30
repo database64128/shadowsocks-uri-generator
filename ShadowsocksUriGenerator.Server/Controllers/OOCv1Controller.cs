@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ShadowsocksUriGenerator.OnlineConfig;
-using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
@@ -8,7 +7,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("ooc/v1")]
-public class OOCv1Controller(ILogger<OOCv1Controller> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
+public class OOCv1Controller(ILogger<OOCv1Controller> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>
@@ -66,8 +65,6 @@ public class OOCv1Controller(ILogger<OOCv1Controller> logger, IDataService dataS
 
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
-
-        LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         return new OOCv1ShadowsocksConfig()
         {

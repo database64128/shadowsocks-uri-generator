@@ -3,10 +3,11 @@ using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Server.Utils;
 using ShadowsocksUriGenerator.Services;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
-public abstract class OnlineConfigControllerBase(IDataService dataService) : ControllerBase
+public abstract partial class OnlineConfigControllerBase(ILogger logger, IDataService dataService) : ControllerBase
 {
     protected IDataService DataService => dataService;
 
@@ -33,6 +34,11 @@ public abstract class OnlineConfigControllerBase(IDataService dataService) : Con
             return false;
         }
 
+        username = userEntry.Key;
+        user = userEntry.Value;
+
+        LogRequest(username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
+
         var validGroups = group.All(x => dataService.NodesData.Groups.ContainsKey(x));
         if (!validGroups)
         {
@@ -54,8 +60,9 @@ public abstract class OnlineConfigControllerBase(IDataService dataService) : Con
             return false;
         }
 
-        username = userEntry.Key;
-        user = userEntry.Value;
         return true;
     }
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "{Username} ({Id}) retrieved online config from {Ip} with query {Query}")]
+    private partial void LogRequest(string username, string id, IPAddress? ip, IQueryCollection query);
 }

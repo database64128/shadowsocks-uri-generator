@@ -8,7 +8,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("sing-box/outbounds")]
-public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(dataService)
+public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>
@@ -107,8 +107,6 @@ public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigContro
 
         if (sortByName)
             servers = servers.OrderBy(x => x.Name);
-
-        LoggerHelper.OnlineConfig(logger, username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
 
         var outbounds = servers.Select(x => new SingBoxOutboundConfig(x, network, uot, multiplex, multiplexProtocol, multiplexMaxConnections, multiplexMinStreams, multiplexMaxStreams, detour, bindInterface, inet4BindAddress, inet6BindAddress, routingMark, reuseAddr, connectTimeout, tcpFastOpen, udpFragment, domainStrategy, fallbackDelay));
 
