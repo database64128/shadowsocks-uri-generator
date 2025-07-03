@@ -31,7 +31,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta6.25330.103" />
-    <PackageReference Include="Telegram.Bot" Version="22.5.1" />
+    <PackageReference Include="Telegram.Bot" Version="22.6.0" />
   </ItemGroup>
 
   <ItemGroup>
