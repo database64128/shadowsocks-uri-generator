@@ -30,6 +30,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             string? messageEffectId = default,
             string? businessConnectionId = default,
             bool allowPaidBroadcast = default,
+            int? directMessagesTopicId = default,
+            SuggestedPostParameters? suggestedPostParameters = default,
             CancellationToken cancellationToken = default)
             => text.Length switch
             {
@@ -47,6 +49,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                     messageEffectId,
                     businessConnectionId,
                     allowPaidBroadcast,
+                    directMessagesTopicId,
+                    suggestedPostParameters,
                     cancellationToken),
                 _ => botClient.SendTextFileFromStringAsync(
                     chatId,
@@ -94,6 +98,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             string? messageEffectId = default,
             string? businessConnectionId = default,
             bool allowPaidBroadcast = default,
+            int? directMessagesTopicId = default,
+            SuggestedPostParameters? suggestedPostParameters = default,
             CancellationToken cancellationToken = default)
         {
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
@@ -113,6 +119,8 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                 messageEffectId,
                 businessConnectionId,
                 allowPaidBroadcast,
+                directMessagesTopicId,
+                suggestedPostParameters,
                 cancellationToken);
         }
 
