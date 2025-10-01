@@ -23,7 +23,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.CommandLine" Version="2.0.0-rc.1.25409.101" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-rtm.25479.115" />
   </ItemGroup>
 
   <ItemGroup>
