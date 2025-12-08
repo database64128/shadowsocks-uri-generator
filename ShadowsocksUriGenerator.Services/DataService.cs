@@ -1,10 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using ShadowsocksUriGenerator.Data;
 using System.Threading.Channels;
 
 namespace ShadowsocksUriGenerator.Services;
 
-public sealed partial class DataService(ILogger<DataService> logger) : IDataService, IDisposable
+public sealed partial class DataService(ILogger<DataService> logger) : IHostedService, IDisposable
 {
     private FileSystemWatcher? _watcher;
     private CancellationTokenSource? _cts;

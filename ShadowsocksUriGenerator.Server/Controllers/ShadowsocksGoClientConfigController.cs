@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("shadowsocks-go/clients")]
-public class ShadowsocksGoClientConfigController(ILogger<ShadowsocksGoClientConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
+public class ShadowsocksGoClientConfigController(ILogger<ShadowsocksGoClientConfigController> logger, DataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>

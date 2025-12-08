@@ -7,8 +7,8 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<IDataService, DataService>();
-builder.Services.AddHostedService(provider => provider.GetService<IDataService>() as DataService ?? throw new Exception("Injected IDataService is not DataService."));
+builder.Services.AddSingleton<DataService>();
+builder.Services.AddHostedService(provider => provider.GetRequiredService<DataService>());
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {

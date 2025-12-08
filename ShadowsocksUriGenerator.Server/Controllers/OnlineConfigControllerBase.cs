@@ -7,9 +7,9 @@ using System.Net;
 
 namespace ShadowsocksUriGenerator.Server.Controllers;
 
-public abstract partial class OnlineConfigControllerBase(ILogger logger, IDataService dataService) : ControllerBase
+public abstract partial class OnlineConfigControllerBase(ILogger logger, DataService dataService) : ControllerBase
 {
-    protected IDataService DataService => dataService;
+    protected DataService DataService => dataService;
 
     protected bool TryGetUserEntry(
         string id,
@@ -37,7 +37,11 @@ public abstract partial class OnlineConfigControllerBase(ILogger logger, IDataSe
         username = userEntry.Key;
         user = userEntry.Value;
 
-        LogRequest(username, id, HeaderHelper.GetRealIP(HttpContext), HttpContext.Request.Query);
+        if (logger.IsEnabled(LogLevel.Information))
+        {
+            IPAddress? ip = HeaderHelper.GetRealIP(HttpContext);
+            LogRequest(username, id, ip, HttpContext.Request.Query);
+        }
 
         var validGroups = group.All(x => dataService.NodesData.Groups.ContainsKey(x));
         if (!validGroups)

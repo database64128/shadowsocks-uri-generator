@@ -7,7 +7,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("ooc/v1")]
-public class OOCv1Controller(ILogger<OOCv1Controller> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
+public class OOCv1Controller(ILogger<OOCv1Controller> logger, DataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>

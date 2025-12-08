@@ -8,7 +8,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("sip008")]
-public class SIP008Controller(ILogger<SIP008Controller> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
+public class SIP008Controller(ILogger<SIP008Controller> logger, DataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>

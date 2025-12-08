@@ -8,7 +8,7 @@ namespace ShadowsocksUriGenerator.Server.Controllers;
 [ApiController]
 [ApiConventionType(typeof(DefaultApiConventions))]
 [Route("sing-box/outbounds")]
-public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, IDataService dataService) : OnlineConfigControllerBase(logger, dataService)
+public class SingBoxOutboundConfigController(ILogger<SingBoxOutboundConfigController> logger, DataService dataService) : OnlineConfigControllerBase(logger, dataService)
 {
 
     /// <summary>
