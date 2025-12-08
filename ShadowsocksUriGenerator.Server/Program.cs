@@ -1,12 +1,16 @@
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.OpenApi;
 using ShadowsocksUriGenerator.OnlineConfig;
+using ShadowsocksUriGenerator.Server;
 using ShadowsocksUriGenerator.Services;
 using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
+using Telegram.Bot.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<DataService>();
 builder.Services.AddHostedService(provider => provider.GetRequiredService<DataService>());
 builder.Services.AddControllers()
@@ -21,6 +25,19 @@ builder.Services.AddControllers()
                     options.JsonSerializerOptions.TypeInfoResolverChain.Add(OnlineConfigCamelCaseJsonSerializerContext.Default);
                     options.JsonSerializerOptions.TypeInfoResolverChain.Add(OnlineConfigSnakeCaseJsonSerializerContext.Default);
                 });
+
+TelegramBotWebhookOptions botWebhookOptions = new();
+var botWebhookSection = builder.Configuration.GetSection(TelegramBotWebhookOptions.SectionName);
+botWebhookSection.Bind(botWebhookOptions);
+bool enableBotWebhook = !string.IsNullOrEmpty(botWebhookOptions.Url);
+
+if (enableBotWebhook)
+{
+    builder.Services.Configure<TelegramBotWebhookOptions>(botWebhookSection);
+    builder.Services.ConfigureTelegramBot<JsonOptions>(opt => opt.SerializerOptions);
+    builder.Services.AddSingleton<TelegramBotWebhookService>();
+    builder.Services.AddHostedService(p => p.GetRequiredService<TelegramBotWebhookService>());
+}
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -64,4 +81,15 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-await app.RunAsync();
+if (enableBotWebhook)
+{
+    app.MapPost(botWebhookOptions.RoutePattern, HandleUpdateAsync);
+}
+
+app.Run();
+
+static async Task<IResult> HandleUpdateAsync(Update update, TelegramBotWebhookService botService, CancellationToken cancellationToken = default)
+{
+    await botService.UpdateWriter.WriteAsync(update, cancellationToken);
+    return TypedResults.Ok();
+}

@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ShadowsocksUriGenerator.Chatbot.Telegram\ShadowsocksUriGenerator.Chatbot.Telegram.csproj" />
     <ProjectReference Include="..\ShadowsocksUriGenerator.Services\ShadowsocksUriGenerator.Services.csproj" />
   </ItemGroup>
 
