@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsAotCompatible>true</IsAotCompatible>
+    <AssemblyName>ss-uri-gen-chatbot-telegram-long-polling</AssemblyName>
+    <Version>5.2.0</Version>
+    <Authors>database64128</Authors>
+    <Copyright>© 2025 database64128</Copyright>
+    <UserSecretsId>dotnet-ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling-57738b31-1f0f-463d-a564-6a8fbd1a1067</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ShadowsocksUriGenerator.Chatbot.Telegram\ShadowsocksUriGenerator.Chatbot.Telegram.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace ShadowsocksUriGenerator.CLI.Utils
+namespace ShadowsocksUriGenerator.Utils
 {
     public static class ReportHelper
     {

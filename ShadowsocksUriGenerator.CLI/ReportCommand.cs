@@ -1,5 +1,4 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
-using ShadowsocksUriGenerator.Data;
+﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.Utils;
 
 namespace ShadowsocksUriGenerator.CLI

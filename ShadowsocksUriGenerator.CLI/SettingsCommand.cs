@@ -1,4 +1,4 @@
-﻿using ShadowsocksUriGenerator.CLI.Utils;
+﻿using ShadowsocksUriGenerator.Utils;
 
 namespace ShadowsocksUriGenerator.CLI
 {

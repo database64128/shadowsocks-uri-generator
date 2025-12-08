@@ -21,10 +21,11 @@
     <File Path="systemd/user/ss-uri-gen-server.service" />
     <File Path="systemd/user/ss-uri-gen.service" />
   </Folder>
+  <Project Path="ShadowsocksUriGenerator.Chatbot.Telegram.CLI/ShadowsocksUriGenerator.Chatbot.Telegram.CLI.csproj" Id="6e65850a-8f72-4b35-9884-880f2bf2f405" />
+  <Project Path="ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling.csproj" Id="950ca89f-19de-4ce2-b9ee-e26f7e6055a4" />
   <Project Path="ShadowsocksUriGenerator.Chatbot.Telegram.Tests/ShadowsocksUriGenerator.Chatbot.Telegram.Tests.csproj" />
   <Project Path="ShadowsocksUriGenerator.Chatbot.Telegram/ShadowsocksUriGenerator.Chatbot.Telegram.csproj" />
   <Project Path="ShadowsocksUriGenerator.CLI.Tests/ShadowsocksUriGenerator.CLI.Tests.csproj" />
-  <Project Path="ShadowsocksUriGenerator.CLI.Utils/ShadowsocksUriGenerator.CLI.Utils.csproj" />
   <Project Path="ShadowsocksUriGenerator.CLI/ShadowsocksUriGenerator.CLI.csproj" />
   <Project Path="ShadowsocksUriGenerator.Rescue.CLI/ShadowsocksUriGenerator.Rescue.CLI.csproj" />
   <Project Path="ShadowsocksUriGenerator.Rescue/ShadowsocksUriGenerator.Rescue.csproj" />
