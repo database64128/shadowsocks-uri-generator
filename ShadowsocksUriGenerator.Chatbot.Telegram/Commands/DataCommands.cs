@@ -104,7 +104,7 @@ public static class DataCommands
                 replyBuilder.AppendLine("```");
 
                 replyMarkdownV2 = replyBuilder.ToString();
-                Console.WriteLine(" Response: successful query.");
+                result = "success";
             }
         }
         else
