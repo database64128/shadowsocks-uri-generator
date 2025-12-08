@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using ShadowsocksUriGenerator.OnlineConfig;
 using ShadowsocksUriGenerator.Services;
 using System.Text.Encodings.Web;
@@ -48,7 +48,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders = ForwardedHeaders.All;
     options.ForwardLimit = null;
     options.KnownProxies.Clear();
-    options.KnownNetworks.Clear();
+    options.KnownIPNetworks.Clear();
 });
 
 var app = builder.Build();

@@ -1066,11 +1066,8 @@ namespace ShadowsocksUriGenerator.Data
         /// <param name="users">The <see cref="Users"/> object.</param>
         public void RemoveSSMv1Server(string groupName, Users users)
         {
-            if (SSMv1Server is not null)
-            {
-                SSMv1Server.ClearServerStats(groupName, this, users);
-                SSMv1Server = null;
-            }
+            SSMv1Server?.ClearServerStats(groupName, this, users);
+            SSMv1Server = null;
         }
 
         public void Dispose() => _apiClient?.Dispose();

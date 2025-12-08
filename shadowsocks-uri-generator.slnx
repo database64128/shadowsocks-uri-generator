@@ -1,0 +1,35 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="nuget.config" />
+    <File Path="README.md" />
+    <File Path="renovate.json" />
+  </Folder>
+  <Folder Name="/Solution Items/.github/" />
+  <Folder Name="/Solution Items/.github/workflows/">
+    <File Path=".github/workflows/build.yml" />
+    <File Path=".github/workflows/release.yml" />
+  </Folder>
+  <Folder Name="/Solution Items/docs/">
+    <File Path="docs/README.md" />
+    <File Path="docs/reverse-proxy-guide.md" />
+  </Folder>
+  <Folder Name="/Solution Items/systemd/" />
+  <Folder Name="/Solution Items/systemd/user/">
+    <File Path="systemd/user/ss-uri-gen-chatbot-telegram.service" />
+    <File Path="systemd/user/ss-uri-gen-server.service" />
+    <File Path="systemd/user/ss-uri-gen.service" />
+  </Folder>
+  <Project Path="ShadowsocksUriGenerator.Chatbot.Telegram.Tests/ShadowsocksUriGenerator.Chatbot.Telegram.Tests.csproj" />
+  <Project Path="ShadowsocksUriGenerator.Chatbot.Telegram/ShadowsocksUriGenerator.Chatbot.Telegram.csproj" />
+  <Project Path="ShadowsocksUriGenerator.CLI.Tests/ShadowsocksUriGenerator.CLI.Tests.csproj" />
+  <Project Path="ShadowsocksUriGenerator.CLI.Utils/ShadowsocksUriGenerator.CLI.Utils.csproj" />
+  <Project Path="ShadowsocksUriGenerator.CLI/ShadowsocksUriGenerator.CLI.csproj" />
+  <Project Path="ShadowsocksUriGenerator.Rescue.CLI/ShadowsocksUriGenerator.Rescue.CLI.csproj" />
+  <Project Path="ShadowsocksUriGenerator.Rescue/ShadowsocksUriGenerator.Rescue.csproj" />
+  <Project Path="ShadowsocksUriGenerator.Server/ShadowsocksUriGenerator.Server.csproj" />
+  <Project Path="ShadowsocksUriGenerator.Services/ShadowsocksUriGenerator.Services.csproj" />
+  <Project Path="ShadowsocksUriGenerator.Tests/ShadowsocksUriGenerator.Tests.csproj" />
+  <Project Path="ShadowsocksUriGenerator/ShadowsocksUriGenerator.csproj" />
+</Solution>

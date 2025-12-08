@@ -23,7 +23,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: '9'
+          dotnet-version: '10'
 
       - name: Restore dependencies
         run: dotnet restore
@@ -95,28 +95,28 @@ jobs:
           ZSTD_NBTHREADS: 2
         run: |
           # ShadowsocksUriGenerator.CLI
-          cd ShadowsocksUriGenerator.CLI/bin/Release/net9.0/publish
+          cd ShadowsocksUriGenerator.CLI/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-${{ github.ref_name }}-linux.tar.zst .
           cd ../linux-arm64/publish
           tar -acf ../../ss-uri-gen-${{ github.ref_name }}-linux-arm64.tar.zst .
           cd ../../linux-x64/publish
           tar -acf ../../ss-uri-gen-${{ github.ref_name }}-linux-x64.tar.zst .
           # ShadowsocksUriGenerator.Server
-          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-server-${{ github.ref_name }}-linux.tar.zst .
           cd ../linux-arm64/publish
           tar -acf ../../ss-uri-gen-server-${{ github.ref_name }}-linux-arm64.tar.zst .
           cd ../../linux-x64/publish
           tar -acf ../../ss-uri-gen-server-${{ github.ref_name }}-linux-x64.tar.zst .
           # ShadowsocksUriGenerator.Rescue.CLI
-          cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-rescue-${{ github.ref_name }}-linux.tar.zst .
           cd ../linux-arm64/publish
           tar -acf ../../ss-uri-gen-rescue-${{ github.ref_name }}-linux-arm64.tar.zst .
           cd ../../linux-x64/publish
           tar -acf ../../ss-uri-gen-rescue-${{ github.ref_name }}-linux-x64.tar.zst .
           # ShadowsocksUriGenerator.Chatbot.Telegram
-          cd ../../../../../../ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-linux.tar.zst .
           cd ../linux-arm64/publish
           tar -acf ../../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-linux-arm64.tar.zst .
@@ -130,28 +130,28 @@ jobs:
           ZSTD_NBTHREADS: 2
         run: |
           # ShadowsocksUriGenerator.CLI
-          cd ShadowsocksUriGenerator.CLI/bin/Release/net9.0/publish
+          cd ShadowsocksUriGenerator.CLI/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-${{ github.ref_name }}-osx.tar.zst .
           cd ../osx-arm64/publish
           tar -acf ../../ss-uri-gen-${{ github.ref_name }}-osx-arm64.tar.zst .
           cd ../../osx-x64/publish
           tar -acf ../../ss-uri-gen-${{ github.ref_name }}-osx-x64.tar.zst .
           # ShadowsocksUriGenerator.Server
-          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-server-${{ github.ref_name }}-osx.tar.zst .
           cd ../osx-arm64/publish
           tar -acf ../../ss-uri-gen-server-${{ github.ref_name }}-osx-arm64.tar.zst .
           cd ../../osx-x64/publish
           tar -acf ../../ss-uri-gen-server-${{ github.ref_name }}-osx-x64.tar.zst .
           # ShadowsocksUriGenerator.Rescue.CLI
-          cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-rescue-${{ github.ref_name }}-osx.tar.zst .
           cd ../osx-arm64/publish
           tar -acf ../../ss-uri-gen-rescue-${{ github.ref_name }}-osx-arm64.tar.zst .
           cd ../../osx-x64/publish
           tar -acf ../../ss-uri-gen-rescue-${{ github.ref_name }}-osx-x64.tar.zst .
           # ShadowsocksUriGenerator.Chatbot.Telegram
-          cd ../../../../../../ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/publish
           tar -acf ../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-osx.tar.zst .
           cd ../osx-arm64/publish
           tar -acf ../../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-osx-arm64.tar.zst .
@@ -162,7 +162,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           # ShadowsocksUriGenerator.CLI
-          cd ShadowsocksUriGenerator.CLI/bin/Release/net9.0/publish
+          cd ShadowsocksUriGenerator.CLI/bin/Release/net10.0/publish
           7z a -tzip -mx=9 -mfb=128 ../ss-uri-gen-${{ github.ref_name }}-windows.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../ss-uri-gen-${{ github.ref_name }}-windows.7z .
           cd ../win-arm64/publish
@@ -172,7 +172,7 @@ jobs:
           7z a -tzip -mx=9 -mfb=128 ../../ss-uri-gen-${{ github.ref_name }}-windows-x64.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-${{ github.ref_name }}-windows-x64.7z .
           # ShadowsocksUriGenerator.Server
-          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Server/bin/Release/net10.0/publish
           7z a -tzip -mx=9 -mfb=128 ../ss-uri-gen-server-${{ github.ref_name }}-windows.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../ss-uri-gen-server-${{ github.ref_name }}-windows.7z .
           cd ../win-arm64/publish
@@ -182,7 +182,7 @@ jobs:
           7z a -tzip -mx=9 -mfb=128 ../../ss-uri-gen-server-${{ github.ref_name }}-windows-x64.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-server-${{ github.ref_name }}-windows-x64.7z .
           # ShadowsocksUriGenerator.Rescue.CLI
-          cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net10.0/publish
           7z a -tzip -mx=9 -mfb=128 ../ss-uri-gen-rescue-${{ github.ref_name }}-windows.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../ss-uri-gen-rescue-${{ github.ref_name }}-windows.7z .
           cd ../win-arm64/publish
@@ -192,7 +192,7 @@ jobs:
           7z a -tzip -mx=9 -mfb=128 ../../ss-uri-gen-rescue-${{ github.ref_name }}-windows-x64.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../../ss-uri-gen-rescue-${{ github.ref_name }}-windows-x64.7z .
           # ShadowsocksUriGenerator.Chatbot.Telegram
-          cd ../../../../../../ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net9.0/publish
+          cd ../../../../../../ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/publish
           7z a -tzip -mx=9 -mfb=128 ../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-windows.zip .
           7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=64m -ms=on ../ss-uri-gen-chatbot-telegram-${{ github.ref_name }}-windows.7z .
           cd ../win-arm64/publish
@@ -208,7 +208,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ShadowsocksUriGenerator.*/bin/Release/net9.0/*.tar.zst
+          file: ShadowsocksUriGenerator.*/bin/Release/net10.0/*.tar.zst
           tag: ${{ github.ref }}
           file_glob: true
           draft: true
@@ -218,7 +218,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ShadowsocksUriGenerator.*/bin/Release/net9.0/ss-uri-gen-*-windows*.*
+          file: ShadowsocksUriGenerator.*/bin/Release/net10.0/ss-uri-gen-*-windows*.*
           tag: ${{ github.ref }}
           file_glob: true
           draft: true
