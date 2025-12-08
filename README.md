@@ -27,17 +27,17 @@ Shadowsocks URI Generator is a management and distribution platform for censorsh
 
 ## Build
 
-Prerequisites: .NET 9 SDK
+Prerequisites: .NET 10 SDK
 
 ```console
 $ # Build with Release configuration
 $ dotnet build -c Release
 
 $ # Publish as framework-dependent
-$ dotnet publish ShadowsocksUriGenerator -c Release
+$ dotnet publish ShadowsocksUriGenerator.CLI -c Release
 
 $ # Publish as self-contained for Linux x64
-$ dotnet publish ShadowsocksUriGenerator -c Release \
+$ dotnet publish ShadowsocksUriGenerator.CLI -c Release \
     -p:PublishSingleFile=true \
     -p:PublishTrimmed=true \
     -p:DebuggerSupport=false \
@@ -189,7 +189,6 @@ $ ss-uri-gen-chatbot-telegram --bot-token "1234567:4TT8bAc8GHUspu3ERYn-KGcvsvGB9
 - This project is licensed under [GPLv3](LICENSE).
 - The icons are from [Material Design Icons](https://materialdesignicons.com/) and are licensed under the [Pictogrammers Free License](https://dev.materialdesignicons.com/license).
 - [`System.CommandLine`](https://github.com/dotnet/command-line-api) is licensed under the MIT license.
-- `System.Linq.Async`, `System.Interactive.Async` and `System.Reactive` are from [dotnet/reactive](https://github.com/dotnet/reactive). They are licensed under the MIT license.
 - [`Telegram.Bot`](https://github.com/TelegramBots/Telegram.Bot) and [`Telegram.Bot.Extensions.Polling`](https://github.com/TelegramBots/Telegram.Bot.Extensions.Polling) are licensed under the MIT license.
 
 © 2025 database64128

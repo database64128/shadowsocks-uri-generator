@@ -52,7 +52,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release --no-restore
           dotnet publish ShadowsocksUriGenerator.Server -c Release --no-restore
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release --no-restore
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release --no-restore
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release --no-restore
 
       - name: Publish self-contained for Linux ARM64
         if: matrix.os == 'ubuntu-latest'
@@ -60,7 +60,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release $MSBUILD_PROPS -r linux-arm64 --self-contained
 
       - name: Publish self-contained for Linux x64
         if: matrix.os == 'ubuntu-latest'
@@ -68,7 +68,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release $MSBUILD_PROPS -r linux-x64 --self-contained
 
       - name: Publish self-contained for Windows ARM64
         if: matrix.os == 'windows-latest'
@@ -76,7 +76,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release $MSBUILD_PROPS -r win-arm64 --self-contained
 
       - name: Publish self-contained for Windows x64
         if: matrix.os == 'windows-latest'
@@ -84,7 +84,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r win-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r win-x64 --self-contained
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r win-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release $MSBUILD_PROPS -r win-x64 --self-contained
 
       - name: Publish self-contained for macOS ARM64
         if: matrix.os == 'macos-latest'
@@ -92,7 +92,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r osx-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r osx-arm64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r osx-arm64 --self-contained
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r osx-arm64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release $MSBUILD_PROPS -r osx-arm64 --self-contained
 
       - name: Publish self-contained for macOS x64
         if: matrix.os == 'macos-latest'
@@ -100,7 +100,7 @@ jobs:
           dotnet publish ShadowsocksUriGenerator.CLI -c Release $MSBUILD_PROPS -r osx-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Server -c Release $MSBUILD_PROPS -r osx-x64 --self-contained
           dotnet publish ShadowsocksUriGenerator.Rescue.CLI -c Release $MSBUILD_PROPS -r osx-x64 --self-contained
-          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram -c Release $MSBUILD_PROPS -r osx-x64 --self-contained
+          dotnet publish ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling -c Release $MSBUILD_PROPS -r osx-x64 --self-contained
 
       # Upload ShadowsocksUriGenerator.CLI
       - name: Upload ShadowsocksUriGenerator.CLI artifacts for Linux ARM64
@@ -294,66 +294,66 @@ jobs:
           name: ss-uri-gen-rescue-${{ github.sha }}-macos
           path: ShadowsocksUriGenerator.Rescue.CLI/bin/Release/net10.0/publish/
 
-      # Upload ShadowsocksUriGenerator.Chatbot.Telegram
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux ARM64
+      # Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for Linux ARM64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-linux-arm64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/linux-arm64/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-linux-arm64
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/linux-arm64/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux x64
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for Linux x64
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-linux-x64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/linux-x64/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-linux-x64
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/linux-x64/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Linux framework-dependent
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for Linux framework-dependent
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-linux
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-linux
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Windows ARM64
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for Windows ARM64
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-windows-arm64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/win-arm64/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-windows-arm64
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/win-arm64/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Windows x64
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for Windows x64
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-windows-x64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/win-x64/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-windows-x64
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/win-x64/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for Windows framework-dependent
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for Windows framework-dependent
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-windows
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-windows
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for macOS ARM64
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for macOS ARM64
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-macos-arm64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/osx-arm64/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-macos-arm64
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/osx-arm64/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for macOS x64
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for macOS x64
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-macos-x64
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/osx-x64/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-macos-x64
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/osx-x64/publish/
 
-      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram artifacts for macOS framework-dependent
+      - name: Upload ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling artifacts for macOS framework-dependent
         if: matrix.os == 'macos-latest'
         uses: actions/upload-artifact@v5
         with:
-          name: ss-uri-gen-chatbot-telegram-${{ github.sha }}-macos
-          path: ShadowsocksUriGenerator.Chatbot.Telegram/bin/Release/net10.0/publish/
+          name: ss-uri-gen-chatbot-telegram-long-polling-${{ github.sha }}-macos
+          path: ShadowsocksUriGenerator.Chatbot.Telegram.LongPolling/bin/Release/net10.0/publish/
