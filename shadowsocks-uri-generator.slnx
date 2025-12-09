@@ -16,6 +16,11 @@
     <File Path="docs/reverse-proxy-guide.md" />
   </Folder>
   <Folder Name="/Solution Items/systemd/" />
+  <Folder Name="/Solution Items/systemd/system/">
+    <File Path="systemd/system/ss-uri-gen-chatbot-telegram.service" />
+    <File Path="systemd/system/ss-uri-gen-server.service" />
+    <File Path="systemd/system/ss-uri-gen.service" />
+  </Folder>
   <Folder Name="/Solution Items/systemd/user/">
     <File Path="systemd/user/ss-uri-gen-chatbot-telegram.service" />
     <File Path="systemd/user/ss-uri-gen-server.service" />

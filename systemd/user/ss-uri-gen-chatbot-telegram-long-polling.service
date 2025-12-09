@@ -1,11 +1,11 @@
 [Unit]
-Description=Shadowsocks URI Generator Telegram Bot
+Description=Shadowsocks URI Generator Telegram Bot (Long Polling)
 Wants=network-online.target
 After=network-online.target
 
 [Service]
 WorkingDirectory=%E/shadowsocks-uri-generator
-ExecStart=/usr/bin/ss-uri-gen-chatbot-telegram
+ExecStart=/usr/bin/ss-uri-gen-chatbot-telegram-long-polling
 
 [Install]
 WantedBy=default.target

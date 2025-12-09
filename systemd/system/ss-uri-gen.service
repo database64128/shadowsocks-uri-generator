@@ -1,0 +1,11 @@
+[Unit]
+Description=Shadowsocks URI Generator
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+WorkingDirectory=/etc/shadowsocks-uri-generator
+ExecStart=/usr/bin/ss-uri-gen service
+
+[Install]
+WantedBy=multi-user.target
