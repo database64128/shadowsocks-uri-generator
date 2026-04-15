@@ -59,39 +59,46 @@ public sealed partial class UpdateHandler(string botUsername, BotConfig botConfi
     [LoggerMessage(Level = LogLevel.Trace, Message = "Received update with ID {UpdateId}")]
     private partial void LogReceivedUpdate(int updateId);
 
-    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to handle update")]
-    private partial void LogFailedToHandleUpdate(Exception ex);
-
     private async Task HandleCommandAsync(ITelegramBotClient botClient, Message message, CancellationToken cancellationToken = default)
     {
         var (command, argument) = ChatHelper.ParseMessageIntoCommandAndArgument(message.Text, botUsername);
 
-        string result = command switch
+        try
         {
-            "start" => await AuthCommands.StartAsync(botClient, message, botConfig, cancellationToken),
-            "link" => await AuthCommands.LinkAsync(botClient, message, argument, botConfig, dataService, logger, cancellationToken),
-            "unlink" => await AuthCommands.UnlinkAsync(botClient, message, botConfig, logger, cancellationToken),
-            "list_users" => await ListCommands.ListUsersAsync(botClient, message, botConfig, dataService, cancellationToken),
-            "list_nodes" => await ListCommands.ListNodesAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "list_groups" => await ListCommands.ListGroupsAsync(botClient, message, botConfig, dataService, cancellationToken),
-            "list_group_members" => await ListCommands.ListGroupMembersAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "list_owned_nodes" => await ListCommands.ListOwnedNodesAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "list_owned_groups" => await ListCommands.ListOwnedGroupsAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "get_user_data_usage" => await DataCommands.GetUserDataUsageAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "get_user_data_limit" => await DataCommands.GetUserDataLimitAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "get_group_data_usage" => await DataCommands.GetGroupDataUsageAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "get_group_data_limit" => await DataCommands.GetGroupDataLimitAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "get_ss_links" => await CredCommands.GetSsLinksAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "get_online_config_links" => await CredCommands.GetOnlineConfigLinksAsync(botClient, message, botConfig, dataService, cancellationToken),
-            "get_credentials" => await CredCommands.GetCredentialsAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "report" => await ReportCommand.GenerateReportAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
-            "report_csv" => await ReportCommand.GenerateReportAsync(botClient, message, "csv", botConfig, dataService, cancellationToken),
-            _ => "unknown command",
-        };
+            string result = command switch
+            {
+                "start" => await AuthCommands.StartAsync(botClient, message, botConfig, cancellationToken),
+                "link" => await AuthCommands.LinkAsync(botClient, message, argument, botConfig, dataService, logger, cancellationToken),
+                "unlink" => await AuthCommands.UnlinkAsync(botClient, message, botConfig, logger, cancellationToken),
+                "list_users" => await ListCommands.ListUsersAsync(botClient, message, botConfig, dataService, cancellationToken),
+                "list_nodes" => await ListCommands.ListNodesAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "list_groups" => await ListCommands.ListGroupsAsync(botClient, message, botConfig, dataService, cancellationToken),
+                "list_group_members" => await ListCommands.ListGroupMembersAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "list_owned_nodes" => await ListCommands.ListOwnedNodesAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "list_owned_groups" => await ListCommands.ListOwnedGroupsAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "get_user_data_usage" => await DataCommands.GetUserDataUsageAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "get_user_data_limit" => await DataCommands.GetUserDataLimitAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "get_group_data_usage" => await DataCommands.GetGroupDataUsageAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "get_group_data_limit" => await DataCommands.GetGroupDataLimitAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "get_ss_links" => await CredCommands.GetSsLinksAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "get_online_config_links" => await CredCommands.GetOnlineConfigLinksAsync(botClient, message, botConfig, dataService, cancellationToken),
+                "get_credentials" => await CredCommands.GetCredentialsAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "report" => await ReportCommand.GenerateReportAsync(botClient, message, argument, botConfig, dataService, cancellationToken),
+                "report_csv" => await ReportCommand.GenerateReportAsync(botClient, message, "csv", botConfig, dataService, cancellationToken),
+                _ => "unknown command",
+            };
 
-        LogHandledCommand(message.Text, message.From, message.Chat.Type, message.Chat.Title, message.Chat.Id, result);
+            LogHandledCommand(message.Text, message.From, message.Chat.Type, message.Chat.Title, message.Chat.Id, result);
+        }
+        catch (Exception ex)
+        {
+            LogFailedToHandleCommand(message.Text, message.From, message.Chat.Type, message.Chat.Title, message.Chat.Id, ex);
+        }
     }
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Handled command {Text} from {From} in {ChatType} chat {ChatTitle} ({ChatId}): {Result}")]
     private partial void LogHandledCommand(string? text, User? from, ChatType chatType, string? chatTitle, long chatId, string result);
+
+    [LoggerMessage(Level = LogLevel.Warning, Message = "Failed to handle command {Text} from {From} in {ChatType} chat {ChatTitle} ({ChatId})")]
+    private partial void LogFailedToHandleCommand(string? text, User? from, ChatType chatType, string? chatTitle, long chatId, Exception ex);
 }
