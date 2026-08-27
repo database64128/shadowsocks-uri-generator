@@ -32,8 +32,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             bool allowPaidBroadcast = default,
             int? directMessagesTopicId = default,
             SuggestedPostParameters? suggestedPostParameters = default,
-            long? receiverUserId = default,
-            string? callbackQueryId = default,
+            EphemeralMessageParameters? ephemeralMessageParameters = default,
             CancellationToken cancellationToken = default)
             => text.Length switch
             {
@@ -53,8 +52,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                     allowPaidBroadcast,
                     directMessagesTopicId,
                     suggestedPostParameters,
-                    receiverUserId,
-                    callbackQueryId,
+                    ephemeralMessageParameters,
                     cancellationToken),
                 _ => botClient.SendTextFileFromStringAsync(
                     chatId,
@@ -77,8 +75,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                     allowPaidBroadcast: allowPaidBroadcast,
                     directMessagesTopicId: directMessagesTopicId,
                     suggestedPostParameters: suggestedPostParameters,
-                    receiverUserId: receiverUserId,
-                    callbackQueryId: callbackQueryId,
+                    ephemeralMessageParameters: ephemeralMessageParameters,
                     cancellationToken: cancellationToken)
             };
 
@@ -108,8 +105,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
             bool allowPaidBroadcast = default,
             int? directMessagesTopicId = default,
             SuggestedPostParameters? suggestedPostParameters = default,
-            long? receiverUserId = default,
-            string? callbackQueryId = default,
+            EphemeralMessageParameters? ephemeralMessageParameters = default,
             CancellationToken cancellationToken = default)
         {
             await using var stream = new MemoryStream(Encoding.UTF8.GetBytes(text));
@@ -131,8 +127,7 @@ namespace ShadowsocksUriGenerator.Chatbot.Telegram.Utils
                 allowPaidBroadcast,
                 directMessagesTopicId,
                 suggestedPostParameters,
-                receiverUserId,
-                callbackQueryId,
+                ephemeralMessageParameters,
                 cancellationToken);
         }
 
