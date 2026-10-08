@@ -1,24 +1,23 @@
 ﻿using ShadowsocksUriGenerator.Data;
-using Xunit;
 
 namespace ShadowsocksUriGenerator.Tests
 {
     public class UsersTests
     {
-        [Theory]
-        [InlineData(
+        [Test]
+        [Arguments(
             new string[] { "A", "B", "C", "D", "E", "F", "G", },
             new int[] { 0, 0, 0, 0, 0, 0, 0, },
             new string[] { "A", "C" },
             new bool[] { true, true, },
             new string[] { "B", "D", "E", "F", "G", })]
-        [InlineData(
+        [Arguments(
             new string[] { "A", "B", "C", "A", "B", "F", "G", },
             new int[] { 0, 0, 0, 1, 1, 0, 0, },
             new string[] { "A", "H" },
             new bool[] { true, false, },
             new string[] { "B", "C", "F", "G", })]
-        public void Add_Remove_Users(string[] usersToAdd, int[] expectedAddResults, string[] usersToRemove, bool[] expectedRemovalResults, string[] expectedRemainingUsers)
+        public async Task Add_Remove_Users(string[] usersToAdd, int[] expectedAddResults, string[] usersToRemove, bool[] expectedRemovalResults, string[] expectedRemainingUsers)
         {
             var users = new Users();
 
@@ -30,19 +29,19 @@ namespace ShadowsocksUriGenerator.Tests
                 removalResults[i] = users.RemoveUser(usersToRemove[i]);
             var remainingUsers = users.UserDict.Select(x => x.Key).ToArray();
 
-            Assert.Equal(expectedAddResults, addResults);
-            Assert.Equal(expectedRemovalResults, removalResults);
-            Assert.Equal(expectedRemainingUsers, remainingUsers);
+            await Assert.That(addResults).IsEquivalentTo(expectedAddResults);
+            await Assert.That(removalResults).IsEquivalentTo(expectedRemovalResults);
+            await Assert.That(remainingUsers).IsEquivalentTo(expectedRemainingUsers);
         }
 
-        [Theory]
-        [InlineData(new string[] { "A", }, "A", "B", null)]
-        [InlineData(new string[] { "B", }, "B", "C", null)]
-        [InlineData(new string[] { "A", }, "B", "C", "Error: user B doesn't exist.")]
-        [InlineData(new string[] { "C", }, "B", "D", "Error: user B doesn't exist.")]
-        [InlineData(new string[] { "A", }, "A", "A", "Error: the new username A is already used. Please choose another username.")]
-        [InlineData(new string[] { "A", "B", }, "B", "A", "Error: the new username A is already used. Please choose another username.")]
-        [InlineData(new string[] { "A", "B", }, "A", "B", "Error: the new username B is already used. Please choose another username.")]
+        [Test]
+        [Arguments(new string[] { "A", }, "A", "B", null)]
+        [Arguments(new string[] { "B", }, "B", "C", null)]
+        [Arguments(new string[] { "A", }, "B", "C", "Error: user B doesn't exist.")]
+        [Arguments(new string[] { "C", }, "B", "D", "Error: user B doesn't exist.")]
+        [Arguments(new string[] { "A", }, "A", "A", "Error: the new username A is already used. Please choose another username.")]
+        [Arguments(new string[] { "A", "B", }, "B", "A", "Error: the new username A is already used. Please choose another username.")]
+        [Arguments(new string[] { "A", "B", }, "A", "B", "Error: the new username B is already used. Please choose another username.")]
         public async Task Rename_User_ReturnsResult(string[] usersToAdd, string oldName, string newName, string? expectedResult)
         {
             var users = new Users();
@@ -54,19 +53,19 @@ namespace ShadowsocksUriGenerator.Tests
 
             var result = await users.RenameUser(oldName, newName, nodes);
 
-            Assert.Equal(expectedResult, result);
-            Assert.Equal(count, users.UserDict.Count);
+            await Assert.That(result).IsEqualTo(expectedResult);
+            await Assert.That(users.UserDict.Count).IsEqualTo(count);
 
             // Verify User object
             if (oldNameExists)
             {
                 var currentName = result is null ? newName : oldName;
-                Assert.Equal(user, users.UserDict[currentName]);
+                await Assert.That(users.UserDict[currentName]).IsEqualTo(user);
             }
         }
 
-        [Fact]
-        public void Add_Update_Remove_Group_ReturnsResult()
+        [Test]
+        public async Task Add_Update_Remove_Group_ReturnsResult()
         {
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
@@ -76,8 +75,8 @@ namespace ShadowsocksUriGenerator.Tests
             var users = new Users();
             users.AddUser("root");
             users.AddUser("http");
-            Assert.True(users.UserDict.ContainsKey("root"));
-            Assert.True(users.UserDict.ContainsKey("http"));
+            await Assert.That(users.UserDict.ContainsKey("root")).IsTrue();
+            await Assert.That(users.UserDict.ContainsKey("http")).IsTrue();
 
             // Add
             var successAdd = users.AddUserToGroup("root", "MyGroup");
@@ -92,42 +91,42 @@ namespace ShadowsocksUriGenerator.Tests
             var rootMyGroupWithPluginMembership = rootUserMemberships["MyGroupWithPlugin"];
             var httpMyGroupMembership = httpUserMemberships["MyGroup"];
 
-            Assert.Equal(0, successAdd);
-            Assert.Equal(0, anotherSuccessAdd);
-            Assert.Equal(0, yetAnotherSuccessAdd);
-            Assert.Equal(1, duplicateAdd);
-            Assert.Equal(-1, badUserAdd);
+            await Assert.That(successAdd).IsEqualTo(0);
+            await Assert.That(anotherSuccessAdd).IsEqualTo(0);
+            await Assert.That(yetAnotherSuccessAdd).IsEqualTo(0);
+            await Assert.That(duplicateAdd).IsEqualTo(1);
+            await Assert.That(badUserAdd).IsEqualTo(-1);
 
-            Assert.True(rootUserMemberships.ContainsKey("MyGroup"));
-            Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));
-            Assert.True(httpUserMemberships.ContainsKey("MyGroup"));
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroup")).IsTrue();
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroupWithPlugin")).IsTrue();
+            await Assert.That(httpUserMemberships.ContainsKey("MyGroup")).IsTrue();
 
             // Update
             users.UpdateCredentialGroupsForAllUsers("MyGroup", "MyGroupNew");
 
-            Assert.False(rootUserMemberships.ContainsKey("MyGroup"));
-            Assert.False(httpUserMemberships.ContainsKey("MyGroup"));
-            Assert.True(rootUserMemberships.ContainsKey("MyGroupNew"));
-            Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));
-            Assert.True(httpUserMemberships.ContainsKey("MyGroupNew"));
-            Assert.Equal(rootMyGroupMembership, rootUserMemberships["MyGroupNew"]);
-            Assert.Equal(rootMyGroupWithPluginMembership, rootUserMemberships["MyGroupWithPlugin"]);
-            Assert.Equal(httpMyGroupMembership, httpUserMemberships["MyGroupNew"]);
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroup")).IsFalse();
+            await Assert.That(httpUserMemberships.ContainsKey("MyGroup")).IsFalse();
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroupNew")).IsTrue();
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroupWithPlugin")).IsTrue();
+            await Assert.That(httpUserMemberships.ContainsKey("MyGroupNew")).IsTrue();
+            await Assert.That(rootUserMemberships["MyGroupNew"]).IsEqualTo(rootMyGroupMembership);
+            await Assert.That(rootUserMemberships["MyGroupWithPlugin"]).IsEqualTo(rootMyGroupWithPluginMembership);
+            await Assert.That(httpUserMemberships["MyGroupNew"]).IsEqualTo(httpMyGroupMembership);
 
             // Remove
             var successRemoval = users.RemoveUserFromGroup("root", "MyGroupWithPlugin");
             var nonExistingUserRemoval = users.RemoveUserFromGroup("nobody", "MyGroup");
             var nonExistingGroupRemoval = users.RemoveUserFromGroup("root", "MyGroupWithoutPlugin");
 
-            Assert.Equal(0, successRemoval);
-            Assert.Equal(-2, nonExistingUserRemoval);
-            Assert.Equal(1, nonExistingGroupRemoval);
+            await Assert.That(successRemoval).IsEqualTo(0);
+            await Assert.That(nonExistingUserRemoval).IsEqualTo(-2);
+            await Assert.That(nonExistingGroupRemoval).IsEqualTo(1);
 
-            Assert.Single(rootUserMemberships);
+            await Assert.That(rootUserMemberships).HasSingleItem();
         }
 
-        [Fact]
-        public void Add_Remove_Credential_ReturnsResult()
+        [Test]
+        public async Task Add_Remove_Credential_ReturnsResult()
         {
             using var nodes = new Nodes();
             nodes.AddGroup("MyGroup");
@@ -137,8 +136,8 @@ namespace ShadowsocksUriGenerator.Tests
             var users = new Users();
             users.AddUser("root");
             users.AddUser("http");
-            Assert.True(users.UserDict.ContainsKey("root"));
-            Assert.True(users.UserDict.ContainsKey("http"));
+            await Assert.That(users.UserDict.ContainsKey("root")).IsTrue();
+            await Assert.That(users.UserDict.ContainsKey("http")).IsTrue();
 
             // Add
             var successAdd = users.AddCredentialToUser("root", "MyGroup", "chacha20-ietf-poly1305", "ymghiR#75TNqpa");
@@ -150,38 +149,38 @@ namespace ShadowsocksUriGenerator.Tests
             var rootUserMemberships = users.UserDict["root"].Memberships;
             var httpUserMemberships = users.UserDict["http"].Memberships;
 
-            Assert.Equal(0, successAdd);
-            Assert.Equal(0, anotherSuccessAdd);
-            Assert.Equal(0, yetAnotherSuccessAdd);
-            Assert.Equal(2, duplicateAdd);
-            Assert.Equal(-1, badUserAdd);
+            await Assert.That(successAdd).IsEqualTo(0);
+            await Assert.That(anotherSuccessAdd).IsEqualTo(0);
+            await Assert.That(yetAnotherSuccessAdd).IsEqualTo(0);
+            await Assert.That(duplicateAdd).IsEqualTo(2);
+            await Assert.That(badUserAdd).IsEqualTo(-1);
 
-            Assert.True(rootUserMemberships.ContainsKey("MyGroup"));
-            Assert.True(rootUserMemberships.ContainsKey("MyGroupWithPlugin"));
-            Assert.True(httpUserMemberships.ContainsKey("MyGroup"));
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroup")).IsTrue();
+            await Assert.That(rootUserMemberships.ContainsKey("MyGroupWithPlugin")).IsTrue();
+            await Assert.That(httpUserMemberships.ContainsKey("MyGroup")).IsTrue();
 
-            Assert.True(rootUserMemberships["MyGroup"].HasCredential);
-            Assert.True(rootUserMemberships["MyGroupWithPlugin"].HasCredential);
-            Assert.True(httpUserMemberships["MyGroup"].HasCredential);
+            await Assert.That(rootUserMemberships["MyGroup"].HasCredential).IsTrue();
+            await Assert.That(rootUserMemberships["MyGroupWithPlugin"].HasCredential).IsTrue();
+            await Assert.That(httpUserMemberships["MyGroup"].HasCredential).IsTrue();
 
             // Remove
             var successRemoval = users.RemoveCredentialFromUser("root", "MyGroupWithPlugin");
             var nonExistingUserRemoval = users.RemoveCredentialFromUser("nobody", "MyGroupNew");
             var nonExistingGroupRemoval = users.RemoveCredentialFromUser("root", "MyGroupWithoutPlugin");
 
-            Assert.Equal(0, successRemoval);
-            Assert.Equal(-2, nonExistingUserRemoval);
-            Assert.Equal(-1, nonExistingGroupRemoval);
+            await Assert.That(successRemoval).IsEqualTo(0);
+            await Assert.That(nonExistingUserRemoval).IsEqualTo(-2);
+            await Assert.That(nonExistingGroupRemoval).IsEqualTo(-1);
 
-            Assert.True(rootUserMemberships["MyGroup"].HasCredential);
-            Assert.True(httpUserMemberships["MyGroup"].HasCredential);
-            Assert.False(rootUserMemberships["MyGroupWithPlugin"].HasCredential);
+            await Assert.That(rootUserMemberships["MyGroup"].HasCredential).IsTrue();
+            await Assert.That(httpUserMemberships["MyGroup"].HasCredential).IsTrue();
+            await Assert.That(rootUserMemberships["MyGroupWithPlugin"].HasCredential).IsFalse();
 
             // Remove from all
             users.RemoveCredentialsFromAllUsers(["MyGroup"]);
 
-            Assert.False(rootUserMemberships["MyGroup"].HasCredential);
-            Assert.False(httpUserMemberships["MyGroup"].HasCredential);
+            await Assert.That(rootUserMemberships["MyGroup"].HasCredential).IsFalse();
+            await Assert.That(httpUserMemberships["MyGroup"].HasCredential).IsFalse();
         }
     }
 }

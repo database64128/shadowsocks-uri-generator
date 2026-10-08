@@ -1,25 +1,24 @@
 using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
-using Xunit;
 
 namespace ShadowsocksUriGenerator.Tests
 {
     public class NodesTests
     {
-        [Theory]
-        [InlineData(
+        [Test]
+        [Arguments(
             new string[] { "A", "B", "C", "D", "E", "F", "G", },
             new int[] { 0, 0, 0, 0, 0, 0, 0, },
             new string[] { "A", "C" },
             new bool[] { true, true, },
             new string[] { "B", "D", "E", "F", "G", })]
-        [InlineData(
+        [Arguments(
             new string[] { "A", "B", "C", "A", "B", "F", "G", },
             new int[] { 0, 0, 0, 1, 1, 0, 0, },
             new string[] { "A", "H" },
             new bool[] { true, false, },
             new string[] { "B", "C", "F", "G", })]
-        public void Add_Remove_Groups(string[] groupsToAdd, int[] expectedAddResults, string[] groupsToRemove, bool[] expectedRemovalResults, string[] expectedRemainingGroups)
+        public async Task Add_Remove_Groups(string[] groupsToAdd, int[] expectedAddResults, string[] groupsToRemove, bool[] expectedRemovalResults, string[] expectedRemainingGroups)
         {
             using var nodes = new Nodes();
 
@@ -31,20 +30,20 @@ namespace ShadowsocksUriGenerator.Tests
                 removalResults[i] = nodes.RemoveGroup(groupsToRemove[i]);
             var remainingGroups = nodes.Groups.Select(x => x.Key).ToArray();
 
-            Assert.Equal(expectedAddResults, addResults);
-            Assert.Equal(expectedRemovalResults, removalResults);
-            Assert.Equal(expectedRemainingGroups, remainingGroups);
+            await Assert.That(addResults).IsEquivalentTo(expectedAddResults);
+            await Assert.That(removalResults).IsEquivalentTo(expectedRemovalResults);
+            await Assert.That(remainingGroups).IsEquivalentTo(expectedRemainingGroups);
         }
 
-        [Theory]
-        [InlineData(new string[] { "A", }, "A", "B", 0)]
-        [InlineData(new string[] { "B", }, "B", "C", 0)]
-        [InlineData(new string[] { "A", }, "B", "C", -1)]
-        [InlineData(new string[] { "C", }, "B", "D", -1)]
-        [InlineData(new string[] { "A", }, "A", "A", -2)]
-        [InlineData(new string[] { "A", "B", }, "B", "A", -2)]
-        [InlineData(new string[] { "A", "B", }, "A", "B", -2)]
-        public void Rename_Group_ReturnsResult(string[] groupsToAdd, string oldName, string newName, int expectedResult)
+        [Test]
+        [Arguments(new string[] { "A", }, "A", "B", 0)]
+        [Arguments(new string[] { "B", }, "B", "C", 0)]
+        [Arguments(new string[] { "A", }, "B", "C", -1)]
+        [Arguments(new string[] { "C", }, "B", "D", -1)]
+        [Arguments(new string[] { "A", }, "A", "A", -2)]
+        [Arguments(new string[] { "A", "B", }, "B", "A", -2)]
+        [Arguments(new string[] { "A", "B", }, "A", "B", -2)]
+        public async Task Rename_Group_ReturnsResult(string[] groupsToAdd, string oldName, string newName, int expectedResult)
         {
             using var nodes = new Nodes();
             foreach (var group in groupsToAdd)
@@ -54,18 +53,18 @@ namespace ShadowsocksUriGenerator.Tests
 
             var result = nodes.RenameGroup(oldName, newName);
 
-            Assert.Equal(expectedResult, result);
-            Assert.Equal(count, nodes.Groups.Count);
+            await Assert.That(result).IsEqualTo(expectedResult);
+            await Assert.That(nodes.Groups.Count).IsEqualTo(count);
             // Verify Group object
             if (oldNameExists)
             {
                 var currentName = result == 0 ? newName : oldName;
-                Assert.Equal(targetGroup, nodes.Groups[currentName]);
+                await Assert.That(nodes.Groups[currentName]).IsEqualTo(targetGroup);
             }
         }
 
-        [Fact]
-        public void Add_Remove_Node_ReturnsResult()
+        [Test]
+        public async Task Add_Remove_Node_ReturnsResult()
         {
             using var nodes = new Nodes();
             nodes.AddGroup("A");
@@ -79,59 +78,59 @@ namespace ShadowsocksUriGenerator.Tests
             var duplicateAdd = nodes.AddNodeToGroup("A", "MyNode0", "github.com", 443, null, null, null, null, null, [], []);
             var badGroupAdd = nodes.AddNodeToGroup("D", "MyNode0", "github.com", 443, null, null, null, null, null, [], []);
 
-            Assert.Equal(0, successAdd);
-            Assert.Equal(0, successAddWithPlugin);
-            Assert.Equal(0, successAddWithOwnerAndTags);
-            Assert.Equal(-1, duplicateAdd);
-            Assert.Equal(-2, badGroupAdd);
+            await Assert.That(successAdd).IsEqualTo(0);
+            await Assert.That(successAddWithPlugin).IsEqualTo(0);
+            await Assert.That(successAddWithOwnerAndTags).IsEqualTo(0);
+            await Assert.That(duplicateAdd).IsEqualTo(-1);
+            await Assert.That(badGroupAdd).IsEqualTo(-2);
 
-            Assert.True(nodes.Groups.ContainsKey("A"));
-            Assert.True(nodes.Groups["A"].NodeDict.ContainsKey("MyNode0"));
+            await Assert.That(nodes.Groups.ContainsKey("A")).IsTrue();
+            await Assert.That(nodes.Groups["A"].NodeDict.ContainsKey("MyNode0")).IsTrue();
             var addedNodeInA = nodes.Groups["A"].NodeDict["MyNode0"];
-            Assert.Equal("github.com", addedNodeInA.Host);
-            Assert.Equal(443, addedNodeInA.Port);
+            await Assert.That(addedNodeInA.Host).IsEqualTo("github.com");
+            await Assert.That(addedNodeInA.Port).IsEqualTo(443);
 
-            Assert.True(nodes.Groups.ContainsKey("B"));
-            Assert.True(nodes.Groups["B"].NodeDict.ContainsKey("MyNode1"));
+            await Assert.That(nodes.Groups.ContainsKey("B")).IsTrue();
+            await Assert.That(nodes.Groups["B"].NodeDict.ContainsKey("MyNode1")).IsTrue();
             var addedNodeInB = nodes.Groups["B"].NodeDict["MyNode1"];
-            Assert.Equal("github.com", addedNodeInB.Host);
-            Assert.Equal(443, addedNodeInB.Port);
-            Assert.Equal("v2ray-plugin", addedNodeInB.Plugin);
-            Assert.Equal("1.0", addedNodeInB.PluginVersion);
-            Assert.Equal("server;tls;host=github.com", addedNodeInB.PluginOpts);
-            Assert.Equal("-vvvvvv", addedNodeInB.PluginArguments);
+            await Assert.That(addedNodeInB.Host).IsEqualTo("github.com");
+            await Assert.That(addedNodeInB.Port).IsEqualTo(443);
+            await Assert.That(addedNodeInB.Plugin).IsEqualTo("v2ray-plugin");
+            await Assert.That(addedNodeInB.PluginVersion).IsEqualTo("1.0");
+            await Assert.That(addedNodeInB.PluginOpts).IsEqualTo("server;tls;host=github.com");
+            await Assert.That(addedNodeInB.PluginArguments).IsEqualTo("-vvvvvv");
 
-            Assert.True(nodes.Groups.ContainsKey("C"));
-            Assert.True(nodes.Groups["C"].NodeDict.ContainsKey("MyNode2"));
+            await Assert.That(nodes.Groups.ContainsKey("C")).IsTrue();
+            await Assert.That(nodes.Groups["C"].NodeDict.ContainsKey("MyNode2")).IsTrue();
             var addedNodeInC = nodes.Groups["C"].NodeDict["MyNode2"];
-            Assert.Equal("github.com", addedNodeInC.Host);
-            Assert.Equal(443, addedNodeInC.Port);
-            Assert.Equal("a2865866-5dc8-4eae-9772-692d10c274df", addedNodeInC.OwnerUuid);
-            Assert.Equal(new string[] { "direct", "US", }, addedNodeInC.Tags);
+            await Assert.That(addedNodeInC.Host).IsEqualTo("github.com");
+            await Assert.That(addedNodeInC.Port).IsEqualTo(443);
+            await Assert.That(addedNodeInC.OwnerUuid).IsEqualTo("a2865866-5dc8-4eae-9772-692d10c274df");
+            await Assert.That(addedNodeInC.Tags).IsEquivalentTo(["direct", "US",]);
 
             // Remove
             var successRemoval = nodes.RemoveNodeFromGroup("A", "MyNode0");
             var nonExistingNodeRemoval = nodes.RemoveNodeFromGroup("A", "MyNode1");
             var nonExistingGroupRemoval = nodes.RemoveNodeFromGroup("D", "MyNode0");
 
-            Assert.Equal(0, successRemoval);
-            Assert.Equal(-1, nonExistingNodeRemoval);
-            Assert.Equal(-2, nonExistingGroupRemoval);
-            Assert.True(nodes.Groups.ContainsKey("A"));
-            Assert.Empty(nodes.Groups["A"].NodeDict);
+            await Assert.That(successRemoval).IsEqualTo(0);
+            await Assert.That(nonExistingNodeRemoval).IsEqualTo(-1);
+            await Assert.That(nonExistingGroupRemoval).IsEqualTo(-2);
+            await Assert.That(nodes.Groups.ContainsKey("A")).IsTrue();
+            await Assert.That(nodes.Groups["A"].NodeDict).IsEmpty();
         }
 
-        [Theory]
-        [InlineData("MyGroup", new string[] { "A", }, "MyGroup", "A", "B", 0)]
-        [InlineData("MyGroup", new string[] { "B", }, "MyGroup", "B", "C", 0)]
-        [InlineData("MyGroup", new string[] { "A", }, "MyGroup", "B", "C", -1)]
-        [InlineData("MyGroup", new string[] { "C", }, "MyGroup", "B", "D", -1)]
-        [InlineData("MyGroup", new string[] { "A", }, "MyGroup", "A", "A", -2)]
-        [InlineData("MyGroup", new string[] { "A", "B", }, "MyGroup", "B", "A", -2)]
-        [InlineData("MyGroup", new string[] { "A", "B", }, "MyGroup", "A", "B", -2)]
-        [InlineData("MyGroup", new string[] { "A", }, "MyGroupWithPlugin", "A", "B", -3)]
-        [InlineData("MyGroup", new string[] { "A", }, "My", "A", "B", -3)]
-        public void Rename_Node_ReturnsResult(string addToGroup, string[] nodesToAdd, string group, string oldName, string newName, int expectedResult)
+        [Test]
+        [Arguments("MyGroup", new string[] { "A", }, "MyGroup", "A", "B", 0)]
+        [Arguments("MyGroup", new string[] { "B", }, "MyGroup", "B", "C", 0)]
+        [Arguments("MyGroup", new string[] { "A", }, "MyGroup", "B", "C", -1)]
+        [Arguments("MyGroup", new string[] { "C", }, "MyGroup", "B", "D", -1)]
+        [Arguments("MyGroup", new string[] { "A", }, "MyGroup", "A", "A", -2)]
+        [Arguments("MyGroup", new string[] { "A", "B", }, "MyGroup", "B", "A", -2)]
+        [Arguments("MyGroup", new string[] { "A", "B", }, "MyGroup", "A", "B", -2)]
+        [Arguments("MyGroup", new string[] { "A", }, "MyGroupWithPlugin", "A", "B", -3)]
+        [Arguments("MyGroup", new string[] { "A", }, "My", "A", "B", -3)]
+        public async Task Rename_Node_ReturnsResult(string addToGroup, string[] nodesToAdd, string group, string oldName, string newName, int expectedResult)
         {
             using var nodes = new Nodes();
             nodes.AddGroup(addToGroup);
@@ -143,18 +142,18 @@ namespace ShadowsocksUriGenerator.Tests
 
             var result = nodes.RenameNodeInGroup(group, oldName, newName);
 
-            Assert.Equal(expectedResult, result);
-            Assert.Equal(count, nodeDict.Count);
+            await Assert.That(result).IsEqualTo(expectedResult);
+            await Assert.That(nodeDict.Count).IsEqualTo(count);
             // Verify Node object
             if (oldNameExists)
             {
                 var currentName = result == 0 ? newName : oldName;
-                Assert.Equal(node, nodeDict[currentName]);
+                await Assert.That(nodeDict[currentName]).IsEqualTo(node);
             }
         }
 
-        [Fact]
-        public void Activate_Deactivate_Nodes_OnlineConfig_SSLinks()
+        [Test]
+        public async Task Activate_Deactivate_Nodes_OnlineConfig_SSLinks()
         {
             var settings = new Settings();
             using var nodes = new Nodes();
@@ -172,16 +171,16 @@ namespace ShadowsocksUriGenerator.Tests
             var userOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             var userSsLinks = user.Value.GetSSUris(users, nodes);
 
-            Assert.Equal(2, userOnlineConfigDict.First().Value.Servers.Count());
-            Assert.Equal(2, userSsLinks.Count());
+            await Assert.That(userOnlineConfigDict.First().Value.Servers.Count()).IsEqualTo(2);
+            await Assert.That(userSsLinks.Count()).IsEqualTo(2);
 
             // Deactivate first node
             nodes.Groups["MyGroup"].NodeDict["MyNode"].Deactivated = true;
             userOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             userSsLinks = user.Value.GetSSUris(users, nodes);
 
-            Assert.Single(userOnlineConfigDict.First().Value.Servers);
-            Assert.Single(userSsLinks);
+            await Assert.That(userOnlineConfigDict.First().Value.Servers).HasSingleItem();
+            await Assert.That(userSsLinks).HasSingleItem();
 
             // Reactivate first node and deactivate second node
             nodes.Groups["MyGroup"].NodeDict["MyNode"].Deactivated = false;
@@ -189,8 +188,8 @@ namespace ShadowsocksUriGenerator.Tests
             userOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
             userSsLinks = user.Value.GetSSUris(users, nodes);
 
-            Assert.Single(userOnlineConfigDict.First().Value.Servers);
-            Assert.Single(userSsLinks);
+            await Assert.That(userOnlineConfigDict.First().Value.Servers).HasSingleItem();
+            await Assert.That(userSsLinks).HasSingleItem();
         }
     }
 }

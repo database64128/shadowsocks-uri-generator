@@ -1,13 +1,12 @@
 ﻿using ShadowsocksUriGenerator.Data;
 using ShadowsocksUriGenerator.OnlineConfig;
-using Xunit;
 
 namespace ShadowsocksUriGenerator.Tests
 {
     public class OnlineConfigTests
     {
-        [Fact]
-        public void Generate_OnlineConfig_Properties()
+        [Test]
+        public async Task Generate_OnlineConfig_Properties()
         {
             var settings = new Settings();
 
@@ -32,145 +31,145 @@ namespace ShadowsocksUriGenerator.Tests
             var userPerGroupOnlineConfigDict = SIP008StaticGen.GenerateForUser(user, users, nodes, settings);
 
             // userSingleOnlineConfigDict
-            Assert.Single(userSingleOnlineConfigDict);
+            await Assert.That(userSingleOnlineConfigDict).HasSingleItem();
             var userSingleOnlineConfig = userPerGroupOnlineConfigDict[user.Value.Uuid];
 
             // userSingleOnlineConfig
-            Assert.Equal(1, userSingleOnlineConfig.Version);
-            Assert.Equal("root", userSingleOnlineConfig.Username);
-            Assert.Equal(user.Value.Uuid, userSingleOnlineConfig.Id);
-            Assert.Null(userSingleOnlineConfig.BytesUsed);
-            Assert.Null(userSingleOnlineConfig.BytesRemaining);
-            Assert.Equal(2, userSingleOnlineConfig.Servers.Count());
+            await Assert.That(userSingleOnlineConfig.Version).IsEqualTo(1);
+            await Assert.That(userSingleOnlineConfig.Username).IsEqualTo("root");
+            await Assert.That(userSingleOnlineConfig.Id).IsEqualTo(user.Value.Uuid);
+            await Assert.That(userSingleOnlineConfig.BytesUsed).IsNull();
+            await Assert.That(userSingleOnlineConfig.BytesRemaining).IsNull();
+            await Assert.That(userSingleOnlineConfig.Servers.Count()).IsEqualTo(2);
 
             using var userSingleOnlineConfigEnumerator = userSingleOnlineConfig.Servers.GetEnumerator();
 
             userSingleOnlineConfigEnumerator.MoveNext();
             var singleServer = userSingleOnlineConfigEnumerator.Current;
-            Assert.Equal(myNode.Uuid, singleServer.Id);
-            Assert.Equal("MyNode", singleServer.Name);
-            Assert.Equal("github.com", singleServer.Host);
-            Assert.Equal(443, singleServer.Port);
-            Assert.Equal("chacha20-ietf-poly1305", singleServer.Method);
-            Assert.Equal("ymghiR#75TNqpa", singleServer.Password);
-            Assert.Null(singleServer.PluginName);
-            Assert.Null(singleServer.PluginVersion);
-            Assert.Null(singleServer.PluginOptions);
-            Assert.Null(singleServer.PluginArguments);
-            Assert.Equal("MyGroup", singleServer.Group);
-            Assert.Null(singleServer.Owner);
-            Assert.Null(singleServer.Tags);
+            await Assert.That(singleServer.Id).IsEqualTo(myNode.Uuid);
+            await Assert.That(singleServer.Name).IsEqualTo("MyNode");
+            await Assert.That(singleServer.Host).IsEqualTo("github.com");
+            await Assert.That(singleServer.Port).IsEqualTo(443);
+            await Assert.That(singleServer.Method).IsEqualTo("chacha20-ietf-poly1305");
+            await Assert.That(singleServer.Password).IsEqualTo("ymghiR#75TNqpa");
+            await Assert.That(singleServer.PluginName).IsNull();
+            await Assert.That(singleServer.PluginVersion).IsNull();
+            await Assert.That(singleServer.PluginOptions).IsNull();
+            await Assert.That(singleServer.PluginArguments).IsNull();
+            await Assert.That(singleServer.Group).IsEqualTo("MyGroup");
+            await Assert.That(singleServer.Owner).IsNull();
+            await Assert.That(singleServer.Tags).IsNull();
 
             userSingleOnlineConfigEnumerator.MoveNext();
             var singleServerWithPlugin = userSingleOnlineConfigEnumerator.Current;
-            Assert.Equal(myNodeWithPlugin.Uuid, singleServerWithPlugin.Id);
-            Assert.Equal("MyNodeWithPlugin", singleServerWithPlugin.Name);
-            Assert.Equal("github.com", singleServerWithPlugin.Host);
-            Assert.Equal(443, singleServerWithPlugin.Port);
-            Assert.Equal("aes-256-gcm", singleServerWithPlugin.Method);
-            Assert.Equal("wLhN2STZ", singleServerWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", singleServerWithPlugin.PluginName);
-            Assert.Equal("1.0", singleServerWithPlugin.PluginVersion);
-            Assert.Equal("server;tls;host=github.com", singleServerWithPlugin.PluginOptions);
-            Assert.Equal("-vvvvvv", singleServerWithPlugin.PluginArguments);
-            Assert.Equal("root", singleServerWithPlugin.Owner);
-            Assert.NotNull(singleServerWithPlugin.Tags);
-            Assert.Single(singleServerWithPlugin.Tags, "test");
+            await Assert.That(singleServerWithPlugin.Id).IsEqualTo(myNodeWithPlugin.Uuid);
+            await Assert.That(singleServerWithPlugin.Name).IsEqualTo("MyNodeWithPlugin");
+            await Assert.That(singleServerWithPlugin.Host).IsEqualTo("github.com");
+            await Assert.That(singleServerWithPlugin.Port).IsEqualTo(443);
+            await Assert.That(singleServerWithPlugin.Method).IsEqualTo("aes-256-gcm");
+            await Assert.That(singleServerWithPlugin.Password).IsEqualTo("wLhN2STZ");
+            await Assert.That(singleServerWithPlugin.PluginName).IsEqualTo("v2ray-plugin");
+            await Assert.That(singleServerWithPlugin.PluginVersion).IsEqualTo("1.0");
+            await Assert.That(singleServerWithPlugin.PluginOptions).IsEqualTo("server;tls;host=github.com");
+            await Assert.That(singleServerWithPlugin.PluginArguments).IsEqualTo("-vvvvvv");
+            await Assert.That(singleServerWithPlugin.Owner).IsEqualTo("root");
+            await Assert.That(singleServerWithPlugin.Tags).IsNotNull();
+            await Assert.That(singleServerWithPlugin.Tags).HasSingleItem();
 
             // userPerGroupOnlineConfigDict
-            Assert.Equal(3, userPerGroupOnlineConfigDict.Count);
+            await Assert.That(userPerGroupOnlineConfigDict.Count).IsEqualTo(3);
             var userOnlineConfig = userPerGroupOnlineConfigDict[user.Value.Uuid];
             var userMyGroupOnlineConfig = userPerGroupOnlineConfigDict[$"{user.Value.Uuid}/MyGroup"];
             var userMyGroupWithPluginOnlineConfig = userPerGroupOnlineConfigDict[$"{user.Value.Uuid}/MyGroupWithPlugin"];
 
             // userOnlineConfig
-            Assert.Equal(1, userOnlineConfig.Version);
-            Assert.Equal("root", userOnlineConfig.Username);
-            Assert.Equal(user.Value.Uuid, userOnlineConfig.Id);
-            Assert.Null(userOnlineConfig.BytesUsed);
-            Assert.Null(userOnlineConfig.BytesRemaining);
-            Assert.Equal(2, userOnlineConfig.Servers.Count());
+            await Assert.That(userOnlineConfig.Version).IsEqualTo(1);
+            await Assert.That(userOnlineConfig.Username).IsEqualTo("root");
+            await Assert.That(userOnlineConfig.Id).IsEqualTo(user.Value.Uuid);
+            await Assert.That(userOnlineConfig.BytesUsed).IsNull();
+            await Assert.That(userOnlineConfig.BytesRemaining).IsNull();
+            await Assert.That(userOnlineConfig.Servers.Count()).IsEqualTo(2);
 
             using var userOnlineConfigEnumerator = userOnlineConfig.Servers.GetEnumerator();
 
             userOnlineConfigEnumerator.MoveNext();
             var server = userOnlineConfigEnumerator.Current;
-            Assert.Equal(myNode.Uuid, server.Id);
-            Assert.Equal("MyNode", server.Name);
-            Assert.Equal("github.com", server.Host);
-            Assert.Equal(443, server.Port);
-            Assert.Equal("chacha20-ietf-poly1305", server.Method);
-            Assert.Equal("ymghiR#75TNqpa", server.Password);
-            Assert.Null(server.PluginName);
-            Assert.Null(server.PluginVersion);
-            Assert.Null(server.PluginOptions);
-            Assert.Null(server.PluginArguments);
-            Assert.Equal("MyGroup", server.Group);
-            Assert.Null(server.Owner);
-            Assert.Null(server.Tags);
+            await Assert.That(server.Id).IsEqualTo(myNode.Uuid);
+            await Assert.That(server.Name).IsEqualTo("MyNode");
+            await Assert.That(server.Host).IsEqualTo("github.com");
+            await Assert.That(server.Port).IsEqualTo(443);
+            await Assert.That(server.Method).IsEqualTo("chacha20-ietf-poly1305");
+            await Assert.That(server.Password).IsEqualTo("ymghiR#75TNqpa");
+            await Assert.That(server.PluginName).IsNull();
+            await Assert.That(server.PluginVersion).IsNull();
+            await Assert.That(server.PluginOptions).IsNull();
+            await Assert.That(server.PluginArguments).IsNull();
+            await Assert.That(server.Group).IsEqualTo("MyGroup");
+            await Assert.That(server.Owner).IsNull();
+            await Assert.That(server.Tags).IsNull();
 
             userOnlineConfigEnumerator.MoveNext();
             var serverWithPlugin = userOnlineConfigEnumerator.Current;
-            Assert.Equal(myNodeWithPlugin.Uuid, serverWithPlugin.Id);
-            Assert.Equal("MyNodeWithPlugin", serverWithPlugin.Name);
-            Assert.Equal("github.com", serverWithPlugin.Host);
-            Assert.Equal(443, serverWithPlugin.Port);
-            Assert.Equal("aes-256-gcm", serverWithPlugin.Method);
-            Assert.Equal("wLhN2STZ", serverWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", serverWithPlugin.PluginName);
-            Assert.Equal("1.0", serverWithPlugin.PluginVersion);
-            Assert.Equal("server;tls;host=github.com", serverWithPlugin.PluginOptions);
-            Assert.Equal("-vvvvvv", serverWithPlugin.PluginArguments);
-            Assert.Equal("root", serverWithPlugin.Owner);
-            Assert.NotNull(serverWithPlugin.Tags);
-            Assert.Single(serverWithPlugin.Tags, "test");
+            await Assert.That(serverWithPlugin.Id).IsEqualTo(myNodeWithPlugin.Uuid);
+            await Assert.That(serverWithPlugin.Name).IsEqualTo("MyNodeWithPlugin");
+            await Assert.That(serverWithPlugin.Host).IsEqualTo("github.com");
+            await Assert.That(serverWithPlugin.Port).IsEqualTo(443);
+            await Assert.That(serverWithPlugin.Method).IsEqualTo("aes-256-gcm");
+            await Assert.That(serverWithPlugin.Password).IsEqualTo("wLhN2STZ");
+            await Assert.That(serverWithPlugin.PluginName).IsEqualTo("v2ray-plugin");
+            await Assert.That(serverWithPlugin.PluginVersion).IsEqualTo("1.0");
+            await Assert.That(serverWithPlugin.PluginOptions).IsEqualTo("server;tls;host=github.com");
+            await Assert.That(serverWithPlugin.PluginArguments).IsEqualTo("-vvvvvv");
+            await Assert.That(serverWithPlugin.Owner).IsEqualTo("root");
+            await Assert.That(serverWithPlugin.Tags).IsNotNull();
+            await Assert.That(serverWithPlugin.Tags).HasSingleItem();
 
             // userMyGroupOnlineConfig
-            Assert.Equal(1, userMyGroupOnlineConfig.Version);
-            Assert.Equal("root", userMyGroupOnlineConfig.Username);
-            Assert.Equal(user.Value.Uuid, userMyGroupOnlineConfig.Id);
-            Assert.Null(userMyGroupOnlineConfig.BytesUsed);
-            Assert.Null(userMyGroupOnlineConfig.BytesRemaining);
-            Assert.Single(userMyGroupOnlineConfig.Servers);
+            await Assert.That(userMyGroupOnlineConfig.Version).IsEqualTo(1);
+            await Assert.That(userMyGroupOnlineConfig.Username).IsEqualTo("root");
+            await Assert.That(userMyGroupOnlineConfig.Id).IsEqualTo(user.Value.Uuid);
+            await Assert.That(userMyGroupOnlineConfig.BytesUsed).IsNull();
+            await Assert.That(userMyGroupOnlineConfig.BytesRemaining).IsNull();
+            await Assert.That(userMyGroupOnlineConfig.Servers).HasSingleItem();
 
             var serverMyGroup = userMyGroupOnlineConfig.Servers.Single();
-            Assert.Equal(myNode.Uuid, serverMyGroup.Id);
-            Assert.Equal("MyNode", serverMyGroup.Name);
-            Assert.Equal("github.com", serverMyGroup.Host);
-            Assert.Equal(443, serverMyGroup.Port);
-            Assert.Equal("chacha20-ietf-poly1305", serverMyGroup.Method);
-            Assert.Equal("ymghiR#75TNqpa", serverMyGroup.Password);
-            Assert.Null(serverMyGroup.PluginName);
-            Assert.Null(serverMyGroup.PluginVersion);
-            Assert.Null(serverMyGroup.PluginOptions);
-            Assert.Null(serverMyGroup.PluginArguments);
-            Assert.Equal("MyGroup", serverMyGroup.Group);
-            Assert.Null(serverMyGroup.Owner);
-            Assert.Null(serverMyGroup.Tags);
+            await Assert.That(serverMyGroup.Id).IsEqualTo(myNode.Uuid);
+            await Assert.That(serverMyGroup.Name).IsEqualTo("MyNode");
+            await Assert.That(serverMyGroup.Host).IsEqualTo("github.com");
+            await Assert.That(serverMyGroup.Port).IsEqualTo(443);
+            await Assert.That(serverMyGroup.Method).IsEqualTo("chacha20-ietf-poly1305");
+            await Assert.That(serverMyGroup.Password).IsEqualTo("ymghiR#75TNqpa");
+            await Assert.That(serverMyGroup.PluginName).IsNull();
+            await Assert.That(serverMyGroup.PluginVersion).IsNull();
+            await Assert.That(serverMyGroup.PluginOptions).IsNull();
+            await Assert.That(serverMyGroup.PluginArguments).IsNull();
+            await Assert.That(serverMyGroup.Group).IsEqualTo("MyGroup");
+            await Assert.That(serverMyGroup.Owner).IsNull();
+            await Assert.That(serverMyGroup.Tags).IsNull();
 
             // userMyGroupWithPluginOnlineConfig
-            Assert.Equal(1, userMyGroupWithPluginOnlineConfig.Version);
-            Assert.Equal("root", userMyGroupWithPluginOnlineConfig.Username);
-            Assert.True(Guid.TryParse(userMyGroupWithPluginOnlineConfig.Id, out _));
-            Assert.Single(userMyGroupWithPluginOnlineConfig.Servers);
+            await Assert.That(userMyGroupWithPluginOnlineConfig.Version).IsEqualTo(1);
+            await Assert.That(userMyGroupWithPluginOnlineConfig.Username).IsEqualTo("root");
+            await Assert.That(Guid.TryParse(userMyGroupWithPluginOnlineConfig.Id, out _)).IsTrue();
+            await Assert.That(userMyGroupWithPluginOnlineConfig.Servers).HasSingleItem();
 
             var serverMyGroupWithPlugin = userMyGroupWithPluginOnlineConfig.Servers.Single();
-            Assert.Equal(myNodeWithPlugin.Uuid, serverMyGroupWithPlugin.Id);
-            Assert.Equal("MyNodeWithPlugin", serverMyGroupWithPlugin.Name);
-            Assert.Equal("github.com", serverMyGroupWithPlugin.Host);
-            Assert.Equal(443, serverMyGroupWithPlugin.Port);
-            Assert.Equal("aes-256-gcm", serverMyGroupWithPlugin.Method);
-            Assert.Equal("wLhN2STZ", serverMyGroupWithPlugin.Password);
-            Assert.Equal("v2ray-plugin", serverMyGroupWithPlugin.PluginName);
-            Assert.Equal("1.0", serverMyGroupWithPlugin.PluginVersion);
-            Assert.Equal("server;tls;host=github.com", serverMyGroupWithPlugin.PluginOptions);
-            Assert.Equal("-vvvvvv", serverMyGroupWithPlugin.PluginArguments);
-            Assert.Equal("root", serverMyGroupWithPlugin.Owner);
-            Assert.NotNull(serverMyGroupWithPlugin.Tags);
-            Assert.Single(serverMyGroupWithPlugin.Tags, "test");
+            await Assert.That(serverMyGroupWithPlugin.Id).IsEqualTo(myNodeWithPlugin.Uuid);
+            await Assert.That(serverMyGroupWithPlugin.Name).IsEqualTo("MyNodeWithPlugin");
+            await Assert.That(serverMyGroupWithPlugin.Host).IsEqualTo("github.com");
+            await Assert.That(serverMyGroupWithPlugin.Port).IsEqualTo(443);
+            await Assert.That(serverMyGroupWithPlugin.Method).IsEqualTo("aes-256-gcm");
+            await Assert.That(serverMyGroupWithPlugin.Password).IsEqualTo("wLhN2STZ");
+            await Assert.That(serverMyGroupWithPlugin.PluginName).IsEqualTo("v2ray-plugin");
+            await Assert.That(serverMyGroupWithPlugin.PluginVersion).IsEqualTo("1.0");
+            await Assert.That(serverMyGroupWithPlugin.PluginOptions).IsEqualTo("server;tls;host=github.com");
+            await Assert.That(serverMyGroupWithPlugin.PluginArguments).IsEqualTo("-vvvvvv");
+            await Assert.That(serverMyGroupWithPlugin.Owner).IsEqualTo("root");
+            await Assert.That(serverMyGroupWithPlugin.Tags).IsNotNull();
+            await Assert.That(serverMyGroupWithPlugin.Tags).HasSingleItem();
         }
 
-        [Fact]
+        [Test]
         public async Task Save_Clean_OnlineConfig_ForAllUsers()
         {
             var settings = new Settings();
@@ -195,17 +194,17 @@ namespace ShadowsocksUriGenerator.Tests
             // Save
             var genResult = await SIP008StaticGen.GenerateAndSave(users, nodes, settings);
 
-            Assert.Null(genResult);
-            Assert.True(Directory.Exists(directory));
+            await Assert.That(genResult).IsNull();
+            await Assert.That(Directory.Exists(directory)).IsTrue();
             foreach (var user in users.UserDict.Values)
-                Assert.True(File.Exists($"{directory}/{user.Uuid}.json"));
+                await Assert.That(File.Exists($"{directory}/{user.Uuid}.json")).IsTrue();
 
             // Clean
             SIP008StaticGen.Remove(users, settings);
 
-            Assert.True(Directory.Exists(directory));
+            await Assert.That(Directory.Exists(directory)).IsTrue();
             foreach (var user in users.UserDict.Values)
-                Assert.False(File.Exists($"{directory}/{user.Uuid}.json"));
+                await Assert.That(File.Exists($"{directory}/{user.Uuid}.json")).IsFalse();
 
             // Delete working directory.
             Directory.Delete(directory);
@@ -215,39 +214,39 @@ namespace ShadowsocksUriGenerator.Tests
             // Save
             var genByGroupResult = await SIP008StaticGen.GenerateAndSave(users, nodes, settings);
 
-            Assert.Null(genByGroupResult);
-            Assert.True(Directory.Exists(directory));
+            await Assert.That(genByGroupResult).IsNull();
+            await Assert.That(Directory.Exists(directory)).IsTrue();
             foreach (var user in users.UserDict.Values)
-                Assert.True(File.Exists($"{directory}/{user.Uuid}.json"));
-            Assert.True(Directory.Exists($"{directory}/{rootUser.Uuid}"));
-            Assert.True(File.Exists($"{directory}/{rootUser.Uuid}/MyGroup.json"));
-            Assert.False(File.Exists($"{directory}/{rootUser.Uuid}/MyGroupWithPlugin.json"));
-            Assert.True(Directory.Exists($"{directory}/{httpUser.Uuid}"));
-            Assert.False(File.Exists($"{directory}/{httpUser.Uuid}/MyGroup.json"));
-            Assert.True(File.Exists($"{directory}/{httpUser.Uuid}/MyGroupWithPlugin.json"));
-            Assert.False(Directory.Exists($"{directory}/{nobodyUser.Uuid}"));
+                await Assert.That(File.Exists($"{directory}/{user.Uuid}.json")).IsTrue();
+            await Assert.That(Directory.Exists($"{directory}/{rootUser.Uuid}")).IsTrue();
+            await Assert.That(File.Exists($"{directory}/{rootUser.Uuid}/MyGroup.json")).IsTrue();
+            await Assert.That(File.Exists($"{directory}/{rootUser.Uuid}/MyGroupWithPlugin.json")).IsFalse();
+            await Assert.That(Directory.Exists($"{directory}/{httpUser.Uuid}")).IsTrue();
+            await Assert.That(File.Exists($"{directory}/{httpUser.Uuid}/MyGroup.json")).IsFalse();
+            await Assert.That(File.Exists($"{directory}/{httpUser.Uuid}/MyGroupWithPlugin.json")).IsTrue();
+            await Assert.That(Directory.Exists($"{directory}/{nobodyUser.Uuid}")).IsFalse();
 
             // Clean
             SIP008StaticGen.Remove(users, settings);
 
-            Assert.True(Directory.Exists(directory));
+            await Assert.That(Directory.Exists(directory)).IsTrue();
             foreach (var user in users.UserDict.Values)
-                Assert.False(File.Exists($"{directory}/{user.Uuid}.json"));
-            Assert.False(Directory.Exists($"{directory}/{rootUser.Uuid}"));
-            Assert.False(Directory.Exists($"{directory}/{httpUser.Uuid}"));
-            Assert.False(Directory.Exists($"{directory}/{nobodyUser.Uuid}"));
+                await Assert.That(File.Exists($"{directory}/{user.Uuid}.json")).IsFalse();
+            await Assert.That(Directory.Exists($"{directory}/{rootUser.Uuid}")).IsFalse();
+            await Assert.That(Directory.Exists($"{directory}/{httpUser.Uuid}")).IsFalse();
+            await Assert.That(Directory.Exists($"{directory}/{nobodyUser.Uuid}")).IsFalse();
 
             // Delete working directory.
             Directory.Delete(directory);
         }
 
-        [Theory]
-        [InlineData(null, "root")]
-        [InlineData(null, "http", "nobody")]
-        [InlineData(null, "root", "http", "nobody")]
-        [InlineData("Error: user whoever doesn't exist.", "whoever")]
-        [InlineData("Error: user whoever doesn't exist.", "whoever", "nobody")]
-        [InlineData("Error: user whoever doesn't exist.", "nobody", "whoever", "http")]
+        [Test]
+        [Arguments(null, "root")]
+        [Arguments(null, "http", "nobody")]
+        [Arguments(null, "root", "http", "nobody")]
+        [Arguments("Error: user whoever doesn't exist.", "whoever")]
+        [Arguments("Error: user whoever doesn't exist.", "whoever", "nobody")]
+        [Arguments("Error: user whoever doesn't exist.", "nobody", "whoever", "http")]
         public async Task Save_Clean_OnlineConfig_ForSpecifiedUsers(string? expectedResult, params string[] selectedUsernames)
         {
             var settings = new Settings();
@@ -266,13 +265,13 @@ namespace ShadowsocksUriGenerator.Tests
             // Save
             var genResult = await SIP008StaticGen.GenerateAndSave(users, nodes, settings, default, selectedUsernames);
 
-            Assert.Equal(expectedResult, genResult);
+            await Assert.That(genResult).IsEqualTo(expectedResult);
             if (expectedResult is null)
             {
-                Assert.True(Directory.Exists(directory));
+                await Assert.That(Directory.Exists(directory)).IsTrue();
                 var expectedFileCount = selectedUsernames.Length;
                 var fileCount = Directory.GetFiles(directory).Length;
-                Assert.Equal(expectedFileCount, fileCount);
+                await Assert.That(fileCount).IsEqualTo(expectedFileCount);
             }
 
             // Clean
@@ -280,10 +279,10 @@ namespace ShadowsocksUriGenerator.Tests
 
             if (expectedResult is null)
             {
-                Assert.True(Directory.Exists(directory));
+                await Assert.That(Directory.Exists(directory)).IsTrue();
                 var expectedFileCount = selectedUsernames.Length - 1;
                 var fileCount = Directory.GetFiles(directory).Length;
-                Assert.Equal(expectedFileCount, fileCount);
+                await Assert.That(fileCount).IsEqualTo(expectedFileCount);
             }
 
             // Delete working directory.
