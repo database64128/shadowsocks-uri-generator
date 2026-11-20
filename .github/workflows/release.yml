@@ -23,7 +23,7 @@ jobs:
       - name: Setup dotnet
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: '10'
+          dotnet-version: '11'
 
       - name: Restore dependencies
         run: dotnet restore
